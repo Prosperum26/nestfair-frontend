@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { Toaster } from 'sonner';
 import { queryClient } from '@/lib/query-client.ts';
+import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
@@ -9,6 +10,8 @@ import { GuestRoute, ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
 
 const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/onboarding" replace /> },
+  // Backend chuyển về đây sau Google OAuth (không đặt trong GuestRoute để còn hiện lỗi).
+  { path: '/auth/callback', element: <AuthCallbackPage /> },
   {
     element: <GuestRoute />,
     children: [

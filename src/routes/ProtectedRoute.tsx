@@ -1,18 +1,6 @@
-import { LoaderCircle } from 'lucide-react';
 import { Navigate, Outlet, useLocation } from 'react-router';
-import { Logo } from '@/components/ui/Logo.tsx';
+import { SessionLoader } from '@/components/SessionLoader.tsx';
 import { useAuthStore } from '@/stores/auth-store.ts';
-
-/** Màn chờ trong lúc khôi phục phiên (gọi /auth/refresh khi mở app). */
-function SessionLoader() {
-  return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4 bg-paper" role="status">
-      <Logo />
-      <LoaderCircle className="size-5 animate-spin text-ink-2" aria-hidden />
-      <span className="sr-only">Đang tải phiên đăng nhập</span>
-    </div>
-  );
-}
 
 /** Chỉ cho vào khi đã đăng nhập; chưa thì về /login và nhớ trang định vào. */
 export function ProtectedRoute() {

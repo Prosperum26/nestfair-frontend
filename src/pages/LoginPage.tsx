@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLocation } from 'react-router';
 import { toast } from 'sonner';
@@ -11,7 +12,8 @@ import { Input } from '@/components/ui/Input.tsx';
 import { PasswordInput } from '@/components/ui/PasswordInput.tsx';
 import { AuthHeading, AuthLayout } from '@/features/auth/components/AuthLayout.tsx';
 import { GoogleButton } from '@/features/auth/components/GoogleButton.tsx';
-import { useLogin } from '@/features/auth/hooks.ts';
+import { GOOGLE_LOGIN_URL } from '@/features/auth/api.ts';
+import { useAuthConfig, useLogin } from '@/features/auth/hooks.ts';
 import { type LoginFormValues, loginSchema } from '@/features/auth/schemas.ts';
 import { ApiError } from '@/lib/api.ts';
 
@@ -27,6 +29,8 @@ export function LoginPage() {
     defaultValues: { email: '', password: '', rememberMe: true },
   });
   const login = useLogin();
+  const authConfig = useAuthConfig();
+  const [redirecting, setRedirecting] = useState(false);
   // 401 hiện ngay trên form; lỗi khác (mất mạng, 500) đi qua toast.
   const credentialsError =
     login.error instanceof ApiError && login.error.statusCode === 401
@@ -108,11 +112,21 @@ export function LoginPage() {
         </Button>
       </form>
 
-      <div className="my-7">
-        <Divider label="hoặc" />
-      </div>
-      {/* Bước 7: chỉ hiện khi backend bật Google OAuth. */}
-      <GoogleButton onClick={() => toast('Đăng nhập bằng Google sẽ sớm có.')} />
+      {/* Chỉ hiện khi backend đã cấu hình GOOGLE_CLIENT_ID + SECRET. */}
+      {authConfig.data?.googleEnabled && (
+        <>
+          <div className="my-7">
+            <Divider label="hoặc" />
+          </div>
+          <GoogleButton
+            loading={redirecting}
+            onClick={() => {
+              setRedirecting(true);
+              window.location.assign(GOOGLE_LOGIN_URL);
+            }}
+          />
+        </>
+      )}
 
       <p className="mt-8 text-center text-sm text-ink-2">
         Chưa có tài khoản?{' '}

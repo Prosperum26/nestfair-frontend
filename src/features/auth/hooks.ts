@@ -1,7 +1,17 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { useAuthStore } from '@/stores/auth-store.ts';
 import { authApi, type LoginInput, type RegisterInput } from './api.ts';
+
+/** Phương thức đăng nhập backend đang bật. Lỗi thì coi như tắt Google. */
+export function useAuthConfig() {
+  return useQuery({
+    queryKey: ['auth', 'config'],
+    queryFn: authApi.config,
+    staleTime: Infinity,
+    retry: false,
+  });
+}
 
 export function useRegister() {
   const setSession = useAuthStore((s) => s.setSession);

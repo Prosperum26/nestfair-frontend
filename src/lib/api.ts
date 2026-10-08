@@ -1,7 +1,11 @@
 import type { AuthResponse } from '@/features/auth/types.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
-export const API_BASE = '/api/v1';
+/**
+ * Dev: để trống, Vite proxy /api sang backend (cùng origin, cookie không vướng CORS).
+ * Production: VITE_API_URL = origin backend (vd. https://nestfair-api.onrender.com).
+ */
+export const API_BASE = `${import.meta.env.VITE_API_URL ?? ''}/api/v1`;
 
 export class ApiError extends Error {
   constructor(
