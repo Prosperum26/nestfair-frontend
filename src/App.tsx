@@ -22,7 +22,17 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          unstyled: true,
+          // Design.md 2.3: toast nền ink, bóng đặc 3/3 màu hl.
+          classNames: {
+            toast:
+              'flex w-[356px] max-w-[calc(100vw-32px)] items-center gap-3 rounded-btn bg-ink px-4 py-3 text-sm text-white shadow-toast',
+          },
+        }}
+      />
     </QueryClientProvider>
   );
 }
