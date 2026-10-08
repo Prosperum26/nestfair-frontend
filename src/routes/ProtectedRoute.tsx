@@ -14,7 +14,7 @@ export function ProtectedRoute() {
 }
 
 /**
- * /login, /register: đã đăng nhập (kể cả ngay sau khi submit thành công) thì chuyển vào app,
+ * /login, /register: đã đăng nhập (kể cả ngay sau khi submit thành công) thì chuyển vào app ("/" tự chọn Tổng quan hoặc Onboarding),
  * về đúng trang định vào trước đó nếu có.
  */
 export function GuestRoute() {
@@ -23,7 +23,7 @@ export function GuestRoute() {
   if (status === 'loading') return <SessionLoader />;
   if (status === 'authenticated') {
     const from = (location.state as { from?: string } | null)?.from;
-    return <Navigate to={from ?? '/onboarding'} replace />;
+    return <Navigate to={from ?? '/'} replace />;
   }
   return <Outlet />;
 }

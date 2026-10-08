@@ -19,7 +19,7 @@ export function AuthCallbackPage() {
   const errorCode = params.get('error');
 
   if (!errorCode && status === 'loading') return <SessionLoader label="Đang hoàn tất đăng nhập Google" />;
-  if (!errorCode && status === 'authenticated') return <Navigate to="/onboarding" replace />;
+  if (!errorCode && status === 'authenticated') return <Navigate to="/" replace />;
 
   const message = ERRORS[errorCode ?? ''] ?? ERRORS.google_failed;
   return (

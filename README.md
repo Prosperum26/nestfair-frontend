@@ -29,13 +29,31 @@ src/
 ├── main.tsx              khôi phục phiên (POST /auth/refresh) một lần rồi render
 ├── App.tsx               router + QueryClient + Toaster
 ├── index.css             token Design.md trong @theme (màu, font, cỡ chữ, bo góc, bóng)
-├── components/ui/        Button, Field, Input, PasswordInput, Checkbox, Divider, Logo, Avatar, Receipt, Stamp
+├── components/ui/        Button, Field, Input, Checkbox, CodeInput, SegmentedControl, IconTile, IconButton,
+│                         Menu, EmptyState, PageHeader, Avatar, Receipt, Stamp, GridPaper; tones.ts (cặp màu)
+├── components/layout/    AppShell (top nav desktop, top bar + tab bar mobile), HouseSwitcher, UserMenu, nav.ts
 ├── features/<module>/    api.ts, hooks.ts (TanStack Query), schemas.ts (Zod), components/
-├── lib/                  api.ts (fetch + tự refresh khi 401), format.ts (formatVnd), cn.ts
-├── stores/               Zustand (auth-store: access token chỉ trong bộ nhớ)
-├── routes/               ProtectedRoute, GuestRoute
+├── lib/                  api.ts (fetch + tự refresh khi 401), format.ts (formatVnd), date.ts, cn.ts
+├── stores/               Zustand: auth-store (access token chỉ trong bộ nhớ), house-store (nhà đang chọn)
+├── routes/               ProtectedRoute, GuestRoute, RequireHouse, HomeRedirect
 └── pages/                một file mỗi màn
 ```
+
+## Luồng điều hướng
+
+`/login` · `/register` → `/` (tự chọn) → chưa có nhà: `/onboarding` → tạo nhà: `/onboarding/invite/:houseId` → `/dashboard`.
+Các màn trong nhà (`/dashboard`, `/chores`, `/expenses`, `/payments`, `/members`, `/assistant`, `/listing`, `/profile`) nằm trong `RequireHouse` + `AppShell`.
+
+## Làm một module mới (vd. Việc nhà)
+
+1. Tạo `src/features/chores/` (api.ts, hooks.ts, components/) và `src/pages/ChoresPage.tsx`.
+2. Lấy nhà đang xem bằng `useCurrentHouse()` (`features/houses/hooks.ts`), gọi API theo `house.id`, và đưa `house.id` vào `queryKey` để đổi nhà là tải lại:
+   ```ts
+   const { house } = useCurrentHouse();
+   useQuery({ queryKey: ['chores', house!.id], queryFn: () => api(`/houses/${house!.id}/chores`) });
+   ```
+3. Trong `App.tsx`, thay `<ComingSoonPage … />` của route `/chores` bằng `<ChoresPage />`.
+4. Danh sách luôn có đủ 3 trạng thái: loading (skeleton), trống (`EmptyState`), lỗi.
 
 ## Quy ước
 

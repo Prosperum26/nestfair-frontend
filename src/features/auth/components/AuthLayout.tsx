@@ -1,26 +1,14 @@
 import { Scale, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import { Avatar, type AvatarTone } from '@/components/ui/Avatar.tsx';
+import { Avatar } from '@/components/ui/Avatar.tsx';
+import type { AvatarTone } from '@/components/ui/tones.ts';
+import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { Logo } from '@/components/ui/Logo.tsx';
 import { LedgerRow, Receipt } from '@/components/ui/Receipt.tsx';
 import { Stamp } from '@/components/ui/Stamp.tsx';
 import { cn } from '@/lib/cn.ts';
 import { formatVnd } from '@/lib/format.ts';
-
-/** Lưới giấy kẻ ô 32px, nét ink-line opacity 0.45 (Design.md mục 3, Card tối). */
-function GridPaper() {
-  return (
-    <svg className="pointer-events-none absolute inset-0 size-full" aria-hidden>
-      <defs>
-        <pattern id="grid-paper" width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M32 0V32M0 32H32" className="fill-none stroke-ink-line" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#grid-paper)" opacity="0.45" />
-    </svg>
-  );
-}
 
 // Dữ liệu mẫu Design.md mục 7: tiền điện tháng 10 chia đều 4 người.
 const SPLIT: { name: string; tone: AvatarTone }[] = [
