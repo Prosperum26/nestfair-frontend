@@ -5,17 +5,22 @@ import { queryClient } from '@/lib/query-client.ts';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
-import { ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
+import { GuestRoute, ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
 
 const router = createBrowserRouter([
-  { path: '/', element: <Navigate to="/login" replace /> },
-  { path: '/login', element: <LoginPage /> },
-  { path: '/register', element: <RegisterPage /> },
+  { path: '/', element: <Navigate to="/onboarding" replace /> },
+  {
+    element: <GuestRoute />,
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
+    ],
+  },
   {
     element: <ProtectedRoute />,
     children: [{ path: '/onboarding', element: <OnboardingPage /> }],
   },
-  { path: '*', element: <Navigate to="/login" replace /> },
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);
 
 export function App() {
