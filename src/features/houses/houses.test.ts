@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { firstName, formatDayOverline, greeting } from '@/lib/date.ts';
+import { bankLabel } from '@/lib/banks.ts';
+import { daysLeft, firstName, formatDayOverline, greeting } from '@/lib/date.ts';
 import { pickCurrentHouse } from './current-house.ts';
 import { sanitizeInviteCode } from './invite-code.ts';
 import { createHouseSchema } from './schemas.ts';
@@ -71,5 +72,24 @@ describe('date helpers', () => {
 
   it('tên gọi là từ cuối', () => {
     expect(firstName('Trần Minh Hùng')).toBe('Hùng');
+  });
+
+  it('số ngày còn lại làm tròn lên, hết hạn thì 0', () => {
+    const now = new Date('2026-10-08T12:00:00Z');
+    expect(daysLeft('2026-10-14T13:00:00Z', now)).toBe(7);
+    expect(daysLeft('2026-10-14T11:00:00Z', now)).toBe(6);
+    expect(daysLeft('2026-10-08T11:00:00Z', now)).toBe(0);
+  });
+});
+
+describe('bankLabel', () => {
+  it.each([
+    ['970407', '0123', 'TCB ·0123'],
+    ['970436', '4456', 'VCB ·4456'],
+    ['999999', '1111', '999999 ·1111'],
+    [null, null, null],
+    ['970407', null, null],
+  ])('%s + %s -> %s', (bin, last4, expected) => {
+    expect(bankLabel(bin, last4)).toBe(expected);
   });
 });

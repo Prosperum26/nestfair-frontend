@@ -7,6 +7,7 @@ import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
 import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
+import { MembersPage } from '@/pages/MembersPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
@@ -68,16 +69,7 @@ const router = createBrowserRouter([
                   />
                 ),
               },
-              {
-                path: '/members',
-                element: (
-                  <ComingSoonPage
-                    overline="Nhà của bạn"
-                    title="Thành viên"
-                    description="Danh sách thành viên và mã mời."
-                  />
-                ),
-              },
+              { path: '/members', element: <MembersPage /> },
               {
                 path: '/assistant',
                 element: (

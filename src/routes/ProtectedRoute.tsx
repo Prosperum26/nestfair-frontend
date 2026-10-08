@@ -8,7 +8,8 @@ export function ProtectedRoute() {
   const location = useLocation();
   if (status === 'loading') return <SessionLoader />;
   if (status === 'anonymous') {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    // Giữ cả query (vd. link mời /onboarding?code=K7M2QZ) để đăng nhập xong quay lại đúng chỗ.
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }
   return <Outlet />;
 }

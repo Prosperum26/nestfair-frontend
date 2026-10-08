@@ -19,6 +19,9 @@ export interface HouseMember {
   userId: string;
   fullName: string;
   avatarUrl: string | null;
+  /** Mã BIN + 4 số cuối STK; backend không trả STK đầy đủ ở đây. */
+  bankBin: string | null;
+  bankAccountLast4: string | null;
   role: HouseRole;
   joinedAt: string;
 }

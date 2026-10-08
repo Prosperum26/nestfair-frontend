@@ -50,6 +50,15 @@ export function useCreateHouse() {
   });
 }
 
+/** Trưởng phòng làm mới mã mời: cập nhật cache chi tiết nhà bằng mã mới. */
+export function useRegenerateInviteCode(houseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => housesApi.regenerateInviteCode(houseId),
+    onSuccess: (house) => queryClient.setQueryData(houseKeys.detail(house.id), house),
+  });
+}
+
 export function useJoinHouse() {
   const enter = useEnterHouse();
   return useMutation({

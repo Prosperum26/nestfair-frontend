@@ -1,5 +1,6 @@
 import { ArrowRight, Info, KeyRound, TriangleAlert } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button.tsx';
 import { CodeInput } from '@/components/ui/CodeInput.tsx';
@@ -11,7 +12,9 @@ import type { HouseDetail } from '../types.ts';
 
 /** Thẻ "Vào nhà có sẵn" (preview 04): viền ink + bóng đặc 8/8, CTA accent. */
 export function JoinHouseCard({ onJoined }: { onJoined: (house: HouseDetail) => void }) {
-  const [code, setCode] = useState('');
+  // Mở từ link mời (/onboarding?code=K7M2QZ) thì điền sẵn mã.
+  const [params] = useSearchParams();
+  const [code, setCode] = useState(() => sanitizeInviteCode(params.get('code') ?? ''));
   const [error, setError] = useState<string | null>(null);
   const join = useJoinHouse();
 
