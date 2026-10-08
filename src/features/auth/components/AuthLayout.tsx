@@ -72,8 +72,6 @@ function BrandArt() {
   );
 }
 
-const MOBILE_QUOTE = '“Không ai phải nhắc ai trả tiền nữa.”';
-
 interface AuthLayoutProps {
   /** Câu trích lớn ở panel tối (desktop). */
   quote: string;
@@ -85,7 +83,8 @@ interface AuthLayoutProps {
 
 /**
  * Bố cục màn Đăng nhập / Đăng ký (preview 02, 03).
- * Desktop (lg+): panel tối trái + form giữa phần phải. Mobile: header tối 158px + form.
+ * Desktop (lg+): panel tối trái (cụm trích dẫn + hóa đơn căn giữa) + form giữa phần phải.
+ * Mobile: top bar tối 64px chỉ có logo + form.
  */
 export function AuthLayout({ quote, caption, formWidth = 400, children }: AuthLayoutProps) {
   return (
@@ -96,24 +95,22 @@ export function AuthLayout({ quote, caption, formWidth = 400, children }: AuthLa
         <Link to="/" className="relative mt-14 ml-14 self-start" aria-label="NestFair">
           <Logo tone="onInk" />
         </Link>
-        <div className="relative mt-auto px-14">
+        {/* Căn giữa theo chiều dọc phần còn lại dưới logo; pb bù chiều cao logo để cụm cân giữa panel. */}
+        <div className="relative my-auto px-14 pt-12 pb-[100px]">
           <p className="max-w-[460px] font-display text-dm text-white xl:text-dl">{quote}</p>
           <p className="mt-6 text-sm text-ink-on2">{caption}</p>
-          <div className="mt-9 -mb-6">
+          <div className="mt-9">
             <BrandArt />
           </div>
         </div>
       </aside>
 
-      {/* Header mobile */}
-      <header className="relative h-[158px] overflow-hidden bg-ink px-4 pt-4 lg:hidden">
+      {/* Top bar mobile h64: chỉ logo. */}
+      <header className="relative flex h-16 items-center overflow-hidden bg-ink px-4 lg:hidden">
         <GridPaper />
         <Link to="/" className="relative inline-flex" aria-label="NestFair">
           <Logo tone="onInk" size="sm" />
         </Link>
-        <p className="relative mt-4 max-w-[358px] font-display text-h1m text-white">
-          {MOBILE_QUOTE}
-        </p>
       </header>
 
       <main className="flex justify-center px-4 pt-8 pb-12 lg:items-center lg:px-10 lg:py-16">
