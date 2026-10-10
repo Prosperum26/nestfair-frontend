@@ -18,6 +18,10 @@ export function ShuffleDialog({
 }) {
   const shuffle = useShuffle(houseId);
   const week = weekKey.slice(-2);
+  const close = () => {
+    shuffle.reset();
+    onClose();
+  };
 
   const confirm = () =>
     shuffle.mutate(weekKey, {
@@ -27,20 +31,24 @@ export function ShuffleDialog({
             ? 'Lịch tuần này đã nới rào 3 tuần vì không đủ phương án để tránh lặp việc.'
             : `Đã xếp lại lịch tuần ${week}.`,
         );
-        onClose();
+        close();
       },
-      onError: (error) => toast(error.message),
     });
 
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={close}
       title={`Xếp lại lịch tuần ${week}?`}
       description="Các ca đã nộp ảnh hoặc đã được duyệt được giữ nguyên. Chỉ các ca còn Chờ làm được xếp lại, và không ai làm lại cùng một việc trong 3 tuần liền."
     >
+      {shuffle.isError && (
+        <p role="alert" className="mb-4 rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">
+          {shuffle.error.message}
+        </p>
+      )}
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" onClick={close}>
           Để sau
         </Button>
         <Button variant="accent" leftIcon={<Shuffle />} loading={shuffle.isPending} onClick={confirm}>

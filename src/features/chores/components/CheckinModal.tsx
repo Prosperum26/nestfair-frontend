@@ -65,7 +65,7 @@ function CheckinForm({
           toast('Đã gửi ảnh. Chờ bạn cùng phòng duyệt nhé.');
           onClose();
         },
-        onError: (e) => toast(e.message),
+        onError: (e) => setError(e.message),
       },
     );
   };

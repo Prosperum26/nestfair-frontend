@@ -35,6 +35,10 @@ export function ChoreFormModal({
     defaultValues: DEFAULTS,
   });
   const createChore = useCreateChore(houseId);
+  const close = () => {
+    createChore.reset();
+    onClose();
+  };
 
   // Mở lại modal luôn là form trống.
   useEffect(() => {
@@ -45,16 +49,15 @@ export function ChoreFormModal({
     createChore.mutate(values, {
       onSuccess: () => {
         toast(`Đã thêm việc "${values.title}". Việc mới sẽ vào lịch ở lần xếp tới.`);
-        onClose();
+        close();
       },
-      onError: (error) => toast(error.message),
     }),
   );
 
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={close}
       title="Việc mới"
       description="Đặt tên và độ nặng. Việc nặng được chia đều giữa các bạn theo từng tuần."
     >
@@ -84,8 +87,13 @@ export function ChoreFormModal({
           />
           <p className="text-cap text-ink-2">1 là nhẹ nhất, 5 là nặng nhất.</p>
         </div>
+        {createChore.isError && (
+          <p role="alert" className="rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">
+            {createChore.error.message}
+          </p>
+        )}
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={close}>
             Để sau
           </Button>
           <Button type="submit" variant="accent" loading={createChore.isPending}>

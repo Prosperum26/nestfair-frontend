@@ -25,12 +25,15 @@ function VerifyBody({
 }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
+  const [imageFailed, setImageFailed] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const verify = useVerify(houseId);
 
   const allowed = canVerify(assignment, meUserId);
   const trimmed = reason.trim();
 
-  const send = (decision: 'APPROVE' | 'REJECT') =>
+  const send = (decision: 'APPROVE' | 'REJECT') => {
+    setServerError(null);
     verify.mutate(
       { assignmentId: assignment.id, decision, reason: decision === 'REJECT' ? trimmed : undefined },
       {
@@ -38,9 +41,10 @@ function VerifyBody({
           toast(decision === 'APPROVE' ? 'Đã duyệt ca này.' : 'Đã yêu cầu làm lại.');
           onClose();
         },
-        onError: (e) => toast(e.message),
+        onError: (e) => setServerError(e.message),
       },
     );
+  };
 
   return (
     <>
@@ -54,15 +58,22 @@ function VerifyBody({
         <span>{assignment.assigneeName} đã gửi ảnh minh chứng</span>
       </div>
 
-      {assignment.proofImageUrl ? (
+      {assignment.proofImageUrl && !imageFailed ? (
         <img
           src={assignment.proofImageUrl}
           alt={`Ảnh minh chứng: ${assignment.choreTitle}`}
           referrerPolicy="no-referrer"
+          onError={() => setImageFailed(true)}
           className="mt-3 max-h-[320px] w-full rounded-card border border-line bg-paper-2 object-contain"
         />
       ) : (
-        <p className="mt-3 rounded-card bg-paper-2 px-3 py-6 text-center text-sm text-ink-2">Chưa có ảnh minh chứng.</p>
+        <p className="mt-3 rounded-card bg-paper-2 px-3 py-6 text-center text-sm text-ink-2">{assignment.proofImageUrl ? 'Không tải được ảnh minh chứng.' : 'Chưa có ảnh minh chứng.'}</p>
+      )}
+
+      {serverError && (
+        <p role="alert" className="mt-4 rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">
+          {serverError}
+        </p>
       )}
 
       {!allowed ? (
