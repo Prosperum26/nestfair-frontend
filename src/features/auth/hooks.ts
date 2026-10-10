@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+import { closeSocket } from '@/lib/socket.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 import { authApi, type LoginInput, type RegisterInput } from './api.ts';
 
@@ -38,6 +39,7 @@ export function useLogout() {
     mutationFn: () => authApi.logout(),
     onSettled: () => {
       clearSession();
+      closeSocket();
       queryClient.clear();
       navigate('/login', { replace: true });
     },

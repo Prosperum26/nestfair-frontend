@@ -15,6 +15,7 @@ import { VerifyModal } from '@/features/chores/components/VerifyModal.tsx';
 import { WeeklyCalendar } from '@/features/chores/components/WeeklyCalendar.tsx';
 import { useAssignments, useChores } from '@/features/chores/hooks.ts';
 import { canCheckin, canVerify } from '@/features/chores/permissions.ts';
+import { useChoresRealtime } from '@/features/chores/realtime.ts';
 import type { Assignment } from '@/features/chores/types.ts';
 import { type ChoresView, readView, writeView } from '@/features/chores/view-preference.ts';
 import { shiftWeek, weekKeyOf, weekRangeLabel } from '@/features/chores/week.ts';
@@ -51,6 +52,7 @@ export function ChoresPage() {
 
   const chores = useChores(house?.id);
   const assignments = useAssignments(house?.id, weekKey);
+  useChoresRealtime(house?.id);
   const memberCount = detail.data?.members.length ?? house?.memberCount;
   const isAdmin = house?.myRole === 'ADMIN';
   // Không xếp lại lịch của tuần đã qua (backend cũng từ chối).
