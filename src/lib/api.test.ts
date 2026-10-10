@@ -53,6 +53,25 @@ describe('api', () => {
     expect(calls[0].auth).toBe('Bearer old');
   });
 
+  it('gửi FormData nguyên bản, không ép Content-Type JSON (để trình duyệt tự đặt boundary)', async () => {
+    let sent: RequestInit | undefined;
+    mockFetch({
+      'POST /assignments/a1/checkin': [
+        (init) => {
+          sent = init;
+          return json(200, { ok: true });
+        },
+      ],
+    });
+    const body = new FormData();
+    body.append('photo', new Blob(['x'], { type: 'image/png' }), 'a.png');
+
+    await api('/assignments/a1/checkin', { method: 'POST', body });
+
+    expect(sent?.body).toBe(body);
+    expect((sent?.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+  });
+
   it('gặp 401 thì refresh rồi gọi lại với token mới', async () => {
     const calls = mockFetch({
       'GET /auth/me': [() => json(401, { message: 'Unauthorized' }), () => json(200, user)],

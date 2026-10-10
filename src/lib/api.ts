@@ -28,15 +28,17 @@ interface RequestOptions {
 
 async function send(path: string, { method = 'GET', body, auth = true }: RequestOptions) {
   const token = auth ? useAuthStore.getState().accessToken : null;
+  // FormData (upload ảnh): gửi nguyên bản, để trình duyệt tự đặt Content-Type kèm boundary.
+  const isForm = body instanceof FormData;
   try {
     return await fetch(`${API_BASE}${path}`, {
       method,
       credentials: 'include',
       headers: {
-        ...(body !== undefined && { 'Content-Type': 'application/json' }),
+        ...(body !== undefined && !isForm && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiError(0, NETWORK_ERROR);
