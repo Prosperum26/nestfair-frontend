@@ -56,6 +56,13 @@ export function weekDays(weekKey: string): WeekDay[] {
   });
 }
 
+/** "CN 11.10": thứ + ngày.tháng theo giờ VN của một hạn chót. */
+export function dueLabel(date: string | Date): string {
+  const key = dayKeyOf(date);
+  const label = LABELS[(new Date(`${key}T00:00:00Z`).getUTCDay() + 6) % 7];
+  return `${label} ${key.slice(8)}.${key.slice(5, 7)}`;
+}
+
 /** "TUẦN 41 · 05-11.10.2026"; tuần giữa hai tháng: "TUẦN 44 · 26.10-01.11.2026". */
 export function weekRangeLabel(weekKey: string): string {
   const days = weekDays(weekKey);

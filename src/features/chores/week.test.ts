@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { dayKeyOf, shiftWeek, weekDays, weekKeyOf, weekRangeLabel } from './week.ts';
+import { dayKeyOf, dueLabel, shiftWeek, weekDays, weekKeyOf, weekRangeLabel } from './week.ts';
+
+describe('dueLabel', () => {
+  it('thứ + dd.mm theo giờ VN', () => {
+    expect(dueLabel('2026-10-11T16:59:59.999Z')).toBe('CN 11.10');
+    expect(dueLabel('2026-10-07T05:00:00Z')).toBe('T4 07.10');
+  });
+});
 
 describe('weekKeyOf', () => {
   it('đúng ranh giới tuần theo giờ Việt Nam', () => {

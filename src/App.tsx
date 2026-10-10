@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import { AppShell } from '@/components/layout/AppShell.tsx';
 import { queryClient } from '@/lib/query-client.ts';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
+import { ChoresPage } from '@/pages/ChoresPage.tsx';
 import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
@@ -39,16 +40,7 @@ const router = createBrowserRouter([
             children: [
               { path: '/dashboard', element: <DashboardPage /> },
               // Module chưa làm: thay ComingSoonPage bằng trang thật khi bắt đầu module.
-              {
-                path: '/chores',
-                element: (
-                  <ComingSoonPage
-                    overline="Lịch trực"
-                    title="Việc nhà"
-                    description="Xoay vòng công bằng, check-in ảnh, đổi ca và Chợ ca."
-                  />
-                ),
-              },
+              { path: '/chores', element: <ChoresPage /> },
               {
                 path: '/expenses',
                 element: (
