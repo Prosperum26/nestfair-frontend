@@ -6,7 +6,8 @@ import { IconButton } from '@/components/ui/IconButton.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { SegmentedControl } from '@/components/ui/SegmentedControl.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
-import { AssignmentCard } from '@/features/chores/components/AssignmentCard.tsx';
+import { KanbanBoard } from '@/features/chores/components/KanbanBoard.tsx';
+import { WeeklyCalendar } from '@/features/chores/components/WeeklyCalendar.tsx';
 import { useAssignments, useChores } from '@/features/chores/hooks.ts';
 import { type ChoresView, readView, writeView } from '@/features/chores/view-preference.ts';
 import { shiftWeek, weekKeyOf, weekRangeLabel } from '@/features/chores/week.ts';
@@ -98,10 +99,12 @@ export function ChoresPage() {
           />
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {assignments.data.map((a) => (
-            <AssignmentCard key={a.id} assignment={a} isMine={a.assigneeUserId === me?.id} />
-          ))}
+        <div className="mt-6">
+          {view === 'calendar' ? (
+            <WeeklyCalendar assignments={assignments.data} weekKey={weekKey} meUserId={me?.id} />
+          ) : (
+            <KanbanBoard assignments={assignments.data} meUserId={me?.id} />
+          )}
         </div>
       )}
     </>
