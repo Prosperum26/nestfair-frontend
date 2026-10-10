@@ -19,7 +19,7 @@ export function PageHeader({
         <h1 className="mt-2 font-display text-h1m text-ink lg:text-h1">{title}</h1>
         {description && <p className="mt-2 text-sm text-ink-2">{description}</p>}
       </div>
-      {actions && <div className="flex shrink-0 gap-3">{actions}</div>}
+      {actions && <div className="flex shrink-0 flex-wrap gap-3">{actions}</div>}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight, RotateCw, TriangleAlert } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, ListChecks, Plus, RotateCw, Shuffle, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
@@ -6,7 +6,9 @@ import { IconButton } from '@/components/ui/IconButton.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { SegmentedControl } from '@/components/ui/SegmentedControl.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
+import { ChoreFormModal } from '@/features/chores/components/ChoreFormModal.tsx';
 import { KanbanBoard } from '@/features/chores/components/KanbanBoard.tsx';
+import { ShuffleDialog } from '@/features/chores/components/ShuffleDialog.tsx';
 import { WeeklyCalendar } from '@/features/chores/components/WeeklyCalendar.tsx';
 import { useAssignments, useChores } from '@/features/chores/hooks.ts';
 import { type ChoresView, readView, writeView } from '@/features/chores/view-preference.ts';
@@ -37,10 +39,15 @@ export function ChoresPage() {
   const thisWeek = weekKeyOf(new Date());
   const [weekKey, setWeekKey] = useState(thisWeek);
   const [view, setView] = useState<ChoresView>(readView);
+  const [choreFormOpen, setChoreFormOpen] = useState(false);
+  const [shuffleOpen, setShuffleOpen] = useState(false);
 
   const chores = useChores(house?.id);
   const assignments = useAssignments(house?.id, weekKey);
   const memberCount = detail.data?.members.length ?? house?.memberCount;
+  const isAdmin = house?.myRole === 'ADMIN';
+  // Không xếp lại lịch của tuần đã qua (backend cũng từ chối).
+  const canShuffle = isAdmin && weekKey >= thisWeek;
 
   const changeView = (next: ChoresView) => {
     setView(next);
@@ -54,7 +61,23 @@ export function ChoresPage() {
 
   return (
     <>
-      <PageHeader overline={weekRangeLabel(weekKey)} title="Việc nhà" description={description} />
+      <PageHeader
+        overline={weekRangeLabel(weekKey)}
+        title="Việc nhà"
+        description={description}
+        actions={
+          isAdmin && (
+            <>
+              <Button variant="secondary" leftIcon={<Shuffle />} disabled={!canShuffle} onClick={() => setShuffleOpen(true)}>
+                Random xếp lịch tuần
+              </Button>
+              <Button variant="accent" leftIcon={<Plus />} onClick={() => setChoreFormOpen(true)}>
+                Việc mới
+              </Button>
+            </>
+          )
+        }
+      />
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <SegmentedControl
@@ -91,12 +114,39 @@ export function ChoresPage() {
         </div>
       ) : assignments.data.length === 0 ? (
         <div className="mt-6 rounded-card border border-line bg-surface">
-          <EmptyState
-            icon={<CalendarDays />}
-            tone="yellow"
-            title="Tuần này chưa có lịch trực"
-            description="Lịch tuần mới được tạo tự động vào Chủ Nhật. Trưởng phòng cũng có thể xếp lịch ngay."
-          />
+          {chores.data?.length === 0 ? (
+            <EmptyState
+              icon={<ListChecks />}
+              tone="yellow"
+              title="Chưa có việc nào"
+              description={
+                isAdmin
+                  ? 'Thêm các việc định kỳ của nhà, rồi xếp lịch xoay vòng cho cả nhà.'
+                  : 'Trưởng phòng chưa thêm việc nào cho nhà.'
+              }
+              action={
+                isAdmin && (
+                  <Button variant="accent" leftIcon={<Plus />} onClick={() => setChoreFormOpen(true)}>
+                    Thêm việc đầu tiên
+                  </Button>
+                )
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={<CalendarDays />}
+              tone="yellow"
+              title="Tuần này chưa có lịch trực"
+              description="Lịch tuần mới được tạo tự động vào Chủ Nhật. Trưởng phòng cũng có thể xếp lịch ngay."
+              action={
+                canShuffle && (
+                  <Button variant="accent" leftIcon={<Shuffle />} onClick={() => setShuffleOpen(true)}>
+                    Xếp lịch tuần này
+                  </Button>
+                )
+              }
+            />
+          )}
         </div>
       ) : (
         <div className="mt-6">
@@ -106,6 +156,12 @@ export function ChoresPage() {
             <KanbanBoard assignments={assignments.data} meUserId={me?.id} />
           )}
         </div>
+      )}
+      {house && (
+        <>
+          <ChoreFormModal open={choreFormOpen} onClose={() => setChoreFormOpen(false)} houseId={house.id} />
+          <ShuffleDialog open={shuffleOpen} onClose={() => setShuffleOpen(false)} houseId={house.id} weekKey={weekKey} />
+        </>
       )}
     </>
   );
