@@ -6,15 +6,26 @@ import { Button } from '@/components/ui/Button.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
 import { Modal } from '@/components/ui/Modal.tsx';
 import { cn } from '@/lib/cn.ts';
-import { useCheckin } from '../hooks.ts';
-import { MAX_PROOF_BYTES, PROOF_ACCEPT, validateProofImage } from '../image-check.ts';
+import { isStateChanged, messageForError } from '../errors.ts';
+import { useAppeal, useCheckin } from '../hooks.ts';
+import { needsConversion, PROOF_ACCEPT, validateCompressed, validateProofImage } from '../image-check.ts';
+import { canAppeal } from '../permissions.ts';
 import type { Assignment } from '../types.ts';
 
-/** Nén ảnh xuống ~1MB để gửi nhanh; nén lỗi thì gửi ảnh gốc (vẫn bị kiểm tra 5MB). */
+type Phase = 'idle' | 'compressing' | 'sending';
+
+/** Nén ảnh xuống ~1MB. HEIC bắt buộc phải đổi sang JPEG được, nếu không thì báo lỗi; ảnh thường nén lỗi thì gửi ảnh gốc. */
 async function prepare(file: File): Promise<File> {
+  const convert = needsConversion(file.type);
   try {
-    return await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1600, useWebWorker: true });
-  } catch {
+    return await imageCompression(file, {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1600,
+      useWebWorker: true,
+      ...(convert ? { fileType: 'image/jpeg' } : {}),
+    });
+  } catch (e) {
+    if (convert) throw e;
     return file;
   }
 }
@@ -22,19 +33,24 @@ async function prepare(file: File): Promise<File> {
 function CheckinForm({
   assignment,
   houseId,
+  meUserId,
   onClose,
 }: {
   assignment: Assignment;
   houseId: string;
+  meUserId: string | undefined;
   onClose: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [preparing, setPreparing] = useState(false);
+  const [phase, setPhase] = useState<Phase>('idle');
   const inputRef = useRef<HTMLInputElement>(null);
   const checkin = useCheckin(houseId);
+  const appeal = useAppeal(houseId);
+  // Một khóa cho mỗi lần mở: retry mạng / bấm đúp không nộp hai lần.
+  const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
 
-  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  const preview = useMemo(() => (file && !needsConversion(file.type) ? URL.createObjectURL(file) : null), [file]);
   useEffect(
     () => () => {
       if (preview) URL.revokeObjectURL(preview);
@@ -49,33 +65,67 @@ function CheckinForm({
     setFile(problem ? null : picked);
   };
 
+  const fail = (e: unknown) => {
+    setPhase('idle');
+    if (isStateChanged(e)) {
+      toast(messageForError(e));
+      onClose();
+    } else setError(messageForError(e));
+  };
+
   const submit = async () => {
     if (!file) return;
-    setPreparing(true);
-    const photo = await prepare(file);
-    setPreparing(false);
-    if (photo.size > MAX_PROOF_BYTES) {
-      setError('Ảnh tối đa 5MB.');
+    setError(null);
+    setPhase('compressing');
+    let photo: File;
+    try {
+      photo = await prepare(file);
+    } catch {
+      setPhase('idle');
+      setError(validateCompressed({ type: file.type, size: file.size }) ?? 'Không xử lý được ảnh này, hãy chọn ảnh khác.');
       return;
     }
+    const problem = validateCompressed(photo);
+    if (problem) {
+      setPhase('idle');
+      setError(problem);
+      return;
+    }
+    setPhase('sending');
     checkin.mutate(
-      { assignmentId: assignment.id, photo, filename: file.name },
+      { assignmentId: assignment.id, photo, filename: file.name, idempotencyKey },
       {
-        onSuccess: () => {
-          toast('Đã gửi ảnh. Chờ bạn cùng phòng duyệt nhé.');
+        onSuccess: (res) => {
+          toast(res.verifyMode === 'SELF_ATTESTED' ? 'Đã ghi nhận hoàn thành.' : 'Đã gửi ảnh. Chờ bạn cùng phòng duyệt nhé.');
           onClose();
         },
-        onError: (e) => setError(e.message),
+        onError: fail,
       },
     );
   };
 
-  const busy = preparing || checkin.isPending;
+  const sendAppeal = () =>
+    appeal.mutate(assignment.id, {
+      onSuccess: () => {
+        toast('Đã gửi khiếu nại cho trưởng phòng.');
+        onClose();
+      },
+      onError: fail,
+    });
+
+  const busy = phase !== 'idle';
+  const label = phase === 'compressing' ? 'Đang nén ảnh…' : phase === 'sending' ? 'Đang gửi…' : 'Gửi để duyệt';
+  const retriesLeft = Math.max(0, 3 - assignment.rejectCount);
 
   return (
     <>
-      {assignment.status === 'REJECTED' && assignment.rejectReason && (
-        <p className="mb-4 rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">Lý do từ chối: {assignment.rejectReason}</p>
+      {assignment.status === 'REJECTED' && (
+        <div className="mb-4 rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">
+          {assignment.rejectReason && <p>Lý do từ chối: {assignment.rejectReason}</p>}
+          <p className="mt-1 text-cap">
+            Bạn còn <span className="font-mono">{retriesLeft}</span> lần nộp lại. Quá 3 lần ca sẽ chuyển cho trưởng phòng quyết định.
+          </p>
+        </div>
       )}
 
       <input
@@ -102,6 +152,8 @@ function CheckinForm({
       >
         {preview ? (
           <img src={preview} alt="Ảnh minh chứng đã chọn" className="max-h-[260px] w-full rounded-btn-sm object-contain" />
+        ) : file ? (
+          <span className="text-sm font-medium text-ink">Đã chọn ảnh HEIC: {file.name}</span>
         ) : (
           <>
             <IconTile icon={<Camera />} tone="hl" size={48} />
@@ -110,18 +162,24 @@ function CheckinForm({
           </>
         )}
       </button>
+      <p className="mt-2 text-cap text-ink-2">Nếu máy không mở camera, hãy chọn ảnh từ thư viện.</p>
       {error && (
-        <p role="alert" className="mt-2 text-cap text-tom">
+        <p role="alert" className="mt-2 rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">
           {error}
         </p>
       )}
 
       <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        {canAppeal(assignment, meUserId) && (
+          <Button variant="ghost" loading={appeal.isPending} disabled={busy} onClick={sendAppeal}>
+            Khiếu nại
+          </Button>
+        )}
         <Button variant="secondary" onClick={onClose} disabled={busy}>
           Để sau
         </Button>
         <Button leftIcon={<Send />} disabled={!file} loading={busy} onClick={() => void submit()}>
-          Gửi để duyệt
+          {label}
         </Button>
       </div>
     </>
@@ -132,10 +190,12 @@ function CheckinForm({
 export function CheckinModal({
   assignment,
   houseId,
+  meUserId,
   onClose,
 }: {
   assignment: Assignment | null;
   houseId: string;
+  meUserId: string | undefined;
   onClose: () => void;
 }) {
   return (
@@ -145,7 +205,7 @@ export function CheckinModal({
       title={assignment?.status === 'REJECTED' ? 'Làm lại và gửi ảnh' : 'Gửi ảnh minh chứng'}
       description={assignment && `${assignment.choreTitle}. Bạn cùng phòng sẽ xem ảnh rồi duyệt.`}
     >
-      {assignment && <CheckinForm key={assignment.id} assignment={assignment} houseId={houseId} onClose={onClose} />}
+      {assignment && <CheckinForm key={assignment.id} assignment={assignment} houseId={houseId} meUserId={meUserId} onClose={onClose} />}
     </Modal>
   );
 }
