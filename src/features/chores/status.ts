@@ -1,9 +1,9 @@
-import { CircleCheck, Clock, Image, RotateCcw, TriangleAlert, type LucideIcon } from 'lucide-react';
+import { Ban, CircleCheck, Clock, Image, RotateCcw, TriangleAlert, UserX, type LucideIcon } from 'lucide-react';
 import type { Tone } from '@/components/ui/tones.ts';
 import type { AssignmentStatus } from './types.ts';
 
 /** Thứ tự hiển thị khi cần liệt kê trạng thái. */
-export const STATUS_ORDER: AssignmentStatus[] = ['TODO', 'REJECTED', 'PENDING_VERIFY', 'DONE', 'MISSED'];
+export const STATUS_ORDER: AssignmentStatus[] = ['TODO', 'REJECTED', 'PENDING_VERIFY', 'DONE', 'MISSED', 'UNASSIGNED', 'CANCELLED'];
 
 const CHIPS: Record<AssignmentStatus, { label: string; tone: Tone; icon: LucideIcon }> = {
   TODO: { label: 'Chờ làm', tone: 'neutral', icon: Clock },
@@ -11,6 +11,8 @@ const CHIPS: Record<AssignmentStatus, { label: string; tone: Tone; icon: LucideI
   DONE: { label: 'Hoàn thành', tone: 'mint', icon: CircleCheck },
   MISSED: { label: 'Quá hạn', tone: 'tom', icon: TriangleAlert },
   REJECTED: { label: 'Làm lại', tone: 'tom', icon: RotateCcw },
+  CANCELLED: { label: 'Đã hủy', tone: 'neutral', icon: Ban },
+  UNASSIGNED: { label: 'Chưa có người', tone: 'yellow', icon: UserX },
 };
 
 /** Enum DB → chip UI (AGENTS.md mục 9). */

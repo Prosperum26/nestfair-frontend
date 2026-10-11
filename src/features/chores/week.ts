@@ -75,3 +75,14 @@ export function weekRangeLabel(weekKey: string): string {
       : `${first.day}.${first.month}-${last.day}.${last.month}.${year}`;
   return `TUẦN ${weekKey.slice(-2)} · ${range}`;
 }
+
+/** "21:00": giờ hạn theo giờ VN của một thời điểm. */
+export function dueTimeLabel(date: string | Date): string {
+  const vn = new Date(new Date(date).getTime() + VN_OFFSET_MS);
+  return `${pad(vn.getUTCHours())}:${pad(vn.getUTCMinutes())}`;
+}
+
+/** Thứ Hai của tuần ISO `weekKey` dạng "YYYY-MM-DD". */
+export function weekStartOfKey(weekKey: string): string {
+  return dayKeyOf(new Date(weekStart(weekKey)));
+}

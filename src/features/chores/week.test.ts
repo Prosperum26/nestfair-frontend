@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayKeyOf, dueLabel, shiftWeek, weekDays, weekKeyOf, weekRangeLabel } from './week.ts';
+import { dayKeyOf, dueLabel, dueTimeLabel, shiftWeek, weekDays, weekKeyOf, weekRangeLabel, weekStartOfKey } from './week.ts';
 
 describe('dueLabel', () => {
   it('thứ + dd.mm theo giờ VN', () => {
@@ -51,5 +51,21 @@ describe('weekRangeLabel', () => {
 
   it('tuần giữa hai tháng ghi cả hai tháng', () => {
     expect(weekRangeLabel('2026-W44')).toBe('TUẦN 44 · 26.10-01.11.2026');
+  });
+});
+
+describe('dueTimeLabel', () => {
+  it('giờ HH:mm theo giờ VN, không phụ thuộc múi giờ trình duyệt', () => {
+    expect(dueTimeLabel('2026-10-11T14:00:00.000Z')).toBe('21:00');
+    expect(dueTimeLabel('2026-10-11T16:59:00.000Z')).toBe('23:59');
+    expect(dueTimeLabel('2026-10-10T17:00:00.000Z')).toBe('00:00');
+  });
+});
+
+describe('weekStartOfKey', () => {
+  it('thứ Hai của tuần ISO, kể cả tuần 53', () => {
+    expect(weekStartOfKey('2026-W41')).toBe('2026-10-05');
+    expect(weekStartOfKey('2026-W53')).toBe('2026-12-28');
+    expect(weekStartOfKey('2027-W01')).toBe('2027-01-04');
   });
 });

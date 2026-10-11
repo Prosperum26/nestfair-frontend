@@ -11,6 +11,8 @@ export class ApiError extends Error {
   constructor(
     public readonly statusCode: number,
     message: string,
+    /** Mã lỗi máy đọc được (vd. PROOF_DUPLICATE) nếu backend có gửi. */
+    public readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -24,9 +26,11 @@ interface RequestOptions {
   body?: unknown;
   /** false: không gắn token, không tự refresh (dùng cho login/register/refresh). */
   auth?: boolean;
+  /** Header thêm (vd. Idempotency-Key). */
+  headers?: Record<string, string>;
 }
 
-async function send(path: string, { method = 'GET', body, auth = true }: RequestOptions) {
+async function send(path: string, { method = 'GET', body, auth = true, headers = {} }: RequestOptions) {
   const token = auth ? useAuthStore.getState().accessToken : null;
   // FormData (upload ảnh): gửi nguyên bản, để trình duyệt tự đặt Content-Type kèm boundary.
   const isForm = body instanceof FormData;
@@ -37,6 +41,7 @@ async function send(path: string, { method = 'GET', body, auth = true }: Request
       headers: {
         ...(body !== undefined && !isForm && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
+        ...headers,
       },
       body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
@@ -52,7 +57,7 @@ async function parse<T>(res: Response): Promise<T> {
     const message = Array.isArray(data?.message)
       ? data.message[0]
       : (data?.message ?? 'Có lỗi xảy ra, thử lại sau.');
-    throw new ApiError(res.status, message);
+    throw new ApiError(res.status, message, typeof data?.code === 'string' ? data.code : undefined);
   }
   return data as T;
 }
