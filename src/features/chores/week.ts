@@ -86,3 +86,8 @@ export function dueTimeLabel(date: string | Date): string {
 export function weekStartOfKey(weekKey: string): string {
   return dayKeyOf(new Date(weekStart(weekKey)));
 }
+
+/** "2026-10-12" → "12.10". */
+export function shortDate(ds: string): string {
+  return `${ds.slice(8, 10)}.${ds.slice(5, 7)}`;
+}

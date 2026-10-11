@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayKeyOf, dueLabel, dueTimeLabel, shiftWeek, weekDays, weekKeyOf, weekRangeLabel, weekStartOfKey } from './week.ts';
+import { dayKeyOf, dueLabel, dueTimeLabel, shiftWeek, weekDays, weekKeyOf, weekRangeLabel, weekStartOfKey, shortDate } from './week.ts';
 
 describe('dueLabel', () => {
   it('thứ + dd.mm theo giờ VN', () => {
@@ -67,5 +67,12 @@ describe('weekStartOfKey', () => {
     expect(weekStartOfKey('2026-W41')).toBe('2026-10-05');
     expect(weekStartOfKey('2026-W53')).toBe('2026-12-28');
     expect(weekStartOfKey('2027-W01')).toBe('2027-01-04');
+  });
+});
+
+describe('shortDate', () => {
+  it('"2026-10-12" → "12.10"', () => {
+    expect(shortDate('2026-10-12')).toBe('12.10');
+    expect(shortDate('2027-01-04')).toBe('04.01');
   });
 });
