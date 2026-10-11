@@ -148,13 +148,14 @@ export function CheckinForm({
         type="button"
         onClick={() => inputRef.current?.click()}
         className={cn(
-          'flex min-h-[200px] w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-card border-2 border-dashed bg-paper-2 p-4 text-center',
+          inline ? 'min-h-[120px]' : 'min-h-[200px]',
+          'flex w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-card border-2 border-dashed bg-paper-2 p-4 text-center',
           'focus-visible:outline-none focus-visible:shadow-focus',
           error ? 'border-tom' : 'border-line-2',
         )}
       >
         {preview ? (
-          <img src={preview} alt="Ảnh minh chứng đã chọn" className="max-h-[260px] w-full rounded-btn-sm object-contain" />
+          <img src={preview} alt="Ảnh minh chứng đã chọn" className={cn(inline ? 'max-h-[160px]' : 'max-h-[260px]', 'w-full rounded-btn-sm object-contain')} />
         ) : file ? (
           <span className="text-sm font-medium text-ink">Đã chọn ảnh HEIC: {file.name}</span>
         ) : (

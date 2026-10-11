@@ -118,6 +118,22 @@ export function ChoresPage() {
   };
   const waitingForMe = assignments.filter((a) => canVerify(a, me?.id));
 
+  const showToday = view === 'calendar' && weekKey === thisWeek && assignments.length > 0;
+  const waitingSection =
+    waitingForMe.length > 0 ? (
+      <section aria-label="Chờ bạn duyệt" className={showToday ? 'rounded-card border border-line bg-surface p-5' : undefined}>
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="font-display text-ct text-ink">Chờ bạn duyệt</h2>
+          <span className="font-mono text-cap text-ink-2">{waitingForMe.length}</span>
+        </div>
+        <div className={showToday ? 'grid gap-4' : 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'}>
+          {waitingForMe.map((a) => (
+            <AssignmentCard key={a.id} assignment={a} actions={renderActions(a)} />
+          ))}
+        </div>
+      </section>
+    ) : null;
+
   const description =
     chores.data && memberCount
       ? `${chores.data.length} việc định kỳ · xoay vòng ${memberCount} người · rào ${schedule?.fenceWeeksApplied ?? Math.min(3, memberCount)} tuần`
@@ -227,9 +243,10 @@ export function ChoresPage() {
           {view === 'calendar' ? (
             <div className="flex flex-col gap-6">
               <WeeklyCalendar assignments={assignments} weekKey={weekKey} meUserId={me?.id} onSelect={selectAssignment} renderActions={renderActions} />
-              {weekKey === thisWeek && house && (
-                <div className="order-first md:order-last">
+              {showToday && house && (
+                <div className="order-first grid items-start gap-6 md:order-last md:grid-cols-2">
                   <TodayPanel assignments={assignments} houseId={house.id} meUserId={me?.id} graceHours={graceHours} />
+                  {waitingSection}
                 </div>
               )}
             </div>
@@ -239,19 +256,7 @@ export function ChoresPage() {
         </div>
       )}
 
-      {waitingForMe.length > 0 && (
-        <section aria-label="Chờ bạn duyệt" className="mt-8">
-          <div className="mb-3 flex items-center gap-2">
-            <h2 className="font-display text-ct text-ink">Chờ bạn duyệt</h2>
-            <span className="font-mono text-cap text-ink-2">{waitingForMe.length}</span>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {waitingForMe.map((a) => (
-              <AssignmentCard key={a.id} assignment={a} actions={renderActions(a)} />
-            ))}
-          </div>
-        </section>
-      )}
+      {!showToday && waitingSection && <div className="mt-8">{waitingSection}</div>}
 
       {house && (
         <>

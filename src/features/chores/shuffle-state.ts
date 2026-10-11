@@ -26,7 +26,7 @@ export function shuffleState(p: {
 
   const left = MAX_REROLLS - schedule.rerollCount;
   if (schedule.status === 'LOCKED') {
-    return { kind: 'REROLL', label: 'Xáo lại lịch', enabled: false, tooltip: 'Đã khóa. Tuần này đã bắt đầu nên không xáo lại cả lịch được. Muốn đổi, dùng đổi ca hoặc can thiệp từng ca.' };
+    return { kind: 'REROLL', label: 'Xáo lại lịch', enabled: false, tooltip: 'Đã khóa do tuần này đã bắt đầu' };
   }
   if (hasActivity) {
     return { kind: 'REROLL', label: 'Xáo lại lịch', enabled: false, tooltip: 'Đã có ca được nộp hoặc duyệt nên không xáo lại cả lịch được.' };
