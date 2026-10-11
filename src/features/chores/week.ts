@@ -88,6 +88,11 @@ export function weekStartOfKey(weekKey: string): string {
 }
 
 /** "2026-10-12" → "12.10". */
+/** "2026-10-12" → "12/10/2026". */
+export function fullDate(ds: string): string {
+  return `${ds.slice(8, 10)}/${ds.slice(5, 7)}/${ds.slice(0, 4)}`;
+}
+
 export function shortDate(ds: string): string {
   return `${ds.slice(8, 10)}.${ds.slice(5, 7)}`;
 }

@@ -74,10 +74,18 @@ export function ShuffleControls({
         </Button>
       )}
       {action.kind === 'REROLL' && (
-        <span title={action.tooltip}>
+        <span className="group relative inline-flex">
           <Button variant="secondary" leftIcon={<Shuffle />} disabled={!action.enabled} onClick={() => setConfirmOpen(true)}>
             {action.label}
           </Button>
+          {!action.enabled && action.tooltip && (
+            <span
+              role="tooltip"
+              className="pointer-events-none absolute top-full right-0 z-20 mt-2 hidden w-64 rounded-btn-sm border border-ink bg-surface px-3 py-2 text-cap text-ink shadow-[3px_3px_0_var(--ink)] group-hover:block"
+            >
+              {action.tooltip}
+            </span>
+          )}
         </span>
       )}
 

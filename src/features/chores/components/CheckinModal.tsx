@@ -30,16 +30,19 @@ async function prepare(file: File): Promise<File> {
   }
 }
 
-function CheckinForm({
+export function CheckinForm({
   assignment,
   houseId,
   meUserId,
   onClose,
+  inline,
 }: {
   assignment: Assignment;
   houseId: string;
   meUserId: string | undefined;
   onClose: () => void;
+  /** Nhúng thẳng vào trang (không nằm trong hộp thoại): ẩn nút "Để sau". */
+  inline?: boolean;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -175,9 +178,11 @@ function CheckinForm({
             Khiếu nại
           </Button>
         )}
-        <Button variant="secondary" onClick={onClose} disabled={busy}>
-          Để sau
-        </Button>
+        {!inline && (
+          <Button variant="secondary" onClick={onClose} disabled={busy}>
+            Để sau
+          </Button>
+        )}
         <Button leftIcon={<Send />} disabled={!file} loading={busy} onClick={() => void submit()}>
           {label}
         </Button>

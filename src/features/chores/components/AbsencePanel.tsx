@@ -1,19 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Field } from '@/components/ui/Field.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
+import { DateInput } from '@/components/ui/DateInput.tsx';
 import { Input } from '@/components/ui/Input.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { useHouseDetail } from '@/features/houses/hooks.ts';
 import { messageForError } from '../errors.ts';
 import { useAbsences, useCreateAbsence, useDeleteAbsence } from '../hooks.ts';
 import { type AbsenceFormValues, absenceSchema } from '../schemas.ts';
-import { dayKeyOf, shortDate } from '../week.ts';
+import { dayKeyOf, fullDate } from '../week.ts';
 
 function AbsenceForm({ houseId, isAdmin }: { houseId: string; isAdmin: boolean }) {
   const detail = useHouseDetail(houseId);
@@ -22,6 +23,7 @@ function AbsenceForm({ houseId, isAdmin }: { houseId: string; isAdmin: boolean }
   const today = dayKeyOf(new Date());
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -64,10 +66,10 @@ function AbsenceForm({ houseId, isAdmin }: { houseId: string; isAdmin: boolean }
         </Field>
       )}
       <Field label="Từ ngày" htmlFor="absence-start" error={errors.startDate?.message}>
-        <Input id="absence-start" type="date" invalid={!!errors.startDate} {...register('startDate')} />
+        <Controller control={control} name="startDate" render={({ field }) => <DateInput id="absence-start" invalid={!!errors.startDate} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
       </Field>
       <Field label="Đến hết ngày" htmlFor="absence-end" error={errors.endDate?.message}>
-        <Input id="absence-end" type="date" invalid={!!errors.endDate} {...register('endDate')} />
+        <Controller control={control} name="endDate" render={({ field }) => <DateInput id="absence-end" invalid={!!errors.endDate} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
       </Field>
       <Field label="Lý do (không bắt buộc)" htmlFor="absence-reason" error={errors.reason?.message} className="sm:col-span-2">
         <Input id="absence-reason" placeholder="VD: Về quê" autoComplete="off" invalid={!!errors.reason} {...register('reason')} />
@@ -118,7 +120,7 @@ export function AbsencePanel({ houseId, isAdmin, meUserId }: { houseId: string; 
                   <p className="truncate text-sm font-semibold text-ink">{a.userName}</p>
                   <p className="text-cap text-ink-2">
                     <span className="font-mono">
-                      {shortDate(a.startDate)} → {shortDate(a.endDate)}
+                      {fullDate(a.startDate)} → {fullDate(a.endDate)}
                     </span>
                     {a.reason ? ` · ${a.reason}` : ''}
                   </p>

@@ -36,7 +36,6 @@ export function PreviewDialog({
       open={open}
       onClose={onClose}
       title={`Xem trước tuần ${weekKey.slice(-2)}`}
-      description="Chỉ để xem, chưa lưu gì. Mỗi lần xem là một lần xếp thử với seed mới."
       className="sm:max-w-[640px]"
     >
       {state.isPending ? (

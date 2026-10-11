@@ -1,18 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plane, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Field } from '@/components/ui/Field.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
+import { DateInput } from '@/components/ui/DateInput.tsx';
 import { Input } from '@/components/ui/Input.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { messageForError } from '../errors.ts';
 import { useBreaks, useCreateBreak, useDeleteBreak } from '../hooks.ts';
 import { type BreakFormValues, breakSchema } from '../schemas.ts';
-import { dayKeyOf, shortDate } from '../week.ts';
+import { dayKeyOf, fullDate } from '../week.ts';
 
 function BreakForm({ houseId }: { houseId: string }) {
   const create = useCreateBreak(houseId);
@@ -20,6 +21,7 @@ function BreakForm({ houseId }: { houseId: string }) {
   const today = dayKeyOf(new Date());
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -39,10 +41,10 @@ function BreakForm({ houseId }: { houseId: string }) {
   return (
     <form noValidate onSubmit={onSubmit} className="mt-4 grid gap-4 sm:grid-cols-2">
       <Field label="Từ ngày" htmlFor="break-start" error={errors.startDate?.message}>
-        <Input id="break-start" type="date" invalid={!!errors.startDate} {...register('startDate')} />
+        <Controller control={control} name="startDate" render={({ field }) => <DateInput id="break-start" invalid={!!errors.startDate} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
       </Field>
       <Field label="Đến hết ngày" htmlFor="break-end" error={errors.endDate?.message}>
-        <Input id="break-end" type="date" invalid={!!errors.endDate} {...register('endDate')} />
+        <Controller control={control} name="endDate" render={({ field }) => <DateInput id="break-end" invalid={!!errors.endDate} value={field.value} onChange={field.onChange} onBlur={field.onBlur} />} />
       </Field>
       <Field label="Lý do (không bắt buộc)" htmlFor="break-reason" error={errors.reason?.message} className="sm:col-span-2">
         <Input id="break-reason" placeholder="VD: Nghỉ Tết" autoComplete="off" invalid={!!errors.reason} {...register('reason')} />
@@ -91,7 +93,7 @@ export function BreakPanel({ houseId, isAdmin }: { houseId: string; isAdmin: boo
               <li key={b.id} className="flex items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-mono text-sm font-semibold text-ink">
-                    {shortDate(b.startDate)} → {shortDate(b.endDate)}
+                    {fullDate(b.startDate)} → {fullDate(b.endDate)}
                   </p>
                   {b.reason && <p className="text-cap text-ink-2">{b.reason}</p>}
                 </div>

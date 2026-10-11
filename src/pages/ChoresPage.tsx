@@ -13,6 +13,7 @@ import { CheckinModal } from '@/features/chores/components/CheckinModal.tsx';
 import { KanbanBoard } from '@/features/chores/components/KanbanBoard.tsx';
 import { OverrideModal } from '@/features/chores/components/OverrideModal.tsx';
 import { ScheduleBanner } from '@/features/chores/components/ScheduleBanner.tsx';
+import { TodayPanel } from '@/features/chores/components/TodayPanel.tsx';
 import { ShuffleControls } from '@/features/chores/components/ShuffleControls.tsx';
 import { VerifyModal } from '@/features/chores/components/VerifyModal.tsx';
 import { WeeklyCalendar } from '@/features/chores/components/WeeklyCalendar.tsx';
@@ -139,8 +140,8 @@ export function ChoresPage() {
                 inRange={inRange}
                 hasActivity={hasActivity}
               />
-              <Button variant={shuffle.kind === 'CREATE' ? 'secondary' : 'accent'} leftIcon={isAdmin ? <Plus /> : <Settings />} onClick={() => navigate('/settings')}>
-                {isAdmin ? 'Việc mới' : 'Vắng mặt'}
+              <Button variant={shuffle.kind === 'CREATE' ? 'secondary' : 'accent'} leftIcon={<Settings />} onClick={() => navigate('/settings')}>
+                Cài đặt việc nhà
               </Button>
             </>
           )
@@ -224,7 +225,14 @@ export function ChoresPage() {
       ) : (
         <div className="mt-6">
           {view === 'calendar' ? (
-            <WeeklyCalendar assignments={assignments} weekKey={weekKey} meUserId={me?.id} onSelect={selectAssignment} renderActions={renderActions} />
+            <div className="flex flex-col gap-6">
+              <WeeklyCalendar assignments={assignments} weekKey={weekKey} meUserId={me?.id} onSelect={selectAssignment} renderActions={renderActions} />
+              {weekKey === thisWeek && house && (
+                <div className="order-first md:order-last">
+                  <TodayPanel assignments={assignments} houseId={house.id} meUserId={me?.id} graceHours={graceHours} />
+                </div>
+              )}
+            </div>
           ) : (
             <KanbanBoard assignments={assignments} meUserId={me?.id} renderActions={renderActions} />
           )}

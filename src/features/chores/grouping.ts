@@ -1,3 +1,4 @@
+import { dayKeyOf } from './week.ts';
 import type { Assignment } from './types.ts';
 import { weekDays } from './week.ts';
 
@@ -77,4 +78,13 @@ export function prioritizeForMe(list: Assignment[], meUserId: string | undefined
     .map((a, i) => ({ a, i, r: rank(a) }))
     .sort((x, y) => x.r - y.r || x.i - y.i)
     .map((x) => x.a);
+}
+
+/** Các ca của người dùng trong ngày `today` (giờ VN), sắp theo hạn. Ca đã hủy / chưa giao không tính. */
+export function myShiftsToday(assignments: Assignment[], meUserId: string | undefined, today: Date): Assignment[] {
+  if (!meUserId) return [];
+  const key = dayKeyOf(today);
+  return assignments
+    .filter((a) => a.assigneeUserId === meUserId && a.status !== 'CANCELLED' && dayKeyOf(a.occurrenceDate) === key)
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
 }

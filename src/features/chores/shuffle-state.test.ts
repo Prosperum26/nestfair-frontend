@@ -51,7 +51,7 @@ describe('shuffleState', () => {
   it('tuần đã bắt đầu (LOCKED): vô hiệu, gợi ý dùng đổi ca / can thiệp từng ca', () => {
     const s = shuffleState({ ...base, schedule: meta({ status: 'LOCKED' }) });
     expect(s).toMatchObject({ kind: 'REROLL', enabled: false });
-    expect(s.kind === 'HIDDEN' ? '' : s.tooltip).toContain('đã khóa');
+    expect(s.kind === 'HIDDEN' ? '' : s.tooltip).toContain('Đã khóa');
   });
 
   it('đã có ca nộp/duyệt: vô hiệu kèm lý do', () => {

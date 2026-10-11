@@ -10,7 +10,7 @@ function isRealDate(d: string): boolean {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === d;
 }
 
-const dateField = z.string().refine(isRealDate, 'Chọn một ngày hợp lệ.');
+const dateField = z.string().refine(isRealDate, 'Nhập ngày đúng dạng dd/mm/yyyy.');
 const optionalText = z
   .string()
   .trim()
