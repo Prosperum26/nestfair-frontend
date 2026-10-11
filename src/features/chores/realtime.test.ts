@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { bindChoreRealtime, type SocketLike } from './realtime.ts';
+import { bindChoreRealtime, CHORE_EVENTS, createChangeHandler, type SocketLike } from './realtime.ts';
 
 /** Socket giả: lưu listener để test tự bắn sự kiện. */
 function fakeSocket(connected: boolean) {
@@ -46,17 +46,23 @@ describe('bindChoreRealtime', () => {
     expect(socket.emit).toHaveBeenCalledTimes(2);
   });
 
-  it('chỉ ba event chore:* làm tải lại dữ liệu', () => {
+  it('đủ 6 event việc nhà làm tải lại dữ liệu, event khác thì không', () => {
+    expect([...CHORE_EVENTS].sort()).toEqual([
+      'chore:cancelled',
+      'chore:missed',
+      'chore:reassigned',
+      'chore:shuffled',
+      'chore:submitted',
+      'chore:verified',
+    ]);
     const { socket, fire } = fakeSocket(true);
     const onChange = vi.fn();
     bindChoreRealtime(socket, 'h1', onChange);
-    fire('chore:submitted');
-    fire('chore:verified');
-    fire('chore:shuffled');
-    expect(onChange).toHaveBeenCalledTimes(3);
+    for (const ev of CHORE_EVENTS) fire(ev);
+    expect(onChange).toHaveBeenCalledTimes(6);
     fire('expense:new');
     fire('connect');
-    expect(onChange).toHaveBeenCalledTimes(3);
+    expect(onChange).toHaveBeenCalledTimes(6);
   });
 
   it('nối lại sau khi mất kết nối thì tải lại dữ liệu', () => {
@@ -76,5 +82,35 @@ describe('bindChoreRealtime', () => {
     expect(listenerCount()).toBe(0);
     fire('chore:shuffled');
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('createChangeHandler', () => {
+  it('không mở modal: tải lại ngay', () => {
+    const invalidate = vi.fn();
+    const markStale = vi.fn();
+    createChangeHandler({ isModalOpen: () => false, invalidate, markStale })();
+    expect(invalidate).toHaveBeenCalledTimes(1);
+    expect(markStale).not.toHaveBeenCalled();
+  });
+
+  it('đang mở modal: KHÔNG tải lại (tránh đóng/đổi modal đột ngột), chỉ đánh dấu cần tải lại', () => {
+    const invalidate = vi.fn();
+    const markStale = vi.fn();
+    createChangeHandler({ isModalOpen: () => true, invalidate, markStale })();
+    expect(invalidate).not.toHaveBeenCalled();
+    expect(markStale).toHaveBeenCalledTimes(1);
+  });
+
+  it('đọc trạng thái modal tại thời điểm có sự kiện (không chốt lúc tạo)', () => {
+    let open = false;
+    const invalidate = vi.fn();
+    const markStale = vi.fn();
+    const handle = createChangeHandler({ isModalOpen: () => open, invalidate, markStale });
+    handle();
+    open = true;
+    handle();
+    expect(invalidate).toHaveBeenCalledTimes(1);
+    expect(markStale).toHaveBeenCalledTimes(1);
   });
 });

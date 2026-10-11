@@ -1,21 +1,27 @@
-import { Camera, CalendarDays, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RotateCw, Shuffle, TriangleAlert } from 'lucide-react';
+import { Camera, CalendarDays, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { SegmentedControl } from '@/components/ui/SegmentedControl.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
+import { AppealButton } from '@/features/chores/components/AppealButton.tsx';
 import { AssignmentCard } from '@/features/chores/components/AssignmentCard.tsx';
 import { CheckinModal } from '@/features/chores/components/CheckinModal.tsx';
-import { ChoreFormModal } from '@/features/chores/components/ChoreFormModal.tsx';
 import { KanbanBoard } from '@/features/chores/components/KanbanBoard.tsx';
-import { ShuffleDialog } from '@/features/chores/components/ShuffleDialog.tsx';
+import { OverrideModal } from '@/features/chores/components/OverrideModal.tsx';
+import { ScheduleBanner } from '@/features/chores/components/ScheduleBanner.tsx';
+import { ShuffleControls } from '@/features/chores/components/ShuffleControls.tsx';
 import { VerifyModal } from '@/features/chores/components/VerifyModal.tsx';
 import { WeeklyCalendar } from '@/features/chores/components/WeeklyCalendar.tsx';
-import { useAssignments, useChores } from '@/features/chores/hooks.ts';
-import { canCheckin, canVerify } from '@/features/chores/permissions.ts';
+import { messageForError } from '@/features/chores/errors.ts';
+import { useChoreSettings, useChores, useWeekView } from '@/features/chores/hooks.ts';
+import { canAppeal, canCheckin, canVerify, overrideActions } from '@/features/chores/permissions.ts';
+import { reasonsFor } from '@/features/chores/reasons.ts';
 import { useChoresRealtime } from '@/features/chores/realtime.ts';
+import { shuffleState } from '@/features/chores/shuffle-state.ts';
 import type { Assignment } from '@/features/chores/types.ts';
 import { type ChoresView, readView, writeView } from '@/features/chores/view-preference.ts';
 import { shiftWeek, weekKeyOf, weekRangeLabel } from '@/features/chores/week.ts';
@@ -39,57 +45,81 @@ function ChoresSkeleton() {
 
 /** Việc nhà (preview 06 / 16): lịch trực theo tuần, xem dạng Lịch tuần hoặc Kanban. */
 export function ChoresPage() {
+  const navigate = useNavigate();
   const { house } = useCurrentHouse();
   const detail = useHouseDetail(house?.id);
   const me = useAuthStore((s) => s.user);
   const thisWeek = weekKeyOf(new Date());
   const [weekKey, setWeekKey] = useState(thisWeek);
   const [view, setView] = useState<ChoresView>(readView);
-  const [choreFormOpen, setChoreFormOpen] = useState(false);
-  const [shuffleOpen, setShuffleOpen] = useState(false);
   const [checkinTarget, setCheckinTarget] = useState<Assignment | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<Assignment | null>(null);
+  const [overrideTarget, setOverrideTarget] = useState<Assignment | null>(null);
 
+  const week = useWeekView(house?.id, weekKey);
   const chores = useChores(house?.id);
-  const assignments = useAssignments(house?.id, weekKey);
-  useChoresRealtime(house?.id);
-  const memberCount = detail.data?.members.length ?? house?.memberCount;
+  const settings = useChoreSettings(house?.id);
+  const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget);
+  const { stale, refresh } = useChoresRealtime(house?.id, modalOpen);
+
   const isAdmin = house?.myRole === 'ADMIN';
-  // Không xếp lại lịch của tuần đã qua (backend cũng từ chối).
-  const canShuffle = isAdmin && weekKey >= thisWeek;
+  const graceHours = settings.data?.choreGraceHours ?? 3;
+  const memberCount = detail.data?.members.length ?? house?.memberCount;
+  const schedule = week.data?.schedule ?? null;
+  const assignments = week.data?.assignments ?? [];
+  const inRange = weekKey === thisWeek || weekKey === shiftWeek(thisWeek, 1);
+  const hasActivity = assignments.some((a) => !['TODO', 'UNASSIGNED', 'CANCELLED'].includes(a.status));
+  const shuffle = shuffleState({ schedule, isAdmin, inRange, hasActivity });
 
-  /** Nút hành động trên thẻ ca: người làm check-in, người khác xem & duyệt. */
-  const renderActions = (a: Assignment): ReactNode => {
-    if (canCheckin(a, me?.id)) {
-      return (
-        <Button size="sm" leftIcon={<Camera />} onClick={() => setCheckinTarget(a)}>
-          {a.status === 'REJECTED' ? 'Làm lại' : 'Check-in'}
-        </Button>
-      );
-    }
-    if (canVerify(a, me?.id)) {
-      return (
-        <Button size="sm" leftIcon={<Eye />} onClick={() => setVerifyTarget(a)}>
-          Xem và duyệt
-        </Button>
-      );
-    }
-    return null;
+  const closeModals = () => {
+    setCheckinTarget(null);
+    setVerifyTarget(null);
+    setOverrideTarget(null);
+    // Có thay đổi từ người khác trong lúc đang mở modal: tải lại ngay khi đóng.
+    if (stale) refresh();
   };
-  const selectAssignment = (a: Assignment) => {
-    if (canCheckin(a, me?.id)) setCheckinTarget(a);
-    else if (canVerify(a, me?.id)) setVerifyTarget(a);
-  };
-  const waitingForMe = (assignments.data ?? []).filter((a) => canVerify(a, me?.id));
-
   const changeView = (next: ChoresView) => {
     setView(next);
     writeView(next);
   };
 
+  const who = { isAdmin, meUserId: me?.id };
+  /** Nút hành động trên thẻ ca: người làm check-in, người khác xem & duyệt, khiếu nại, trưởng phòng can thiệp. */
+  const renderActions = (a: Assignment): ReactNode => {
+    const nodes: ReactNode[] = [];
+    if (canCheckin(a, me?.id, new Date(), graceHours)) {
+      nodes.push(
+        <Button key="checkin" size="sm" leftIcon={<Camera />} onClick={() => setCheckinTarget(a)}>
+          {a.status === 'REJECTED' ? 'Làm lại' : 'Check-in'}
+        </Button>,
+      );
+    } else if (canVerify(a, me?.id)) {
+      nodes.push(
+        <Button key="verify" size="sm" leftIcon={<Eye />} onClick={() => setVerifyTarget(a)}>
+          Xem và duyệt
+        </Button>,
+      );
+    }
+    if (house && canAppeal(a, me?.id)) nodes.push(<AppealButton key="appeal" houseId={house.id} assignment={a} />);
+    if (overrideActions(a, who).length > 0) {
+      nodes.push(
+        <Button key="override" size="sm" variant="ghost" leftIcon={<ShieldCheck />} onClick={() => setOverrideTarget(a)}>
+          Can thiệp
+        </Button>,
+      );
+    }
+    return nodes.length > 0 ? nodes : null;
+  };
+  const selectAssignment = (a: Assignment) => {
+    if (canCheckin(a, me?.id, new Date(), graceHours)) setCheckinTarget(a);
+    else if (canVerify(a, me?.id)) setVerifyTarget(a);
+    else if (overrideActions(a, who).length > 0) setOverrideTarget(a);
+  };
+  const waitingForMe = assignments.filter((a) => canVerify(a, me?.id));
+
   const description =
     chores.data && memberCount
-      ? `${chores.data.length} việc định kỳ · xoay vòng ${memberCount} người · rào 3 tuần`
+      ? `${chores.data.length} việc định kỳ · xoay vòng ${memberCount} người · rào ${schedule?.fenceWeeksApplied ?? Math.min(3, memberCount)} tuần`
       : undefined;
 
   return (
@@ -99,27 +129,35 @@ export function ChoresPage() {
         title="Việc nhà"
         description={description}
         actions={
-          isAdmin && (
+          house && (
             <>
-              <Button variant="secondary" leftIcon={<Shuffle />} disabled={!canShuffle} onClick={() => setShuffleOpen(true)}>
-                Random xếp lịch tuần
-              </Button>
-              <Button variant="accent" leftIcon={<Plus />} onClick={() => setChoreFormOpen(true)}>
-                Việc mới
+              <ShuffleControls
+                houseId={house.id}
+                weekKey={weekKey}
+                schedule={schedule}
+                isAdmin={isAdmin}
+                inRange={inRange}
+                hasActivity={hasActivity}
+              />
+              <Button variant={shuffle.kind === 'CREATE' ? 'secondary' : 'accent'} leftIcon={isAdmin ? <Plus /> : <Settings />} onClick={() => navigate('/settings')}>
+                {isAdmin ? 'Việc mới' : 'Vắng mặt'}
               </Button>
             </>
           )
         }
       />
 
+      {stale && (
+        <div role="status" className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-card border border-line-2 bg-paper-2 px-4 py-3 text-sm text-ink">
+          <span>Trạng thái ca đã thay đổi.</span>
+          <Button size="sm" variant="secondary" leftIcon={<RefreshCw />} onClick={refresh}>
+            Tải lại
+          </Button>
+        </div>
+      )}
+
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <SegmentedControl
-          label="Kiểu xem"
-          options={VIEW_OPTIONS}
-          value={view}
-          onChange={changeView}
-          className="w-full sm:w-[260px]"
-        />
+        <SegmentedControl label="Kiểu xem" options={VIEW_OPTIONS} value={view} onChange={changeView} className="w-full sm:w-[260px]" />
         <div className="flex items-center gap-2 max-sm:w-full max-sm:justify-between sm:ml-auto">
           <IconButton icon={<ChevronLeft />} label="Tuần trước" onClick={() => setWeekKey(shiftWeek(weekKey, -1))} />
           <Button variant="secondary" disabled={weekKey === thisWeek} onClick={() => setWeekKey(thisWeek)}>
@@ -129,37 +167,46 @@ export function ChoresPage() {
         </div>
       </div>
 
-      {assignments.isPending ? (
+      {schedule && schedule.status !== 'EMPTY' && (
+        <div className="mt-4">
+          <ScheduleBanner schedule={schedule} />
+        </div>
+      )}
+
+      {week.isPending ? (
         <ChoresSkeleton />
-      ) : assignments.isError ? (
+      ) : week.isError ? (
         <div className="mt-6 rounded-card border border-line bg-surface">
           <EmptyState
             icon={<TriangleAlert />}
             tone="tom"
             title="Không tải được lịch trực"
-            description={assignments.error.message}
+            description={messageForError(week.error)}
             action={
-              <Button variant="secondary" leftIcon={<RotateCw />} onClick={() => void assignments.refetch()}>
+              <Button variant="secondary" leftIcon={<RotateCw />} onClick={() => void week.refetch()}>
                 Thử lại
               </Button>
             }
           />
         </div>
-      ) : assignments.data.length === 0 ? (
+      ) : assignments.length === 0 ? (
         <div className="mt-6 rounded-card border border-line bg-surface">
-          {chores.data?.length === 0 ? (
+          {!schedule ? (
+            <EmptyState
+              icon={<CalendarDays />}
+              tone="yellow"
+              title="Chưa có lịch cho tuần này"
+              description="Lịch chỉ được tạo cho tuần này và tuần sau."
+            />
+          ) : chores.data?.length === 0 ? (
             <EmptyState
               icon={<ListChecks />}
               tone="yellow"
               title="Chưa có việc nào"
-              description={
-                isAdmin
-                  ? 'Thêm các việc định kỳ của nhà, rồi xếp lịch xoay vòng cho cả nhà.'
-                  : 'Trưởng phòng chưa thêm việc nào cho nhà.'
-              }
+              description={isAdmin ? 'Thêm các việc định kỳ của nhà, rồi tạo lịch xoay vòng cho cả nhà.' : 'Trưởng phòng chưa thêm việc nào cho nhà.'}
               action={
                 isAdmin && (
-                  <Button variant="accent" leftIcon={<Plus />} onClick={() => setChoreFormOpen(true)}>
+                  <Button variant="accent" leftIcon={<Plus />} onClick={() => navigate('/settings')}>
                     Thêm việc đầu tiên
                   </Button>
                 )
@@ -169,33 +216,21 @@ export function ChoresPage() {
             <EmptyState
               icon={<CalendarDays />}
               tone="yellow"
-              title="Tuần này chưa có lịch trực"
-              description="Lịch tuần mới được tạo tự động vào Chủ Nhật. Trưởng phòng cũng có thể xếp lịch ngay."
-              action={
-                canShuffle && (
-                  <Button variant="accent" leftIcon={<Shuffle />} onClick={() => setShuffleOpen(true)}>
-                    Xếp lịch tuần này
-                  </Button>
-                )
-              }
+              title="Tuần này chưa có ca nào"
+              description={reasonsFor(schedule)[0] ?? 'Dùng nút Tạo lịch tuần này ở trên để xếp lịch.'}
             />
           )}
         </div>
       ) : (
         <div className="mt-6">
           {view === 'calendar' ? (
-            <WeeklyCalendar
-              assignments={assignments.data}
-              weekKey={weekKey}
-              meUserId={me?.id}
-              onSelect={selectAssignment}
-              renderActions={renderActions}
-            />
+            <WeeklyCalendar assignments={assignments} weekKey={weekKey} meUserId={me?.id} onSelect={selectAssignment} renderActions={renderActions} />
           ) : (
-            <KanbanBoard assignments={assignments.data} meUserId={me?.id} renderActions={renderActions} />
+            <KanbanBoard assignments={assignments} meUserId={me?.id} renderActions={renderActions} />
           )}
         </div>
       )}
+
       {waitingForMe.length > 0 && (
         <section aria-label="Chờ bạn duyệt" className="mt-8">
           <div className="mb-3 flex items-center gap-2">
@@ -212,10 +247,9 @@ export function ChoresPage() {
 
       {house && (
         <>
-          <ChoreFormModal open={choreFormOpen} onClose={() => setChoreFormOpen(false)} houseId={house.id} />
-          <ShuffleDialog open={shuffleOpen} onClose={() => setShuffleOpen(false)} houseId={house.id} weekKey={weekKey} />
-          <CheckinModal assignment={checkinTarget} houseId={house.id} onClose={() => setCheckinTarget(null)} />
-          <VerifyModal assignment={verifyTarget} houseId={house.id} meUserId={me?.id} onClose={() => setVerifyTarget(null)} />
+          <CheckinModal assignment={checkinTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
+          <VerifyModal assignment={verifyTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
+          <OverrideModal assignment={overrideTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
         </>
       )}
     </>
