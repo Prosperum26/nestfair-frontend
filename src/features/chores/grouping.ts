@@ -61,3 +61,20 @@ export function collapseDay(list: Assignment[], max = 3, expanded = false): { sh
   if (expanded || list.length <= max) return { shown: list, hidden: 0 };
   return { shown: list.slice(0, max), hidden: list.length - max };
 }
+
+/**
+ * Đưa lên đầu các ca liên quan đến người dùng (ca của mình còn việc phải làm, ca đang chờ mình duyệt) để khi
+ * rút gọn "+N" chúng không bị giấu. Ổn định (giữ thứ tự cũ trong từng nhóm), không đổi mảng gốc.
+ */
+export function prioritizeForMe(list: Assignment[], meUserId: string | undefined): Assignment[] {
+  if (!meUserId) return list;
+  const rank = (a: Assignment) => {
+    const mine = a.assigneeUserId === meUserId;
+    const actionable = mine ? a.status === 'TODO' || a.status === 'REJECTED' || a.status === 'PENDING_VERIFY' : a.status === 'PENDING_VERIFY';
+    return actionable ? 0 : 1;
+  };
+  return list
+    .map((a, i) => ({ a, i, r: rank(a) }))
+    .sort((x, y) => x.r - y.r || x.i - y.i)
+    .map((x) => x.a);
+}

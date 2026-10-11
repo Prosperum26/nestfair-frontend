@@ -31,7 +31,7 @@ export function KanbanBoard({
   const boxList = box === 'unassigned' ? unassigned : box === 'cancelled' ? cancelled : [];
 
   const card = (a: Assignment) => (
-    <AssignmentCard key={a.id} assignment={a} isMine={a.assigneeUserId === meUserId} actions={renderActions?.(a)} />
+    <AssignmentCard key={a.id} assignment={a} isMine={a.assigneeUserId === meUserId} actions={renderActions?.(a)} compact />
   );
 
   return (

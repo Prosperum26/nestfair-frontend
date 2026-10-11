@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildCalendarRows, collapseDay, groupByColumn, groupByDay } from './grouping.ts';
+import { buildCalendarRows, collapseDay, groupByColumn, groupByDay, prioritizeForMe } from './grouping.ts';
 import type { Assignment } from './types.ts';
 
 let seq = 0;
@@ -122,5 +122,33 @@ describe('collapseDay', () => {
   it('mở rộng thì hiện hết', () => {
     const list = [make(), make(), make(), make()];
     expect(collapseDay(list, 3, true)).toEqual({ shown: list, hidden: 0 });
+  });
+});
+
+describe('prioritizeForMe', () => {
+  it('ca của mình còn việc phải làm và ca cần mình duyệt lên đầu, giữ thứ tự còn lại', () => {
+    const done = make({ id: 'done', status: 'DONE', assigneeUserId: 'u2' });
+    const other = make({ id: 'other', assigneeUserId: 'u2' });
+    const mineTodo = make({ id: 'mineTodo', assigneeUserId: 'u1' });
+    const mineRejected = make({ id: 'mineRejected', assigneeUserId: 'u1', status: 'REJECTED' });
+    const toVerify = make({ id: 'toVerify', assigneeUserId: 'u2', status: 'PENDING_VERIFY' });
+    const mineDone = make({ id: 'mineDone', assigneeUserId: 'u1', status: 'DONE' });
+    const out = prioritizeForMe([done, other, mineTodo, mineRejected, toVerify, mineDone], 'u1').map((a) => a.id);
+    expect(out).toEqual(['mineTodo', 'mineRejected', 'toVerify', 'done', 'other', 'mineDone']);
+  });
+
+  it('không có người dùng thì giữ nguyên thứ tự; không đổi mảng gốc', () => {
+    const list = [make({ id: 'a' }), make({ id: 'b' })];
+    expect(prioritizeForMe(list, undefined)).toEqual(list);
+    const copy = [...list];
+    prioritizeForMe(list, 'u1');
+    expect(list).toEqual(copy);
+  });
+
+  it('kết hợp với collapseDay: ca của mình không bị giấu sau "+N"', () => {
+    const others = Array.from({ length: 4 }, (_, i) => make({ id: `o${i}`, assigneeUserId: 'u2' }));
+    const mine = make({ id: 'mine', assigneeUserId: 'u1' });
+    const { shown } = collapseDay(prioritizeForMe([...others, mine], 'u1'), 3);
+    expect(shown.map((a) => a.id)).toContain('mine');
   });
 });

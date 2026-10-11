@@ -28,11 +28,14 @@ export function AssignmentCard({
   isMine,
   actions,
   className,
+  compact,
 }: {
   assignment: Assignment;
   isMine?: boolean;
   actions?: ReactNode;
   className?: string;
+  /** Thẻ trong cột hẹp (Kanban): không icon, tiêu đề xuống dòng được, chip nằm dưới tiêu đề. */
+  compact?: boolean;
 }) {
   const chip = statusChip(assignment.status);
   const Icon = chip.icon;
@@ -41,18 +44,18 @@ export function AssignmentCard({
   const muted = assignment.status === 'CANCELLED';
   return (
     <article className={cn('rounded-card border bg-surface p-4', isMine ? 'border-line-2' : 'border-line', muted && 'opacity-60', className)}>
-      <div className="flex items-start gap-3">
-        <IconTile icon={<Brush />} tone={avatarToneFor(assignment.choreId)} size={40} />
+      <div className={compact ? 'flex flex-col gap-2' : 'flex items-start gap-3'}>
+        {!compact && <IconTile icon={<Brush />} tone={avatarToneFor(assignment.choreId)} size={40} />}
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-h4 text-ink">{assignment.choreTitle}</h3>
+          <h3 className={cn('text-h4 text-ink', compact ? 'break-words' : 'truncate')}>{assignment.choreTitle}</h3>
           <p className="mt-0.5 text-cap text-ink-2">
             Độ nặng <span className="font-mono">{assignment.weight}</span> · hạn{' '}
-            <span className="font-mono">
+            <span className="font-mono whitespace-nowrap">
               {dueLabel(assignment.dueAt)} · {dueTimeLabel(assignment.dueAt)}
             </span>
           </p>
         </div>
-        <Chip tone={chip.tone} icon={<Icon />} size="sm">
+        <Chip tone={chip.tone} icon={<Icon />} size="sm" className={compact ? 'self-start' : undefined}>
           {chip.label}
         </Chip>
       </div>

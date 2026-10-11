@@ -6,7 +6,7 @@ import { IconTile } from '@/components/ui/IconTile.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
-import { buildCalendarRows, collapseDay, groupByDay } from '../grouping.ts';
+import { buildCalendarRows, collapseDay, groupByDay, prioritizeForMe } from '../grouping.ts';
 import type { Assignment } from '../types.ts';
 import { dayKeyOf, dueTimeLabel, weekDays } from '../week.ts';
 import { AssignmentCard } from './AssignmentCard.tsx';
@@ -144,7 +144,7 @@ export function WeeklyCalendar({
         {days
           .filter((d) => byDay[d.key].length > 0)
           .map((d) => {
-            const { shown, hidden } = collapseDay(byDay[d.key], MOBILE_MAX, expanded[d.key]);
+            const { shown, hidden } = collapseDay(prioritizeForMe(byDay[d.key], meUserId), MOBILE_MAX, expanded[d.key]);
             return (
               <section key={d.key} aria-label={`${d.label} ${d.day}.${d.month}`}>
                 <h2 className="mb-2 font-mono text-over uppercase text-ink-2">
