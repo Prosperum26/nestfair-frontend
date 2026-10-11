@@ -9,6 +9,7 @@ const make = (over: Partial<Assignment> = {}): Assignment => ({
   choreTitle: 'Đổ rác',
   weight: 2,
   assigneeId: 'm1',
+  originalAssigneeId: 'm1',
   assigneeUserId: 'u1',
   assigneeName: 'Hùng',
   assigneeAvatarUrl: null,

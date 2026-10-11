@@ -17,6 +17,8 @@ export interface Assignment {
   weight: number;
   /** HouseMember.id */
   assigneeId: string;
+  /** HouseMember.id người được giao lúc xếp lịch (không đổi khi đổi ca). */
+  originalAssigneeId: string;
   /** User.id, khớp với auth user và danh sách thành viên. */
   assigneeUserId: string;
   assigneeName: string;
