@@ -53,6 +53,40 @@ describe('api', () => {
     expect(calls[0].auth).toBe('Bearer old');
   });
 
+  it('gửi FormData nguyên bản, không ép Content-Type JSON (để trình duyệt tự đặt boundary)', async () => {
+    let sent: RequestInit | undefined;
+    mockFetch({
+      'POST /assignments/a1/checkin': [
+        (init) => {
+          sent = init;
+          return json(200, { ok: true });
+        },
+      ],
+    });
+    const body = new FormData();
+    body.append('photo', new Blob(['x'], { type: 'image/png' }), 'a.png');
+
+    await api('/assignments/a1/checkin', { method: 'POST', body });
+
+    expect(sent?.body).toBe(body);
+    expect((sent?.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+  });
+
+  it('gửi thêm header tùy chọn (Idempotency-Key)', async () => {
+    let sent: RequestInit | undefined;
+    mockFetch({ 'POST /x': [(init) => ((sent = init), json(200, { ok: true }))] });
+    await api('/x', { method: 'POST', body: { a: 1 }, headers: { 'Idempotency-Key': 'k1' } });
+    expect((sent?.headers as Record<string, string>)['Idempotency-Key']).toBe('k1');
+    expect((sent?.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+  });
+
+  it('lỗi từ backend mang theo mã code máy đọc được', async () => {
+    mockFetch({ 'POST /y': [() => json(409, { statusCode: 409, message: 'Ca vừa đổi', error: 'Conflict', code: 'ASSIGNMENT_STATE_CHANGED' })] });
+    const err = await api('/y', { method: 'POST' }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).toMatchObject({ statusCode: 409, code: 'ASSIGNMENT_STATE_CHANGED', message: 'Ca vừa đổi' });
+  });
+
   it('gặp 401 thì refresh rồi gọi lại với token mới', async () => {
     const calls = mockFetch({
       'GET /auth/me': [() => json(401, { message: 'Unauthorized' }), () => json(200, user)],

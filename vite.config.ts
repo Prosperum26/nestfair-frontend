@@ -13,6 +13,8 @@ export default defineConfig({
     // Dev: gọi /api cùng origin để cookie refresh token không vướng CORS.
     proxy: {
       '/api': 'http://localhost:5000',
+      // Socket.IO cần proxy WebSocket.
+      '/socket.io': { target: 'http://localhost:5000', ws: true },
     },
   },
 });
