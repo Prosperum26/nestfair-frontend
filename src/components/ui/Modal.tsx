@@ -9,6 +9,7 @@ import { cn } from '@/lib/cn.ts';
 export function Modal({
   open,
   onClose,
+  overline,
   title,
   description,
   children,
@@ -16,6 +17,8 @@ export function Modal({
 }: {
   open: boolean;
   onClose: () => void;
+  /** Dòng mono viết hoa phía trên tiêu đề ("VIETQR · NAPAS 247"). */
+  overline?: string;
   title: string;
   description?: ReactNode;
   children: ReactNode;
@@ -50,6 +53,7 @@ export function Modal({
         <div className="mx-auto mb-4 h-[5px] w-10 rounded-full bg-line-2 sm:hidden" aria-hidden />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
+            {overline && <p className="mb-1 font-mono text-over uppercase text-ink-2">{overline}</p>}
             <h2 className="font-display text-h1m text-ink">{title}</h2>
             {description && <p className="mt-1.5 text-sm text-ink-2">{description}</p>}
           </div>

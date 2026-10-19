@@ -7,9 +7,11 @@ import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
 import { ChoresPage } from '@/pages/ChoresPage.tsx';
 import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
+import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
 import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
+import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
@@ -43,26 +45,8 @@ const router = createBrowserRouter([
               // Module chưa làm: thay ComingSoonPage bằng trang thật khi bắt đầu module.
               { path: '/chores', element: <ChoresPage /> },
               { path: '/settings', element: <HouseSettingsPage /> },
-              {
-                path: '/expenses',
-                element: (
-                  <ComingSoonPage
-                    overline="Sổ chung"
-                    title="Chi tiêu"
-                    description="Ghi khoản chi, chia tiền, quét hóa đơn."
-                  />
-                ),
-              },
-              {
-                path: '/payments',
-                element: (
-                  <ComingSoonPage
-                    overline="Rút gọn nợ"
-                    title="Thanh toán"
-                    description="Ai trả ai bao nhiêu, trả nhanh bằng VietQR."
-                  />
-                ),
-              },
+              { path: '/expenses', element: <ExpensesPage /> },
+              { path: '/payments', element: <PaymentsPage /> },
               { path: '/members', element: <MembersPage /> },
               {
                 path: '/assistant',
