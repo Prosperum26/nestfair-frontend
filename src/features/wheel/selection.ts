@@ -1,0 +1,42 @@
+/** Giống server: bỏ ký tự điều khiển, gộp khoảng trắng thừa. */
+export function normalizeTitle(value: string): string {
+  return value.replace(/\p{Cc}/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export const TITLE_MIN = 3;
+export const TITLE_MAX = 60;
+
+export function titleError(raw: string): string | null {
+  const t = normalizeTitle(raw);
+  if (!t) return 'Nhập tên việc đột xuất.';
+  if (t.length < TITLE_MIN || t.length > TITLE_MAX) return `Tên việc cần từ ${TITLE_MIN} đến ${TITLE_MAX} ký tự.`;
+  return null;
+}
+
+/** Bật / tắt một người trên vòng; người vắng hôm nay không chọn được. Giữ thứ tự theo danh sách thành viên. */
+export function toggleParticipant(selected: readonly string[], id: string, members: readonly { id: string; absentToday: boolean }[]): string[] {
+  const member = members.find((m) => m.id === id);
+  if (!member || member.absentToday) return [...selected];
+  const next = new Set(selected);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  return members.map((m) => m.id).filter((x) => next.has(x));
+}
+
+/** Nút Quay chỉ bật khi có ≥ 2 người, tên việc hợp lệ và đã chọn hạn hợp lệ. */
+export function canSpin(selected: readonly string[], title: string, dueValid: boolean): boolean {
+  return selected.length >= 2 && titleError(title) === null && dueValid;
+}
+
+const pad = (n: number) => n.toString().padStart(2, '0');
+
+/** Hạn của ca vòng quay: "21:00 hôm nay" · "21:00 ngày mai" · "23.10 21:00". */
+export function formatDue(iso: string, now: Date = new Date()): string {
+  const d = new Date(iso);
+  const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(d) - day(now)) / 86_400_000);
+  if (diff === 0) return `${hm} hôm nay`;
+  if (diff === 1) return `${hm} ngày mai`;
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${hm}`;
+}
