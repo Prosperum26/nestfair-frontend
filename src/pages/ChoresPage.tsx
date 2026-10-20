@@ -18,7 +18,8 @@ import { ShuffleControls } from '@/features/chores/components/ShuffleControls.ts
 import { VerifyModal } from '@/features/chores/components/VerifyModal.tsx';
 import { WeeklyCalendar } from '@/features/chores/components/WeeklyCalendar.tsx';
 import { messageForError } from '@/features/chores/errors.ts';
-import { useChoreSettings, useChores, useWeekView } from '@/features/chores/hooks.ts';
+import { mergeAssignments, waitingForReview } from '@/features/chores/grouping.ts';
+import { useChoreSettings, useChores, useTodayAssignments, useWeekView } from '@/features/chores/hooks.ts';
 import { canAppeal, canCheckin, canVerify, overrideActions } from '@/features/chores/permissions.ts';
 import { reasonsFor } from '@/features/chores/reasons.ts';
 import { useChoresRealtime } from '@/features/chores/realtime.ts';
@@ -62,6 +63,7 @@ export function ChoresPage() {
   const openWheel = useWheelStore((s) => s.openModal);
 
   const week = useWeekView(house?.id, weekKey);
+  const today = useTodayAssignments(house?.id);
   const chores = useChores(house?.id);
   const settings = useChoreSettings(house?.id);
   const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget || voidTarget);
@@ -128,7 +130,8 @@ export function ChoresPage() {
     else if (canVerify(a, me?.id)) setVerifyTarget(a);
     else if (overrideActions(a, who).length > 0) setOverrideTarget(a);
   };
-  const waitingForMe = assignments.filter((a) => canVerify(a, me?.id));
+  // Gồm ca vòng quay đã nộp (kể cả ca còn mở từ tuần trước): duyệt như ca thường.
+  const waitingForMe = waitingForReview(mergeAssignments(assignments, today.assignments), me?.id);
 
   const showToday = view === 'calendar' && weekKey === thisWeek && assignments.length > 0;
   const waitingSection =
@@ -260,7 +263,7 @@ export function ChoresPage() {
               <WeeklyCalendar assignments={assignments} weekKey={weekKey} meUserId={me?.id} onSelect={selectAssignment} renderActions={renderActions} />
               {showToday && house && (
                 <div className="order-first grid items-start gap-6 md:order-last md:grid-cols-2">
-                  <TodayPanel assignments={assignments} houseId={house.id} meUserId={me?.id} graceHours={graceHours} />
+                  <TodayPanel assignments={today.assignments} houseId={house.id} meUserId={me?.id} graceHours={graceHours} />
                   {waitingSection}
                 </div>
               )}

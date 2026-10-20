@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ChoreInput, choresApi, type DateRangeInput } from './api.ts';
+import { mergeAssignments } from './grouping.ts';
 import type { ChoreSettings, OverrideAction, VerifyDecision } from './types.ts';
+import { shiftWeek, weekKeyOf } from './week.ts';
 
 export const choreKeys = {
   chores: (houseId: string) => ['chores', houseId] as const,
@@ -22,12 +24,28 @@ export function useChores(houseId: string | undefined, includeInactive = false) 
 }
 
 /** Lịch một tuần kèm scheduleMeta (backend tự sinh bù tuần hiện tại / kế tiếp nếu chưa có). */
-export function useWeekView(houseId: string | undefined, weekKey: string) {
+export function useWeekView(houseId: string | undefined, weekKey: string, enabled = true) {
   return useQuery({
     queryKey: choreKeys.week(houseId ?? '', weekKey),
     queryFn: () => choresApi.weekView(houseId!, weekKey),
-    enabled: !!houseId,
+    enabled: !!houseId && enabled,
   });
+}
+
+/**
+ * Ca dùng cho "hôm nay" và "Chờ bạn duyệt": tuần này, và tuần trước vào T2–T3 (ca vòng quay quay Chủ Nhật
+ * có hạn tối đa 48 giờ nên có thể còn mở sang tuần mới).
+ */
+export function useTodayAssignments(houseId: string | undefined, now: Date = new Date()) {
+  const thisWeek = weekKeyOf(now);
+  const dow = (new Date(now.getTime() + 7 * 3_600_000).getUTCDay() + 6) % 7; // T2 = 0 (giờ VN)
+  const current = useWeekView(houseId, thisWeek);
+  const previous = useWeekView(houseId, shiftWeek(thisWeek, -1), dow <= 1);
+  return {
+    status: current.status,
+    assignments: mergeAssignments(previous.data?.assignments, current.data?.assignments),
+    refetch: () => Promise.all([current.refetch(), dow <= 1 ? previous.refetch() : null]),
+  };
 }
 
 export function useChoreSettings(houseId: string | undefined) {

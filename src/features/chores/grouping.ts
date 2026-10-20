@@ -1,6 +1,31 @@
+import { canVerify } from './permissions.ts';
 import { dayKeyOf } from './week.ts';
 import type { Assignment } from './types.ts';
 import { weekDays } from './week.ts';
+
+const HOUR = 3_600_000;
+
+/**
+ * Ca hiện trên Lịch tuần: bỏ ca vòng quay (source = WHEEL). Việc đột xuất không thuộc lịch xoay vòng; nó chỉ hiện
+ * ở "Việc của bạn hôm nay", "Chờ bạn duyệt" và Kanban.
+ */
+export function onCalendar(assignments: Assignment[]): Assignment[] {
+  return assignments.filter((a) => a.source !== 'WHEEL');
+}
+
+/** Gộp nhiều danh sách ca (vd. tuần này + tuần trước), bỏ trùng theo id. */
+export function mergeAssignments(...lists: (Assignment[] | undefined)[]): Assignment[] {
+  const byId = new Map<string, Assignment>();
+  for (const list of lists) for (const a of list ?? []) byId.set(a.id, a);
+  return [...byId.values()];
+}
+
+/** Ca mọi người đã nộp đang chờ mình duyệt (gồm ca vòng quay), sắp theo hạn. */
+export function waitingForReview(assignments: Assignment[], meUserId: string | undefined): Assignment[] {
+  return mergeAssignments(assignments)
+    .filter((a) => canVerify(a, meUserId))
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+}
 
 /** Nhóm theo ngày làm (giờ nhà). Luôn đủ 7 khóa "YYYY-MM-DD"; ca có ngày làm ngoài tuần bị bỏ qua. */
 export function groupByDay(assignments: Assignment[], weekKey: string): Record<string, Assignment[]> {
@@ -80,11 +105,19 @@ export function prioritizeForMe(list: Assignment[], meUserId: string | undefined
     .map((x) => x.a);
 }
 
-/** Các ca của người dùng trong ngày `today` (giờ VN), sắp theo hạn. Ca đã hủy / chưa giao không tính. */
-export function myShiftsToday(assignments: Assignment[], meUserId: string | undefined, today: Date): Assignment[] {
+/**
+ * Các ca của người dùng trong ngày `today` (giờ VN), sắp theo hạn. Ca đã hủy / chưa giao không tính.
+ * Ca vòng quay có thể hạn tới ngày mai (quay tối nay, hạn "ngày mai 21:00"): ca đó vẫn hiện những ngày sau
+ * khi còn việc phải làm (Chờ làm / Làm lại / Chờ duyệt) và chưa quá hạn + ân hạn.
+ */
+export function myShiftsToday(assignments: Assignment[], meUserId: string | undefined, today: Date, graceHours = 3): Assignment[] {
   if (!meUserId) return [];
   const key = dayKeyOf(today);
-  return assignments
-    .filter((a) => a.assigneeUserId === meUserId && a.status !== 'CANCELLED' && dayKeyOf(a.occurrenceDate) === key)
+  const openWheel = (a: Assignment) =>
+    a.source === 'WHEEL' &&
+    (a.status === 'PENDING_VERIFY' ||
+      ((a.status === 'TODO' || a.status === 'REJECTED') && today.getTime() <= new Date(a.dueAt).getTime() + graceHours * HOUR));
+  return mergeAssignments(assignments)
+    .filter((a) => a.assigneeUserId === meUserId && a.status !== 'CANCELLED' && (dayKeyOf(a.occurrenceDate) === key || openWheel(a)))
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
 }

@@ -22,13 +22,14 @@ import { avatarToneFor } from '@/components/ui/tones.ts';
 import { ActivityList, ActivityPanel } from '@/features/activity/components/ActivityList.tsx';
 import { LiveTicker } from '@/features/activity/components/LiveTicker.tsx';
 import { useActivityFeed } from '@/features/activity/hooks.ts';
+import { TodayCard } from '@/features/chores/components/TodayCard.tsx';
 import { CardEmpty, DashCard } from '@/features/dashboard/DashCard.tsx';
 import { WheelPreview } from '@/features/wheel/components/WheelPreview.tsx';
 import { useWheelStore } from '@/features/wheel/store.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 import type { HouseMember } from '@/features/houses/types.ts';
 import { cn } from '@/lib/cn.ts';
-import { firstName, formatDayOverline, formatDayShort, greeting, monthOverline } from '@/lib/date.ts';
+import { firstName, formatDayOverline, greeting, monthOverline } from '@/lib/date.ts';
 import { formatVnd } from '@/lib/format.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
@@ -192,19 +193,7 @@ export function DashboardPage() {
           <FairnessCard members={members} month={month} />
         </div>
 
-        <DashCard
-          className="order-4 lg:order-none lg:col-span-7"
-          overline={formatDayShort(now)}
-          title="Việc hôm nay"
-          aside={<Chip tone="outline">0 việc</Chip>}
-        >
-          <CardEmpty icon={<ListChecks />}>
-            Chưa có lịch trực. Trưởng phòng tạo danh sách việc nhà để NestFair xếp lịch xoay vòng công bằng.{' '}
-            <Link to="/chores" className={linkCls}>
-              Mở Việc nhà
-            </Link>
-          </CardEmpty>
-        </DashCard>
+        <TodayCard className="order-4 lg:order-none lg:col-span-7" houseId={house?.id} meUserId={user?.id} />
         <DashCard className="order-8 lg:order-none lg:col-span-5" overline="Việc phát sinh" title="Vòng quay may mắn">
           <WheelPreview members={members} onSpin={openWheel} />
         </DashCard>
