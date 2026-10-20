@@ -5,6 +5,8 @@ import { IconButton } from '@/components/ui/IconButton.tsx';
 import { useCurrentHouse } from '@/features/houses/hooks.ts';
 import { ConnectionDot, ReconnectBanner } from '@/features/realtime/ConnectionIndicator.tsx';
 import { RealtimeProvider } from '@/features/realtime/RealtimeProvider.tsx';
+import { WheelModal } from '@/features/wheel/components/WheelModal.tsx';
+import { useWheelRealtime } from '@/features/wheel/hooks.ts';
 import { Logo } from '@/components/ui/Logo.tsx';
 import { cn } from '@/lib/cn.ts';
 import { HouseSwitcher } from './HouseSwitcher.tsx';
@@ -107,6 +109,12 @@ function TabBar() {
 }
 
 /** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). Một kết nối realtime cho nhà đang xem. */
+/** Đồng bộ vòng quay cho cả app (cần nằm trong RealtimeProvider). */
+function WheelSync({ houseId }: { houseId: string | undefined }) {
+  useWheelRealtime(houseId);
+  return <WheelModal houseId={houseId} />;
+}
+
 export function AppShell() {
   const { house } = useCurrentHouse();
   return (
@@ -120,6 +128,7 @@ export function AppShell() {
         </main>
         <TabBar />
       </div>
+      <WheelSync houseId={house?.id} />
     </RealtimeProvider>
   );
 }
