@@ -113,6 +113,14 @@
   --shadow-focus: 0 0 0 4px #fbefb0;
 
   --container-page: 1200px;
+
+  /* Live ticker: dải chữ chạy ngang (nội dung nhân đôi, chạy nửa chiều dài rồi lặp). */
+  --animate-ticker: ticker var(--ticker-duration, 40s) linear infinite;
+  @keyframes ticker {
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 @layer base {

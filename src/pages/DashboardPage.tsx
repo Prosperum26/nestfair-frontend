@@ -4,14 +4,13 @@ import {
   Bell,
   CalendarDays,
   Dice5,
-  History,
   ListChecks,
   Plus,
   QrCode,
   ScanLine,
   Sparkles,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
@@ -20,6 +19,9 @@ import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
+import { ActivityList, ActivityPanel } from '@/features/activity/components/ActivityList.tsx';
+import { LiveTicker } from '@/features/activity/components/LiveTicker.tsx';
+import { useActivityFeed } from '@/features/activity/hooks.ts';
 import { CardEmpty, DashCard } from '@/features/dashboard/DashCard.tsx';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 import type { HouseMember } from '@/features/houses/types.ts';
@@ -60,32 +62,6 @@ function BalanceCard({ month }: { month: string }) {
         </div>
       </div>
     </section>
-  );
-}
-
-/** Dải "TRỰC TIẾP": chấm đỏ + avatar cả nhà; sự kiện realtime sẽ chạy ngang ở đây (Socket.IO). */
-function LiveTicker({ members }: { members: HouseMember[] | undefined }) {
-  return (
-    <div className="flex h-11 items-center gap-3 overflow-hidden rounded-[14px] bg-ink px-4 lg:h-[52px]">
-      <span className="flex shrink-0 items-center gap-2">
-        <span className="size-2 rounded-full bg-tom-v" aria-hidden />
-        <span className="font-mono text-over uppercase text-hl">Trực tiếp</span>
-      </span>
-      <span className="hidden shrink-0 -space-x-1.5 sm:flex">
-        {members?.map((m) => (
-          <Avatar
-            key={m.userId}
-            name={m.fullName}
-            tone={avatarToneFor(m.userId)}
-            src={m.avatarUrl}
-            size={24}
-            className="ring-2 ring-ink"
-          />
-        ))}
-      </span>
-      <span className="hidden h-5 w-px shrink-0 bg-ink-line sm:block" aria-hidden />
-      <p className="truncate text-sm text-ink-on2">Hoạt động của cả nhà sẽ chạy ở đây theo thời gian thực.</p>
-    </div>
   );
 }
 
@@ -157,6 +133,8 @@ export function DashboardPage() {
   const now = new Date();
   const month = monthOverline(now);
   const members = detail.data?.members;
+  const feed = useActivityFeed(house?.id);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   return (
     <>
@@ -182,7 +160,14 @@ export function DashboardPage() {
 
       <div className="mt-6 flex flex-col gap-4 lg:mt-8 lg:grid lg:grid-cols-12 lg:gap-6">
         <div className="order-2 lg:order-none lg:col-span-12">
-          <LiveTicker members={members} />
+          <LiveTicker
+            items={feed.data}
+            status={feed.status}
+            members={members}
+            me={user?.id}
+            onRetry={() => void feed.refetch()}
+            onOpen={() => setHistoryOpen(true)}
+          />
         </div>
         <div className="order-3 lg:hidden">
           <QuickActions />
@@ -217,8 +202,15 @@ export function DashboardPage() {
         <DashCard
           className="order-9 lg:order-none lg:col-span-7"
           title="Hoạt động gần đây"
+          aside={
+            feed.data?.length ? (
+              <button type="button" className={linkCls} onClick={() => setHistoryOpen(true)}>
+                Xem tất cả
+              </button>
+            ) : undefined
+          }
         >
-          <CardEmpty icon={<History />}>Chi tiêu, check-in việc nhà và đổi ca của cả nhà sẽ hiện ở đây.</CardEmpty>
+          <ActivityList items={feed.data} status={feed.status} me={user?.id} onRetry={() => void feed.refetch()} limit={5} />
         </DashCard>
         <div className="order-5 flex flex-col gap-4 lg:order-none lg:col-span-5 lg:gap-6">
           <DashCard overline="Yêu cầu · Chợ ca · Nợ ca" title="Đổi ca">
@@ -237,6 +229,7 @@ export function DashboardPage() {
           </DashCard>
         </div>
       </div>
+      <ActivityPanel houseId={house?.id} open={historyOpen} onClose={() => setHistoryOpen(false)} me={user?.id} />
     </>
   );
 }
