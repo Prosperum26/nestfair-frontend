@@ -1,4 +1,4 @@
-import { Camera, CalendarDays, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { Ban, Camera, CalendarDays, Dice5, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
@@ -27,6 +27,8 @@ import type { Assignment } from '@/features/chores/types.ts';
 import { type ChoresView, readView, writeView } from '@/features/chores/view-preference.ts';
 import { shiftWeek, weekKeyOf, weekRangeLabel } from '@/features/chores/week.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
+import { VoidSpinModal } from '@/features/wheel/components/VoidSpinModal.tsx';
+import { useWheelStore } from '@/features/wheel/store.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 const VIEW_OPTIONS: { value: ChoresView; label: string }[] = [
@@ -56,11 +58,13 @@ export function ChoresPage() {
   const [checkinTarget, setCheckinTarget] = useState<Assignment | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<Assignment | null>(null);
   const [overrideTarget, setOverrideTarget] = useState<Assignment | null>(null);
+  const [voidTarget, setVoidTarget] = useState<Assignment | null>(null);
+  const openWheel = useWheelStore((s) => s.openModal);
 
   const week = useWeekView(house?.id, weekKey);
   const chores = useChores(house?.id);
   const settings = useChoreSettings(house?.id);
-  const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget);
+  const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget || voidTarget);
   const { stale, refresh } = useChoresRealtime(house?.id, modalOpen);
 
   const isAdmin = house?.myRole === 'ADMIN';
@@ -76,6 +80,7 @@ export function ChoresPage() {
     setCheckinTarget(null);
     setVerifyTarget(null);
     setOverrideTarget(null);
+    setVoidTarget(null);
     // Có thay đổi từ người khác trong lúc đang mở modal: tải lại ngay khi đóng.
     if (stale) refresh();
   };
@@ -102,6 +107,13 @@ export function ChoresPage() {
       );
     }
     if (house && canAppeal(a, me?.id)) nodes.push(<AppealButton key="appeal" houseId={house.id} assignment={a} />);
+    if (isAdmin && a.source === 'WHEEL' && a.wheelSpinId && a.status === 'TODO' && !a.submittedAt) {
+      nodes.push(
+        <Button key="void" size="sm" variant="ghost" leftIcon={<Ban />} onClick={() => setVoidTarget(a)}>
+          Hủy vòng quay
+        </Button>,
+      );
+    }
     if (overrideActions(a, who).length > 0) {
       nodes.push(
         <Button key="override" size="sm" variant="ghost" leftIcon={<ShieldCheck />} onClick={() => setOverrideTarget(a)}>
@@ -156,6 +168,9 @@ export function ChoresPage() {
                 inRange={inRange}
                 hasActivity={hasActivity}
               />
+              <Button variant="secondary" leftIcon={<Dice5 />} onClick={openWheel}>
+                Vòng quay
+              </Button>
               <Button variant={shuffle.kind === 'CREATE' ? 'secondary' : 'accent'} leftIcon={<Settings />} onClick={() => navigate('/settings')}>
                 Cài đặt việc nhà
               </Button>
@@ -263,6 +278,14 @@ export function ChoresPage() {
           <CheckinModal assignment={checkinTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
           <VerifyModal assignment={verifyTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
           <OverrideModal assignment={overrideTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
+          <VoidSpinModal
+            assignment={voidTarget}
+            onClose={closeModals}
+            onDone={() => {
+              closeModals();
+              refresh();
+            }}
+          />
         </>
       )}
     </>

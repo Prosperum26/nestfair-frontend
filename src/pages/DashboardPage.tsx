@@ -23,6 +23,8 @@ import { ActivityList, ActivityPanel } from '@/features/activity/components/Acti
 import { LiveTicker } from '@/features/activity/components/LiveTicker.tsx';
 import { useActivityFeed } from '@/features/activity/hooks.ts';
 import { CardEmpty, DashCard } from '@/features/dashboard/DashCard.tsx';
+import { WheelPreview } from '@/features/wheel/components/WheelPreview.tsx';
+import { useWheelStore } from '@/features/wheel/store.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 import type { HouseMember } from '@/features/houses/types.ts';
 import { cn } from '@/lib/cn.ts';
@@ -67,22 +69,31 @@ function BalanceCard({ month }: { month: string }) {
 
 /** Hàng nút nhanh mobile (Design.md mục 5): Thêm chi · Quét HĐ · Vòng quay · Trợ lý. */
 function QuickActions() {
-  const items: { to: string; label: string; icon: ReactNode }[] = [
+  const openWheel = useWheelStore((s) => s.openModal);
+  const items: { to?: string; onClick?: () => void; label: string; icon: ReactNode }[] = [
     { to: '/expenses', label: 'Thêm chi', icon: <Plus /> },
     { to: '/expenses', label: 'Quét HĐ', icon: <ScanLine /> },
-    { to: '/chores', label: 'Vòng quay', icon: <Dice5 /> },
+    { onClick: openWheel, label: 'Vòng quay', icon: <Dice5 /> },
     { to: '/assistant', label: 'Trợ lý', icon: <Sparkles /> },
   ];
+  const tile = (icon: ReactNode) => (
+    <span className="flex h-14 w-full items-center justify-center rounded-card border border-line bg-surface [&_svg]:size-6">{icon}</span>
+  );
   return (
     <nav aria-label="Thao tác nhanh" className="grid grid-cols-4 gap-2.5 lg:hidden">
-      {items.map(({ to, label, icon }) => (
-        <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap text-ink">
-          <span className="flex h-14 w-full items-center justify-center rounded-card border border-line bg-surface [&_svg]:size-6">
-            {icon}
-          </span>
-          {label}
-        </Link>
-      ))}
+      {items.map(({ to, onClick, label, icon }) =>
+        to ? (
+          <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap text-ink">
+            {tile(icon)}
+            {label}
+          </Link>
+        ) : (
+          <button key={label} type="button" onClick={onClick} className="flex flex-col items-center gap-1.5 text-cap text-ink">
+            {tile(icon)}
+            {label}
+          </button>
+        ),
+      )}
     </nav>
   );
 }
@@ -135,6 +146,7 @@ export function DashboardPage() {
   const members = detail.data?.members;
   const feed = useActivityFeed(house?.id);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const openWheel = useWheelStore((s) => s.openModal);
 
   return (
     <>
@@ -194,9 +206,7 @@ export function DashboardPage() {
           </CardEmpty>
         </DashCard>
         <DashCard className="order-8 lg:order-none lg:col-span-5" overline="Việc phát sinh" title="Vòng quay may mắn">
-          <CardEmpty icon={<Dice5 />}>
-            Có việc đột xuất chưa ai nhận? Quay để chọn người công bằng, cả nhà cùng xem.
-          </CardEmpty>
+          <WheelPreview members={members} onSpin={openWheel} />
         </DashCard>
 
         <DashCard

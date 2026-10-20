@@ -21,6 +21,7 @@ const make = (over: Partial<Assignment> = {}): Assignment => ({
   dueAt: '2026-10-07T14:00:00.000Z',
   status: 'TODO',
   source: 'ROTATION',
+  wheelSpinId: null,
   proofImageUrl: null,
   submittedAt: null,
   isLate: false,
