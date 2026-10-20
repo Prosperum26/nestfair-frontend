@@ -1,4 +1,5 @@
 import { firstName } from '@/lib/date.ts';
+import { houseClock, houseDayDiff } from '@/lib/house-time.ts';
 
 /** Giống server: bỏ ký tự điều khiển, gộp khoảng trắng thừa. */
 export function normalizeTitle(value: string): string {
@@ -30,17 +31,13 @@ export function canSpin(selected: readonly string[], title: string, dueValid: bo
   return selected.length >= 2 && titleError(title) === null && dueValid;
 }
 
-const pad = (n: number) => n.toString().padStart(2, '0');
-
-/** Hạn của ca vòng quay: "21:00 hôm nay" · "21:00 ngày mai" · "23.10 21:00". */
+/** Hạn của ca vòng quay theo giờ nhà: "21:00 hôm nay" · "21:00 ngày mai" · "23.10 21:00". */
 export function formatDue(iso: string, now: Date = new Date()): string {
-  const d = new Date(iso);
-  const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-  const diff = Math.round((day(d) - day(now)) / 86_400_000);
+  const { ddmm, hm } = houseClock(iso);
+  const diff = houseDayDiff(iso, now);
   if (diff === 0) return `${hm} hôm nay`;
   if (diff === 1) return `${hm} ngày mai`;
-  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${hm}`;
+  return `${ddmm} ${hm}`;
 }
 
 /** Câu kết quả trong modal: người xem trúng thì "Bạn", người khác thì tên gọi. */

@@ -17,6 +17,7 @@ import { useSocket } from '@/features/realtime/context.ts';
 import { ApiError } from '@/lib/api.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
+import { houseClock } from '@/lib/house-time.ts';
 import { useReducedMotion } from '@/lib/use-reduced-motion.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 import { totalRotation, wheelAngle } from '../angle.ts';
@@ -284,7 +285,7 @@ function SpinView({ active, onDone }: { active: ActiveSpin; onDone: () => void }
         {showResult && (
           <Stamp
             label="TRÚNG"
-            date={new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }).replace('/', '.')}
+            date={houseClock(new Date()).ddmm}
             tone={STAMP_TONE[avatarToneFor(winner.id)]}
             className="absolute right-2 bottom-2 size-24 sm:size-28"
           />

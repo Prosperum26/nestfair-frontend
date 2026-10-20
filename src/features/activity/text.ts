@@ -18,6 +18,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { firstName } from '@/lib/date.ts';
+import { houseClock } from '@/lib/house-time.ts';
 import { formatVnd } from '@/lib/format.ts';
 import type { Activity } from './types.ts';
 
@@ -122,12 +123,8 @@ export function activityLine(a: Activity, meUserId?: string | null): ActivityLin
   }
 }
 
-const pad = (n: number) => n.toString().padStart(2, '0');
-
-/** Giờ của mục ticker: `HH:mm` trong ngày; khác ngày thì `dd.mm HH:mm`. */
+/** Giờ của mục ticker theo giờ nhà: `HH:mm` trong ngày; khác ngày thì `dd.mm HH:mm`. */
 export function activityTime(iso: string, now: Date = new Date()): string {
-  const d = new Date(iso);
-  const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-  return sameDay ? hm : `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${hm}`;
+  const at = houseClock(iso);
+  return at.dayKey === houseClock(now).dayKey ? at.hm : `${at.ddmm} ${at.hm}`;
 }

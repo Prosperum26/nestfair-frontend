@@ -37,10 +37,10 @@ describe('tên việc', () => {
 
 describe('formatDue', () => {
   it('hôm nay / ngày mai / ngày khác', () => {
-    const now = new Date(2026, 9, 21, 20, 15);
-    expect(formatDue(new Date(2026, 9, 21, 21, 0).toISOString(), now)).toBe('21:00 hôm nay');
-    expect(formatDue(new Date(2026, 9, 22, 21, 0).toISOString(), now)).toBe('21:00 ngày mai');
-    expect(formatDue(new Date(2026, 9, 23, 8, 5).toISOString(), now)).toBe('23.10 08:05');
+    const now = new Date('2026-10-21T20:15:00+07:00');
+    expect(formatDue('2026-10-21T21:00:00+07:00', now)).toBe('21:00 hôm nay');
+    expect(formatDue('2026-10-22T21:00:00+07:00', now)).toBe('21:00 ngày mai');
+    expect(formatDue('2026-10-23T08:05:00+07:00', now)).toBe('23.10 08:05');
   });
 });
 

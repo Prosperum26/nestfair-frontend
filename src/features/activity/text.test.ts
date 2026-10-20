@@ -87,8 +87,8 @@ describe('activityLine', () => {
 
 describe('activityTime', () => {
   it('cùng ngày HH:mm, khác ngày dd.mm HH:mm', () => {
-    const at = new Date(2026, 9, 21, 20, 15);
-    expect(activityTime(at.toISOString(), new Date(2026, 9, 21, 23, 0))).toBe('20:15');
-    expect(activityTime(at.toISOString(), new Date(2026, 9, 22, 8, 0))).toBe('21.10 20:15');
+    const at = '2026-10-21T20:15:00+07:00';
+    expect(activityTime(at, new Date('2026-10-21T23:00:00+07:00'))).toBe('20:15');
+    expect(activityTime(at, new Date('2026-10-22T08:00:00+07:00'))).toBe('21.10 20:15');
   });
 });
