@@ -46,10 +46,13 @@ function TopNav() {
           </ul>
         </nav>
         <div className="flex shrink-0 items-center gap-3">
-          <ConnectionDot />
           <HouseSwitcher />
           <IconButton icon={<Bell />} label="Thông báo" onClick={notificationsSoon} />
-          <UserMenu />
+          {/* Chấm kết nối gắn ở góc avatar: không thêm bề rộng vào hàng, menu 7 mục vẫn đủ chỗ ở xl. */}
+          <div className="relative">
+            <UserMenu />
+            <ConnectionDot className="pointer-events-none absolute top-[26px] left-[26px]" />
+          </div>
         </div>
       </div>
     </header>

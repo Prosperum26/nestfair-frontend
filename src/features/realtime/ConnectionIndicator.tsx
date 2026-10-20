@@ -9,14 +9,16 @@ const DOT: Record<ConnectionStatus, string> = {
   offline: 'bg-tom-v',
 };
 
-/** Chấm trạng thái kết nối realtime ở header: mint "Trực tuyến", hl "Đang kết nối lại…", tom "Mất kết nối". */
+/**
+ * Chấm trạng thái kết nối realtime ở header: mint "Trực tuyến", hl "Đang kết nối lại…", tom "Mất kết nối".
+ * Chỉ có chấm, nhãn nằm ở `title` / `aria-label` để không chiếm chỗ của menu top nav.
+ */
 export function ConnectionDot({ className }: { className?: string }) {
   const { status } = useSocket();
   const label = STATUS_LABEL[status];
   return (
-    <span className={cn('flex shrink-0 items-center gap-1.5', className)} title={label} role="status" aria-label={label}>
-      <span className={cn('size-2 rounded-full ring-2 ring-surface', DOT[status])} aria-hidden />
-      <span className="hidden text-cap text-ink-2 xl:inline">{label}</span>
+    <span className={cn('flex shrink-0 items-center', className)} title={label} role="status" aria-label={label}>
+      <span className={cn('size-2.5 rounded-full ring-2 ring-surface', DOT[status])} aria-hidden />
     </span>
   );
 }
