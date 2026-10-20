@@ -23,7 +23,7 @@ import { totalRotation, wheelAngle } from '../angle.ts';
 import { wheelApi } from '../api.ts';
 import { isNetworkError, wheelErrorMessage } from '../errors.ts';
 import { useSpin, useWheelOptions, wheelKeys } from '../hooks.ts';
-import { canSpin, formatDue, normalizeTitle, titleError, toggleParticipant } from '../selection.ts';
+import { canSpin, formatDue, normalizeTitle, resultAnnouncement, resultHeadline, titleError, toggleParticipant } from '../selection.ts';
 import { readSoundPref, tick, writeSoundPref } from '../sound.ts';
 import { useWheelStore } from '../store.ts';
 import type { ActiveSpin, DueKey } from '../types.ts';
@@ -253,7 +253,7 @@ function SpinView({ active, onDone }: { active: ActiveSpin; onDone: () => void }
   const live = voided
     ? `Vòng quay ${spin.taskTitle} đã bị hủy`
     : showResult
-      ? `Kết quả: ${firstName(winner.name)} trúng ${spin.taskTitle}`
+      ? resultAnnouncement(winner, spin.taskTitle, me)
       : 'Đang quay…';
 
   return (
@@ -303,8 +303,10 @@ function SpinView({ active, onDone }: { active: ActiveSpin; onDone: () => void }
         <div className="flex items-center gap-3 rounded-card bg-sky-bg p-4">
           <Avatar name={winner.name} tone={avatarToneFor(winner.id)} src={winner.avatarUrl} size={40} />
           <div className="min-w-0">
-            <p className="font-display text-ct text-ink">{winner.id === me ? 'Bạn trúng!' : `${firstName(winner.name)} trúng!`}</p>
-            <p className="text-sm text-ink-2">Đã tạo việc đột xuất · hạn {formatDue(spin.dueAt)}</p>
+            <p className="font-display text-ct text-ink">{resultHeadline(winner, me)}</p>
+            <p className="text-sm text-ink-2 [overflow-wrap:anywhere]">
+              Đã tạo việc đột xuất · {spin.taskTitle} · hạn {formatDue(spin.dueAt)}
+            </p>
             {spin.winnerSlotsToday >= 2 && (
               <p className="mt-1 flex items-center gap-1.5 text-cap text-hl-ink">
                 <TriangleAlert className="size-3.5" aria-hidden />

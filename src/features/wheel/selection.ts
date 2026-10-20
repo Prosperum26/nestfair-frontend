@@ -1,3 +1,5 @@
+import { firstName } from '@/lib/date.ts';
+
 /** Giống server: bỏ ký tự điều khiển, gộp khoảng trắng thừa. */
 export function normalizeTitle(value: string): string {
   return value.replace(/\p{Cc}/gu, ' ').replace(/\s+/g, ' ').trim();
@@ -39,4 +41,14 @@ export function formatDue(iso: string, now: Date = new Date()): string {
   if (diff === 0) return `${hm} hôm nay`;
   if (diff === 1) return `${hm} ngày mai`;
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${hm}`;
+}
+
+/** Câu kết quả trong modal: người xem trúng thì "Bạn", người khác thì tên gọi. */
+export function resultHeadline(winner: { id: string; name: string }, meUserId?: string | null): string {
+  return `${winner.id === meUserId ? 'Bạn' : firstName(winner.name)} đã trúng secret!`;
+}
+
+/** Câu đọc cho trình đọc màn hình khi bánh xe dừng. */
+export function resultAnnouncement(winner: { id: string; name: string }, taskTitle: string, meUserId?: string | null): string {
+  return `Kết quả: ${resultHeadline(winner, meUserId)} ${taskTitle}`;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canSpin, formatDue, normalizeTitle, titleError, toggleParticipant } from './selection.ts';
+import { canSpin, formatDue, normalizeTitle, resultAnnouncement, resultHeadline, titleError, toggleParticipant } from './selection.ts';
 
 const members = [
   { id: 'h', absentToday: false },
@@ -41,5 +41,19 @@ describe('formatDue', () => {
     expect(formatDue(new Date(2026, 9, 21, 21, 0).toISOString(), now)).toBe('21:00 hôm nay');
     expect(formatDue(new Date(2026, 9, 22, 21, 0).toISOString(), now)).toBe('21:00 ngày mai');
     expect(formatDue(new Date(2026, 9, 23, 8, 5).toISOString(), now)).toBe('23.10 08:05');
+  });
+});
+
+describe('câu kết quả', () => {
+  const quan = { id: 'u-quan', name: 'Nguyễn Minh Quân' };
+
+  it('người khác trúng: dùng tên gọi', () => {
+    expect(resultHeadline(quan, 'u-hung')).toBe('Quân đã trúng secret!');
+    expect(resultAnnouncement(quan, 'Mua nước bình 20L', 'u-hung')).toBe('Kết quả: Quân đã trúng secret! Mua nước bình 20L');
+  });
+
+  it('người xem là người trúng: "Bạn"', () => {
+    expect(resultHeadline(quan, 'u-quan')).toBe('Bạn đã trúng secret!');
+    expect(resultAnnouncement(quan, 'Mua nước bình 20L', 'u-quan')).toBe('Kết quả: Bạn đã trúng secret! Mua nước bình 20L');
   });
 });
