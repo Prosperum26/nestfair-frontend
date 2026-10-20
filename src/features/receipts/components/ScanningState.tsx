@@ -5,7 +5,7 @@ import { ReceiptImagePanel } from './ReceiptImagePanel.tsx';
 /** Đang chờ Gemini: ảnh có "tia quét" chạy dọc. Hủy chỉ bỏ kết quả, không gọi lại. */
 export function ScanningState({ previewUrl, fileName, sizeBytes, onCancel }: { previewUrl: string; fileName: string; sizeBytes: number; onCancel: () => void }) {
   return (
-    <div className="mx-auto grid max-w-[900px] gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+    <div className="mx-auto grid max-w-[900px] grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
       <ReceiptImagePanel previewUrl={previewUrl} fileName={fileName} sizeBytes={sizeBytes} scanning />
       <section className="rounded-card border border-line bg-surface p-6" role="status" aria-live="polite">
         <p className="font-mono text-over uppercase text-ink-2">Gemini Vision</p>

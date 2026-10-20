@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { ExpenseFormModal, type ExpensePrefill } from '@/features/expenses/components/ExpenseFormModal.tsx';
+import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { ledgerErrorMessage } from '@/features/expenses/errors.ts';
 import { prepareImage } from '@/features/expenses/image-upload.ts';
 import type { UserBrief } from '@/features/expenses/types.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
+import { ReviewForm } from '@/features/receipts/components/ReviewForm.tsx';
 import { ScanFailure } from '@/features/receipts/components/ScanFailure.tsx';
 import { ScanningState } from '@/features/receipts/components/ScanningState.tsx';
 import { ScanPicker } from '@/features/receipts/components/ScanPicker.tsx';
@@ -72,18 +74,20 @@ export function ScanReceiptPage() {
 
   return (
     <>
-      <PageHeader
-        overline="Chi tiêu · Quét hóa đơn"
-        title="Quét hóa đơn"
-        description="Chụp hóa đơn, mình đọc giúp rồi bạn kiểm tra trước khi ghi vào sổ."
-        actions={
-          <Button variant="secondary" leftIcon={<ArrowLeft />} onClick={() => navigate('/expenses')}>
-            Về sổ chi
-          </Button>
-        }
-      />
+      {stage.kind !== 'review' && (
+        <PageHeader
+          overline="Chi tiêu · Quét hóa đơn"
+          title="Quét hóa đơn"
+          description="Chụp hóa đơn, mình đọc giúp rồi bạn kiểm tra trước khi ghi vào sổ."
+          actions={
+            <Button variant="secondary" leftIcon={<ArrowLeft />} onClick={() => navigate('/expenses')}>
+              Về sổ chi
+            </Button>
+          }
+        />
+      )}
 
-      <div className="mt-8">
+      <div className={stage.kind === 'review' ? undefined : 'mt-8'}>
         {stage.kind === 'pick' && <ScanPicker onPick={(f) => void onPick(f)} onManual={() => openManual()} error={pickError} />}
         {stage.kind === 'scanning' && (
           <ScanningState previewUrl={stage.previewUrl} fileName={stage.fileName} sizeBytes={stage.sizeBytes} onCancel={() => dispatch({ type: 'cancelled' })} />
@@ -101,12 +105,30 @@ export function ScanReceiptPage() {
             }
           />
         )}
-        {stage.kind === 'review' && (
-          // Thay bằng màn xác nhận split-view ở task F5.
-          <p className="text-sm text-ink-2" role="status">
-            Đã đọc xong: {stage.result.draft.merchant}.
-          </p>
-        )}
+        {stage.kind === 'review' &&
+          (house && members.length > 0 ? (
+            <ReviewForm
+              // Mỗi bản nháp một form riêng: quét lại thì giá trị mặc định tính lại.
+              key={stage.result.scanId}
+              houseId={house.id}
+              members={members}
+              meId={me?.id}
+              draft={stage.result.draft}
+              previewUrl={stage.previewUrl}
+              fileName={stage.fileName}
+              sizeBytes={stage.sizeBytes}
+              imageUrl={stage.result.imageUrl}
+              scanId={stage.result.scanId}
+              onRescan={() => dispatch({ type: 'reset' })}
+              onSaved={() => navigate('/expenses')}
+              onOtherSplit={openManual}
+            />
+          ) : (
+            <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải thành viên">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-64" />
+            </div>
+          ))}
       </div>
 
       {house && (

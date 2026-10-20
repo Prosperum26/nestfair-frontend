@@ -23,7 +23,7 @@ export function ScanFailure({
   onManual: () => void;
 }) {
   return (
-    <div className="mx-auto grid max-w-[900px] gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+    <div className="mx-auto grid max-w-[900px] grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
       <ReceiptImagePanel previewUrl={previewUrl} fileName={fileName} sizeBytes={sizeBytes} />
       <section className="rounded-card border border-line bg-surface p-6" role="alert">
         <IconTile icon={<TriangleAlert />} tone="tom" size={44} />
