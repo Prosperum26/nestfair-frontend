@@ -2,6 +2,9 @@ import { Bell, Plus } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { toast } from 'sonner';
 import { IconButton } from '@/components/ui/IconButton.tsx';
+import { useCurrentHouse } from '@/features/houses/hooks.ts';
+import { ConnectionDot, ReconnectBanner } from '@/features/realtime/ConnectionIndicator.tsx';
+import { RealtimeProvider } from '@/features/realtime/RealtimeProvider.tsx';
 import { Logo } from '@/components/ui/Logo.tsx';
 import { cn } from '@/lib/cn.ts';
 import { HouseSwitcher } from './HouseSwitcher.tsx';
@@ -41,6 +44,7 @@ function TopNav() {
           </ul>
         </nav>
         <div className="flex shrink-0 items-center gap-3">
+          <ConnectionDot />
           <HouseSwitcher />
           <IconButton icon={<Bell />} label="Thông báo" onClick={notificationsSoon} />
           <UserMenu />
@@ -61,6 +65,7 @@ function MobileTopBar() {
         <HouseSwitcher compact />
         <p className="truncate font-display text-ct text-ink">{title}</p>
       </div>
+      <ConnectionDot />
       <IconButton icon={<Bell />} label="Thông báo" onClick={notificationsSoon} />
     </header>
   );
@@ -101,16 +106,20 @@ function TabBar() {
   );
 }
 
-/** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). */
+/** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). Một kết nối realtime cho nhà đang xem. */
 export function AppShell() {
+  const { house } = useCurrentHouse();
   return (
-    <div className="min-h-svh bg-paper">
-      <TopNav />
-      <MobileTopBar />
-      <main className="mx-auto max-w-page px-4 pt-6 pb-32 lg:px-6 lg:pt-10 lg:pb-24 xl:px-0">
-        <Outlet />
-      </main>
-      <TabBar />
-    </div>
+    <RealtimeProvider houseId={house?.id}>
+      <div className="min-h-svh bg-paper">
+        <TopNav />
+        <MobileTopBar />
+        <ReconnectBanner />
+        <main className="mx-auto max-w-page px-4 pt-6 pb-32 lg:px-6 lg:pt-10 lg:pb-24 xl:px-0">
+          <Outlet />
+        </main>
+        <TabBar />
+      </div>
+    </RealtimeProvider>
   );
 }
