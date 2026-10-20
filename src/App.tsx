@@ -12,6 +12,7 @@ import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
 import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
+import { ScanReceiptPage } from '@/pages/ScanReceiptPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
               { path: '/chores', element: <ChoresPage /> },
               { path: '/settings', element: <HouseSettingsPage /> },
               { path: '/expenses', element: <ExpensesPage /> },
+              { path: '/expenses/scan', element: <ScanReceiptPage /> },
               { path: '/payments', element: <PaymentsPage /> },
               { path: '/members', element: <MembersPage /> },
               {

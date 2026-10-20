@@ -1,6 +1,6 @@
-import { Filter, Plus, Search } from 'lucide-react';
+import { Filter, Plus, ScanLine, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { Input } from '@/components/ui/Input.tsx';
@@ -50,6 +50,7 @@ export function ExpensesPage() {
   const { house } = useCurrentHouse();
   const detail = useHouseDetail(house?.id);
   const me = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const thisMonth = monthKeyOf(new Date());
   const [month, setMonth] = useState(thisMonth);
@@ -129,6 +130,10 @@ export function ExpensesPage() {
         actions={
           <>
             <MonthSwitcher month={month} onChange={changeMonth} max={thisMonth} />
+            <Button variant="secondary" leftIcon={<ScanLine />} onClick={() => navigate('/expenses/scan')} className="max-lg:hidden">
+              Quét hóa đơn
+            </Button>
+            <IconButton icon={<ScanLine />} label="Quét hóa đơn" onClick={() => navigate('/expenses/scan')} className="lg:hidden" />
             <Button variant="accent" leftIcon={<Plus />} onClick={openNew} className="max-lg:hidden">
               Thêm chi tiêu
             </Button>
