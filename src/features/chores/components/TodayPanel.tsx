@@ -40,25 +40,28 @@ export function TodayList({
         const chip = statusChip(a.status);
         const wheel = a.source === 'WHEEL';
         return (
-          <article key={a.id} className="rounded-card border border-line-2 p-4">
+          <article key={a.id} className="@container rounded-card border border-line-2 p-4">
             <div className="flex items-start gap-3">
               <IconTile icon={wheel ? <Dice5 /> : <Brush />} tone={wheel ? 'yellow' : avatarToneFor(a.choreId)} size={40} />
-              <div className="min-w-0 flex-1">
-                <h3 className="text-h4 text-ink [overflow-wrap:anywhere]">{a.choreTitle}</h3>
-                <p className="mt-0.5 text-cap text-ink-2">
-                  {wheel ? (
-                    'Việc đột xuất · vòng quay'
-                  ) : (
-                    <>
-                      Độ nặng <span className="font-mono">{a.weight}</span>
-                    </>
-                  )}{' '}
-                  · {chip.label}
-                </p>
+              {/* Thẻ hẹp (mobile, hai cột ở md): hạn chót xuống dưới tên việc để tên không bị ép thành cột chữ. */}
+              <div className="flex min-w-0 flex-1 flex-col items-start gap-2 @sm:flex-row @sm:gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-h4 text-ink [overflow-wrap:anywhere]">{a.choreTitle}</h3>
+                  <p className="mt-0.5 text-cap text-ink-2">
+                    {wheel ? (
+                      'Việc đột xuất · vòng quay'
+                    ) : (
+                      <>
+                        Độ nặng <span className="font-mono">{a.weight}</span>
+                      </>
+                    )}{' '}
+                    · {chip.label}
+                  </p>
+                </div>
+                <Chip tone="yellow" size="sm" icon={<Clock />}>
+                  Trước{wheel && dayKeyOf(a.dueAt) !== dayKeyOf(now) ? ` ${dueLabel(a.dueAt)}` : ''} <span className="font-mono">{dueTimeLabel(a.dueAt)}</span>
+                </Chip>
               </div>
-              <Chip tone="yellow" size="sm" icon={<Clock />}>
-                Trước{wheel && dayKeyOf(a.dueAt) !== dayKeyOf(now) ? ` ${dueLabel(a.dueAt)}` : ''} <span className="font-mono">{dueTimeLabel(a.dueAt)}</span>
-              </Chip>
             </div>
             <div className="mt-4">
               <CheckinForm assignment={a} houseId={houseId} meUserId={meUserId} onClose={() => undefined} inline />
