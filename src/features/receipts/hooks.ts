@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/auth-store.ts';
 import { receiptsApi } from './api.ts';
 
 /**
@@ -8,5 +9,13 @@ import { receiptsApi } from './api.ts';
 export function useScanReceipt(houseId: string | undefined) {
   return useMutation({
     mutationFn: ({ photo, filename }: { photo: Blob; filename: string }) => receiptsApi.scan(houseId!, photo, filename),
+  });
+}
+
+/** Bật / tắt đồng ý gửi ảnh cho Gemini; cập nhật hồ sơ trong store để mọi nơi (menu, nút quét) thấy ngay. */
+export function useSetOcrConsent() {
+  return useMutation({
+    mutationFn: (enabled: boolean) => receiptsApi.setOcrConsent(enabled),
+    onSuccess: (user) => useAuthStore.getState().setUser(user),
   });
 }
