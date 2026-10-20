@@ -14,6 +14,14 @@ describe('ledgerErrorMessage', () => {
     expect(ledgerErrorMessage(new ApiError(400, 'Tên khoản chi cần từ 1 đến 80 ký tự.'))).toBe('Tên khoản chi cần từ 1 đến 80 ký tự.');
     expect(ledgerErrorMessage('boom')).toBe('Có lỗi xảy ra, thử lại sau.');
   });
+  it('mã của quét hóa đơn → câu tiếng Việt', () => {
+    expect(ledgerErrorMessage(new ApiError(429, 'x', 'OCR_QUOTA_EXCEEDED'))).toBe('Nhà bạn đã dùng hết 20 lượt quét hôm nay. Bạn nhập tay nhé, mai quét tiếp.');
+    expect(ledgerErrorMessage(new ApiError(409, 'x', 'RECEIPT_SCAN_USED'))).toBe('Hóa đơn này đã được ghi vào sổ rồi.');
+    expect(ledgerErrorMessage(new ApiError(404, 'x', 'RECEIPT_SCAN_NOT_FOUND'))).toBe('Bản nháp này không còn nữa, bạn quét lại nhé.');
+    expect(ledgerErrorMessage(new ApiError(403, 'x', 'OCR_CONSENT_REQUIRED'))).toBe(
+      'Bạn chưa cho phép gửi ảnh hóa đơn tới Google Gemini. Hãy bật ở menu tài khoản.',
+    );
+  });
   it('isLedgerStale', () => {
     expect(isLedgerStale(new ApiError(409, 'x', 'SETTLEMENT_NOT_PENDING'))).toBe(true);
     expect(isLedgerStale(new ApiError(422, 'x', 'SPLIT_INVALID'))).toBe(false);

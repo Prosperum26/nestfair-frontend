@@ -1,7 +1,7 @@
 /** Khớp DTO backend module expenses (Issue #9). Tiền luôn là số nguyên VNĐ. */
 export type ExpenseCategory = 'FOOD' | 'RENT' | 'ELECTRICITY' | 'WATER' | 'INTERNET' | 'SUPPLIES' | 'GIFT' | 'OTHER';
 
-/** EQUAL = chia đều cả nhà, CUSTOM = chọn người rồi chia đều, EXACT = số tiền từng người. ITEMIZED chưa hỗ trợ. */
+/** EQUAL = chia đều cả nhà, CUSTOM = chọn người rồi chia đều, EXACT = số tiền từng người, ITEMIZED = theo từng món (từ quét hóa đơn). */
 export type SplitType = 'EQUAL' | 'CUSTOM' | 'EXACT' | 'ITEMIZED';
 
 export interface UserBrief {
@@ -64,6 +64,10 @@ export interface ExpenseInput {
   payerId?: string;
   participantIds?: string[];
   splits?: { userId: string; amount: number }[];
+  /** Chỉ với ITEMIZED (bắt buộc, tối đa 100 món). Phần chênh so với `totalAmount` được backend chia theo tỷ lệ tiền món. */
+  items?: { name: string; lineTotal: number; userIds: string[] }[];
+  /** Bản nháp OCR mà khoản chi được tạo từ đó; chỉ khi tạo, mỗi bản nháp dùng một lần. */
+  receiptScanId?: string;
   spentAt?: string;
   note?: string | null;
   receiptImageUrl?: string | null;

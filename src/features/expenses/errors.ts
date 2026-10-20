@@ -1,10 +1,9 @@
 import { ApiError } from '@/lib/api.ts';
 
-/** Mã lỗi sổ chi & thanh toán (README backend, Issue #9) → câu tiếng Việt cho người dùng. */
+/** Mã lỗi sổ chi, thanh toán và quét hóa đơn (README backend, Issue #9 và #11) → câu tiếng Việt cho người dùng. */
 const MESSAGES: Record<string, string> = {
   SPLIT_INVALID: 'Cách chia chưa hợp lệ, kiểm tra lại người chịu phần.',
   SPLIT_SUM_MISMATCH: 'Tổng các phần phải bằng số tiền hóa đơn.',
-  SPLIT_TYPE_NOT_SUPPORTED: 'Chia theo từng món sẽ có khi quét hóa đơn.',
   NOT_A_HOUSE_MEMBER: 'Người được chọn không còn ở trong nhà.',
   SPENT_AT_IN_FUTURE: 'Ngày chi không được ở tương lai.',
   RECEIPT_URL_INVALID: 'Ảnh hóa đơn chưa tải lên được, hãy chọn lại ảnh.',
@@ -23,6 +22,10 @@ const MESSAGES: Record<string, string> = {
   UNSUPPORTED_IMAGE: 'Chỉ nhận ảnh JPG, PNG hoặc WEBP.',
   IMAGE_TOO_LARGE: 'Ảnh tối đa 5MB.',
   UPLOAD_UNAVAILABLE: 'Chưa tải ảnh lên được, thử lại sau ít phút.',
+  OCR_QUOTA_EXCEEDED: 'Nhà bạn đã dùng hết 20 lượt quét hôm nay. Bạn nhập tay nhé, mai quét tiếp.',
+  OCR_CONSENT_REQUIRED: 'Bạn chưa cho phép gửi ảnh hóa đơn tới Google Gemini. Hãy bật ở menu tài khoản.',
+  RECEIPT_SCAN_USED: 'Hóa đơn này đã được ghi vào sổ rồi.',
+  RECEIPT_SCAN_NOT_FOUND: 'Bản nháp này không còn nữa, bạn quét lại nhé.',
 };
 
 export function ledgerErrorMessage(error: unknown): string {
