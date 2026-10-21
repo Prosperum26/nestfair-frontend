@@ -16,6 +16,11 @@ describe('view preference', () => {
     expect(readView()).toBe('calendar');
   });
 
+  it('nhớ cả tab Chợ ca', () => {
+    vi.stubGlobal('localStorage', { getItem: () => 'market', setItem: vi.fn() });
+    expect(readView()).toBe('market');
+  });
+
   it('localStorage bị chặn (chế độ riêng tư) thì không ném lỗi', () => {
     const blocked = () => {
       throw new Error('blocked');

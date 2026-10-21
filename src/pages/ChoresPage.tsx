@@ -32,12 +32,13 @@ import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 import { VoidSpinModal } from '@/features/wheel/components/VoidSpinModal.tsx';
 import { useWheelStore } from '@/features/wheel/store.ts';
 import { SwapModal } from '@/features/swaps/components/SwapModal.tsx';
-import { useSwapList } from '@/features/swaps/hooks.ts';
+import { SwapsTab } from '@/features/swaps/components/SwapsTab.tsx';
+import { useSwapList, useSwapSummary } from '@/features/swaps/hooks.ts';
 import { useSwapRealtime } from '@/features/swaps/realtime.ts';
 import { lockedAssignmentIds, swapEntry } from '@/features/swaps/swap-entry.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
-const VIEW_OPTIONS: { value: ChoresView; label: string }[] = [
+const BASE_VIEWS: { value: ChoresView; label: string }[] = [
   { value: 'calendar', label: 'Lịch tuần' },
   { value: 'kanban', label: 'Kanban' },
 ];
@@ -77,6 +78,9 @@ export function ChoresPage() {
   const outgoing = useSwapList(house?.id, 'OUTGOING');
   const incoming = useSwapList(house?.id, 'INCOMING');
   const lockedIds = useMemo(() => lockedAssignmentIds([...(outgoing.data ?? []), ...(incoming.data ?? [])]), [outgoing.data, incoming.data]);
+  const summary = useSwapSummary(house?.id);
+  const marketCount = summary.data?.market ?? 0;
+  const viewOptions: { value: ChoresView; label: string }[] = [...BASE_VIEWS, { value: 'market', label: `Chợ ca (${marketCount})` }];
   const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget || voidTarget || swapTarget);
   const { stale, refresh } = useChoresRealtime(house?.id, modalOpen);
 
@@ -218,8 +222,8 @@ export function ChoresPage() {
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <SegmentedControl label="Kiểu xem" options={VIEW_OPTIONS} value={view} onChange={changeView} className="w-full sm:w-[260px]" />
-        <div className="flex items-center gap-2 max-sm:w-full max-sm:justify-between sm:ml-auto">
+        <SegmentedControl label="Kiểu xem" options={viewOptions} value={view} onChange={changeView} className="w-full sm:w-[380px]" />
+        <div className={view === 'market' ? 'hidden' : 'flex items-center gap-2 max-sm:w-full max-sm:justify-between sm:ml-auto'}>
           <IconButton icon={<ChevronLeft />} label="Tuần trước" onClick={() => setWeekKey(shiftWeek(weekKey, -1))} />
           <Button variant="secondary" disabled={weekKey === thisWeek} onClick={() => setWeekKey(thisWeek)}>
             Tuần này
@@ -228,13 +232,17 @@ export function ChoresPage() {
         </div>
       </div>
 
-      {schedule && schedule.status !== 'EMPTY' && (
+      {view === 'market' && house ? (
+        <SwapsTab houseId={house.id} myFullName={me?.fullName} />
+      ) : null}
+
+      {view !== 'market' && schedule && schedule.status !== 'EMPTY' && (
         <div className="mt-4">
           <ScheduleBanner schedule={schedule} />
         </div>
       )}
 
-      {week.isPending ? (
+      {view === 'market' ? null : week.isPending ? (
         <ChoresSkeleton />
       ) : week.isError ? (
         <div className="mt-6 rounded-card border border-line bg-surface">
@@ -300,7 +308,7 @@ export function ChoresPage() {
         </div>
       )}
 
-      {!showToday && waitingSection && <div className="mt-8">{waitingSection}</div>}
+      {view !== 'market' && !showToday && waitingSection && <div className="mt-8">{waitingSection}</div>}
 
       {house && (
         <>

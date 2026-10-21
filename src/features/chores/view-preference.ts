@@ -1,4 +1,4 @@
-export type ChoresView = 'calendar' | 'kanban';
+export type ChoresView = 'calendar' | 'kanban' | 'market';
 
 const KEY = 'nestfair.choresView';
 
@@ -6,7 +6,7 @@ const KEY = 'nestfair.choresView';
 export function readView(): ChoresView {
   try {
     const value = localStorage.getItem(KEY);
-    return value === 'kanban' ? 'kanban' : 'calendar';
+    return value === 'kanban' || value === 'market' ? value : 'calendar';
   } catch {
     return 'calendar';
   }
