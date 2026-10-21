@@ -1,7 +1,8 @@
-import { Ban, Camera, CalendarDays, Dice5, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { ArrowLeftRight, Ban, Camera, CalendarDays, Dice5, Lock, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
+import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
@@ -30,6 +31,10 @@ import { shiftWeek, weekKeyOf, weekRangeLabel } from '@/features/chores/week.ts'
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 import { VoidSpinModal } from '@/features/wheel/components/VoidSpinModal.tsx';
 import { useWheelStore } from '@/features/wheel/store.ts';
+import { SwapModal } from '@/features/swaps/components/SwapModal.tsx';
+import { useSwapList } from '@/features/swaps/hooks.ts';
+import { useSwapRealtime } from '@/features/swaps/realtime.ts';
+import { lockedAssignmentIds, swapEntry } from '@/features/swaps/swap-entry.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 const VIEW_OPTIONS: { value: ChoresView; label: string }[] = [
@@ -60,13 +65,19 @@ export function ChoresPage() {
   const [verifyTarget, setVerifyTarget] = useState<Assignment | null>(null);
   const [overrideTarget, setOverrideTarget] = useState<Assignment | null>(null);
   const [voidTarget, setVoidTarget] = useState<Assignment | null>(null);
+  const [swapTarget, setSwapTarget] = useState<Assignment | null>(null);
   const openWheel = useWheelStore((s) => s.openModal);
 
   const week = useWeekView(house?.id, weekKey);
   const today = useTodayAssignments(house?.id);
   const chores = useChores(house?.id);
   const settings = useChoreSettings(house?.id);
-  const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget || voidTarget);
+  useSwapRealtime(house?.id);
+  // Ca đang nằm trong yêu cầu chờ (cả ca nguồn lẫn ca đích): khóa nút Đổi ca và hiện nhãn "Đang chờ đổi".
+  const outgoing = useSwapList(house?.id, 'OUTGOING');
+  const incoming = useSwapList(house?.id, 'INCOMING');
+  const lockedIds = useMemo(() => lockedAssignmentIds([...(outgoing.data ?? []), ...(incoming.data ?? [])]), [outgoing.data, incoming.data]);
+  const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget || voidTarget || swapTarget);
   const { stale, refresh } = useChoresRealtime(house?.id, modalOpen);
 
   const isAdmin = house?.myRole === 'ADMIN';
@@ -83,6 +94,7 @@ export function ChoresPage() {
     setVerifyTarget(null);
     setOverrideTarget(null);
     setVoidTarget(null);
+    setSwapTarget(null);
     // Có thay đổi từ người khác trong lúc đang mở modal: tải lại ngay khi đóng.
     if (stale) refresh();
   };
@@ -109,6 +121,20 @@ export function ChoresPage() {
       );
     }
     if (house && canAppeal(a, me?.id)) nodes.push(<AppealButton key="appeal" houseId={house.id} assignment={a} />);
+    const swap = swapEntry(a, me?.id, new Date(), lockedIds);
+    if (swap.canOpen) {
+      nodes.push(
+        <Button key="swap" size="sm" variant="secondary" leftIcon={<ArrowLeftRight />} onClick={() => setSwapTarget(a)}>
+          Đổi ca
+        </Button>,
+      );
+    } else if (a.assigneeUserId === me?.id && lockedIds.has(a.id)) {
+      nodes.push(
+        <Chip key="swap-locked" tone="neutral" size="sm" icon={<Lock />}>
+          Đang chờ đổi
+        </Chip>,
+      );
+    }
     if (isAdmin && a.source === 'WHEEL' && a.wheelSpinId && a.status === 'TODO' && !a.submittedAt) {
       nodes.push(
         <Button key="void" size="sm" variant="ghost" leftIcon={<Ban />} onClick={() => setVoidTarget(a)}>
@@ -281,6 +307,12 @@ export function ChoresPage() {
           <CheckinModal assignment={checkinTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
           <VerifyModal assignment={verifyTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
           <OverrideModal assignment={overrideTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
+          <SwapModal
+            assignment={swapTarget}
+            houseId={house.id}
+            entry={swapTarget ? swapEntry(swapTarget, me?.id, new Date(), lockedIds) : { canOpen: false, exchange: null, cover: null, giftOnly: false, blocked: null }}
+            onClose={closeModals}
+          />
           <VoidSpinModal
             assignment={voidTarget}
             onClose={closeModals}
