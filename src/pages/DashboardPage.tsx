@@ -1,5 +1,4 @@
 import {
-  ArrowLeftRight,
   ArrowRight,
   Bell,
   CalendarDays,
@@ -24,6 +23,7 @@ import { LiveTicker } from '@/features/activity/components/LiveTicker.tsx';
 import { useActivityFeed } from '@/features/activity/hooks.ts';
 import { TodayCard } from '@/features/chores/components/TodayCard.tsx';
 import { CardEmpty, DashCard } from '@/features/dashboard/DashCard.tsx';
+import { SwapSummaryWidget } from '@/features/swaps/components/SwapSummaryWidget.tsx';
 import { WheelPreview } from '@/features/wheel/components/WheelPreview.tsx';
 import { useWheelStore } from '@/features/wheel/store.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
@@ -212,9 +212,7 @@ export function DashboardPage() {
           <ActivityList items={feed.data} status={feed.status} me={user?.id} onRetry={() => void feed.refetch()} limit={5} />
         </DashCard>
         <div className="order-5 flex flex-col gap-4 lg:order-none lg:col-span-5 lg:gap-6">
-          <DashCard overline="Yêu cầu · Chợ ca · Nợ ca" title="Đổi ca">
-            <CardEmpty icon={<ArrowLeftRight />}>Yêu cầu nhờ trực dùm và ca trên Chợ ca sẽ hiện ở đây.</CardEmpty>
-          </DashCard>
+          <SwapSummaryWidget houseId={house?.id} />
           <DashCard
             overline="3 nhắc gần nhất"
             title="Nhắc nhở"
