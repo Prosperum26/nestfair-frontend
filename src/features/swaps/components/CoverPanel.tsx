@@ -114,32 +114,6 @@ export function CoverPanel({
     );
   };
 
-  if (options.isPending) {
-    return (
-      <div className="flex flex-col gap-2" aria-busy="true" aria-label="Đang tải danh sách người nhận">
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-[60px] rounded-card" />
-        ))}
-      </div>
-    );
-  }
-  if (options.isError) {
-    return (
-      <EmptyState
-        icon={<TriangleAlert />}
-        tone="tom"
-        title="Không tải được danh sách người nhận"
-        description={messageForSwapError(options.error)}
-        action={
-          <Button variant="secondary" leftIcon={<RotateCw />} onClick={() => void options.refetch()}>
-            Thử lại
-          </Button>
-        }
-        className="py-6"
-      />
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4">
       {giftOnly ? (
@@ -160,38 +134,59 @@ export function CoverPanel({
 
       <div>
         <h3 className="mb-2 text-h4 text-ink">Nhờ ai?</h3>
-        <div role="radiogroup" aria-label="Người được nhờ" className="flex flex-col gap-2">
-          {list.map((o) => (
-            <SwapOptionCard key={o.memberId} option={o} name="cover-target" selected={target === o.memberId} onSelect={() => choose(o.memberId)} />
-          ))}
-          <label
-            className={cn(
-              'flex cursor-pointer items-start gap-3 rounded-card border p-3 transition-colors',
-              target === MARKET ? 'border-[1.5px] border-ink bg-hl-soft' : 'border-line bg-surface hover:bg-paper',
-              !market?.allowed && 'cursor-not-allowed opacity-60 hover:bg-surface',
-            )}
-          >
-            <input
-              type="radio"
-              name="cover-target"
-              checked={target === MARKET}
-              disabled={!market?.allowed}
-              onChange={() => choose(MARKET)}
-              className="mt-1 size-4 shrink-0 accent-ink"
-            />
-            <Store className="mt-0.5 size-5 shrink-0 text-ink-2" aria-hidden />
-            <span className="min-w-0 flex-1">
-              <span className="block text-h4 text-ink">Đăng lên Chợ ca</span>
-              <span className="block text-cap text-ink-2">Cả phòng thấy, người đầu tiên bấm Nhận giúp sẽ nhận ca.</span>
-              {!market?.allowed && market?.reasonText && (
-                <span className="mt-1.5 flex items-start gap-1.5 text-cap text-tom">
-                  <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
-                  {market.reasonText}
-                </span>
+        {options.isPending ? (
+          <div className="flex flex-col gap-2" aria-busy="true" aria-label="Đang tải danh sách người nhận">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-[60px] rounded-card" />
+            ))}
+          </div>
+        ) : options.isError ? (
+          <EmptyState
+            icon={<TriangleAlert />}
+            tone="tom"
+            title="Không tải được danh sách người nhận"
+            description={messageForSwapError(options.error)}
+            action={
+              <Button variant="secondary" leftIcon={<RotateCw />} onClick={() => void options.refetch()}>
+                Thử lại
+              </Button>
+            }
+            className="py-6"
+          />
+        ) : (
+          <div role="radiogroup" aria-label="Người được nhờ" className="flex flex-col gap-2">
+            {list.map((o) => (
+              <SwapOptionCard key={o.memberId} option={o} name="cover-target" selected={target === o.memberId} onSelect={() => choose(o.memberId)} />
+            ))}
+            <label
+              className={cn(
+                'flex cursor-pointer items-start gap-3 rounded-card border p-3 transition-colors',
+                target === MARKET ? 'border-[1.5px] border-ink bg-hl-soft' : 'border-line bg-surface hover:bg-paper',
+                !market?.allowed && 'cursor-not-allowed opacity-60 hover:bg-surface',
               )}
-            </span>
-          </label>
-        </div>
+            >
+              <input
+                type="radio"
+                name="cover-target"
+                checked={target === MARKET}
+                disabled={!market?.allowed}
+                onChange={() => choose(MARKET)}
+                className="mt-1 size-4 shrink-0 accent-ink"
+              />
+              <Store className="mt-0.5 size-5 shrink-0 text-ink-2" aria-hidden />
+              <span className="min-w-0 flex-1">
+                <span className="block text-h4 text-ink">Đăng lên Chợ ca</span>
+                <span className="block text-cap text-ink-2">Cả phòng thấy, người đầu tiên bấm Nhận giúp sẽ nhận ca.</span>
+                {!market?.allowed && market?.reasonText && (
+                  <span className="mt-1.5 flex items-start gap-1.5 text-cap text-tom">
+                    <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
+                    {market.reasonText}
+                  </span>
+                )}
+              </span>
+            </label>
+          </div>
+        )}
       </div>
 
       {gift && (
