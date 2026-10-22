@@ -70,7 +70,7 @@ export function IncomingCard({ swap, now, busy, onAccept, onReject }: { swap: Sw
   );
 }
 
-/** "Chờ bạn phản hồi": các yêu cầu đích danh gửi tới bạn. Mỗi lần bấm Đồng ý dùng một Idempotency-Key mới. */
+/** "Chờ bạn phản hồi": các yêu cầu đích danh gửi tới bạn. Bấm lại Đồng ý sau khi mất phản hồi dùng lại cùng Idempotency-Key. */
 export function IncomingList({ houseId }: { houseId: string }) {
   const list = useSwapList(houseId, 'INCOMING');
   const accept = useAcceptSwap(houseId);
@@ -102,7 +102,7 @@ export function IncomingList({ houseId }: { houseId: string }) {
   const onAccept = (id: string) => {
     setBusyId(id);
     accept.mutate(
-      { swapId: id, key: crypto.randomUUID() },
+      { swapId: id },
       {
         onSuccess: () => toast.success('Bạn đã đồng ý. Ca đã được đổi.'),
         onError: (e) => {

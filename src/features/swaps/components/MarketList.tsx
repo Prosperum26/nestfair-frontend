@@ -56,7 +56,7 @@ export function MarketList({ houseId }: { houseId: string }) {
   const onAccept = (id: string) => {
     setPendingId(id);
     accept.mutate(
-      { swapId: id, key: crypto.randomUUID() },
+      { swapId: id },
       {
         onSuccess: (res) => {
           const slot = res.swap.fromAssignment;

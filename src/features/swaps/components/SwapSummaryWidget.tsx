@@ -18,7 +18,7 @@ const linkCls = 'inline-flex items-center gap-1 text-sm font-semibold text-ink u
 
 /**
  * Widget "Đổi ca" ở Tổng quan, ba khối: yêu cầu chờ bạn trả lời (Đồng ý / Từ chối ngay tại đây), Chợ ca, nợ ca.
- * Mỗi lần bấm Đồng ý dùng một Idempotency-Key mới.
+ * Bấm lại Đồng ý dùng lại cùng Idempotency-Key.
  */
 export function SwapSummaryWidget({ houseId, className }: { houseId: string | undefined; className?: string }) {
   const navigate = useNavigate();
@@ -74,7 +74,7 @@ export function SwapSummaryWidget({ houseId, className }: { houseId: string | un
                     onClick={() => {
                       setBusyId(sw.id);
                       accept.mutate(
-                        { swapId: sw.id, key: crypto.randomUUID() },
+                        { swapId: sw.id },
                         {
                           onSuccess: () => toast.success('Bạn đã đồng ý. Ca đã được đổi.'),
                           onError: (e) => toast.error(acceptFailure(e).message),

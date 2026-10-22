@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef } from 'react';
+import { acceptKeys, shouldReleaseKey } from './accept-keys.ts';
 import { debtApi, swapApi, type CreateSwapBody, type EscalateBody } from './api.ts';
 import { swapKeys } from './keys.ts';
 import { invalidateSwapData } from './realtime.ts';
@@ -74,7 +75,18 @@ function useSwapMutation<V, R>(houseId: string | undefined, fn: (v: V) => Promis
 
 export const useCreateSwap = (houseId: string | undefined) =>
   useSwapMutation(houseId, ({ body, key }: { body: CreateSwapBody; key: string }) => swapApi.create(houseId!, body, key));
-export const useAcceptSwap = (houseId: string | undefined) => useSwapMutation(houseId, ({ swapId, key }: { swapId: string; key: string }) => swapApi.accept(swapId, key));
+/** Mỗi yêu cầu giữ một Idempotency-Key cho tới khi có kết quả dứt khoát (thành công hoặc lỗi 4xx), nên bấm lại sau khi mất phản hồi vẫn an toàn. */
+export const useAcceptSwap = (houseId: string | undefined) =>
+  useSwapMutation(houseId, async ({ swapId }: { swapId: string }) => {
+    try {
+      const res = await swapApi.accept(swapId, acceptKeys.keyFor(swapId));
+      acceptKeys.release(swapId);
+      return res;
+    } catch (e) {
+      if (shouldReleaseKey(e)) acceptKeys.release(swapId);
+      throw e;
+    }
+  });
 export const useRejectSwap = (houseId: string | undefined) => useSwapMutation(houseId, ({ swapId, reason }: { swapId: string; reason?: string }) => swapApi.reject(swapId, reason));
 export const useCancelSwap = (houseId: string | undefined) => useSwapMutation(houseId, (swapId: string) => swapApi.cancel(swapId));
 export const useEscalateSwap = (houseId: string | undefined) =>
