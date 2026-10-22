@@ -31,11 +31,12 @@ export interface EscalateButton {
   reason: string | null;
 }
 
-export function escalateButtons(blocks: EscalateBlocks): EscalateButton[] {
+/** `pending`: đang gửi một hành động, khóa cả ba nút để không gửi hai hành động cùng lúc. */
+export function escalateButtons(blocks: EscalateBlocks, pending = false): EscalateButton[] {
   return [
-    { action: 'ADD_REWARD', label: 'Thêm quà và đăng lại', disabled: !!blocks.reward, reason: blocks.reward ?? null },
-    { action: 'RESEND', label: 'Gửi người khác', disabled: !!blocks.resend, reason: blocks.resend ?? null },
-    { action: 'SELF', label: 'Tự làm ca này', disabled: false, reason: null },
+    { action: 'ADD_REWARD', label: 'Thêm quà và đăng lại', disabled: pending || !!blocks.reward, reason: blocks.reward ?? null },
+    { action: 'RESEND', label: 'Gửi người khác', disabled: pending || !!blocks.resend, reason: blocks.resend ?? null },
+    { action: 'SELF', label: 'Tự làm ca này', disabled: pending, reason: null },
   ];
 }
 

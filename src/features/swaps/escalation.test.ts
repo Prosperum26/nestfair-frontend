@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { ApiError } from '@/lib/api.ts';
 import { ESCALATE_NOTE, escalateBody, escalateButtons, recordEscalateError } from './escalation.ts';
 
+describe('escalateButtons khi đang gửi', () => {
+  it('khóa cả ba nút để không gửi hai hành động cùng lúc', () => {
+    expect(escalateButtons({}, true).every((b) => b.disabled)).toBe(true);
+    expect(escalateButtons({}, false).some((b) => b.disabled)).toBe(false);
+  });
+});
+
 describe('escalateButtons', () => {
   it('ba nút đúng nhãn, theo thứ tự', () => {
     expect(escalateButtons({}).map((b) => [b.action, b.label])).toEqual([
