@@ -30,6 +30,8 @@ export function SwapOptionCard({
   selfWeight?: number;
 }) {
   const disabled = !option.valid;
+  // EXCHANGE: một thành viên có thể có nhiều ca ứng viên, id phải theo ca để không trùng.
+  const whyKey = option.assignmentId ?? option.memberId;
   const title = option.choreTitle && option.occurrenceDate ? slotLabel({ choreTitle: option.choreTitle, occurrenceDate: option.occurrenceDate }) : option.memberName;
   const diff = option.weight !== undefined && selfWeight !== undefined ? option.weight - selfWeight : null;
   const Icon = LOCK_CODES.has(option.reasonCode ?? '') ? Lock : TriangleAlert;
@@ -48,7 +50,7 @@ export function SwapOptionCard({
         disabled={disabled}
         onChange={onSelect}
         className="mt-1 size-4 shrink-0 accent-ink"
-        aria-describedby={disabled ? `${name}-${option.memberId}-why` : undefined}
+        aria-describedby={disabled ? `${name}-${whyKey}-why` : undefined}
       />
       <Avatar name={option.memberName} tone={avatarToneFor(option.memberId)} size={32} />
       <span className="min-w-0 flex-1">
@@ -65,7 +67,7 @@ export function SwapOptionCard({
           {option.weight !== undefined && <span className="font-mono">{pointsLabel(option.weight)}</span>}
         </span>
         {disabled && option.reasonText && (
-          <span id={`${name}-${option.memberId}-why`} className="mt-1.5 flex items-start gap-1.5 text-cap text-tom">
+          <span id={`${name}-${whyKey}-why`} className="mt-1.5 flex items-start gap-1.5 text-cap text-tom">
             <Icon className="mt-px size-3.5 shrink-0" aria-hidden />
             {option.reasonText}
           </span>
