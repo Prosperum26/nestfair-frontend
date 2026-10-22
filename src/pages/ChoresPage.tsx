@@ -1,6 +1,6 @@
 import { ArrowLeftRight, Ban, Camera, CalendarDays, Dice5, Lock, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
@@ -61,7 +61,8 @@ export function ChoresPage() {
   const me = useAuthStore((s) => s.user);
   const thisWeek = weekKeyOf(new Date());
   const [weekKey, setWeekKey] = useState(thisWeek);
-  const [view, setView] = useState<ChoresView>(readView);
+  const [searchParams] = useSearchParams();
+  const [view, setView] = useState<ChoresView>(() => (searchParams.get('view') === 'market' ? 'market' : readView()));
   const [checkinTarget, setCheckinTarget] = useState<Assignment | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<Assignment | null>(null);
   const [overrideTarget, setOverrideTarget] = useState<Assignment | null>(null);

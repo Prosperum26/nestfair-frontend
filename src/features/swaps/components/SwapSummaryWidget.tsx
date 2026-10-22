@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
-import { writeView } from '@/features/chores/view-preference.ts';
 import { CardEmpty, DashCard } from '@/features/dashboard/DashCard.tsx';
 import { messageForSwapError } from '../copy.ts';
 import { useAcceptSwap, useRejectSwap, useSwapList, useSwapSummary } from '../hooks.ts';
@@ -30,8 +29,7 @@ export function SwapSummaryWidget({ houseId, className }: { houseId: string | un
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const openTab = () => {
-    writeView('market');
-    navigate('/chores');
+    navigate('/chores?view=market');
   };
 
   let body;

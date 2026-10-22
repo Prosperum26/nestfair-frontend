@@ -16,9 +16,12 @@ describe('view preference', () => {
     expect(readView()).toBe('calendar');
   });
 
-  it('nhớ cả tab Chợ ca', () => {
-    vi.stubGlobal('localStorage', { getItem: () => 'market', setItem: vi.fn() });
-    expect(readView()).toBe('market');
+  it('tab Chợ ca không được nhớ: lần sau vào Việc nhà vẫn về lịch tuần', () => {
+    const setItem = vi.fn();
+    vi.stubGlobal('localStorage', { getItem: () => 'market', setItem });
+    expect(readView()).toBe('calendar');
+    writeView('market');
+    expect(setItem).not.toHaveBeenCalled();
   });
 
   it('localStorage bị chặn (chế độ riêng tư) thì không ném lỗi', () => {
