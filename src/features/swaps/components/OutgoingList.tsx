@@ -1,7 +1,9 @@
-import { Send } from 'lucide-react';
+import { RotateCw, Send, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
+import { EmptyState } from '@/components/ui/EmptyState.tsx';
+import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { messageForSwapError } from '../copy.ts';
 import { useCancelSwap, useSwapList } from '../hooks.ts';
 import { slotLabel } from '../swap-format.ts';
@@ -24,6 +26,26 @@ export function OutgoingSection({ houseId, part }: { houseId: string; part: 'exp
   const list = useSwapList(houseId, 'OUTGOING');
   const cancel = useCancelSwap(houseId);
   const swaps = list.data ?? [];
+
+  // Lỗi chỉ báo một lần (ở phần đầu trang), nếu không người dùng mất thẻ chọn ADD_REWARD / RESEND / SELF mà không biết.
+  if (list.isError) {
+    if (part !== 'expired') return null;
+    return (
+      <EmptyState
+        icon={<TriangleAlert />}
+        tone="tom"
+        title="Không tải được yêu cầu bạn đã gửi"
+        description={messageForSwapError(list.error)}
+        action={
+          <Button variant="secondary" leftIcon={<RotateCw />} onClick={() => void list.refetch()}>
+            Thử lại
+          </Button>
+        }
+        className="py-6"
+      />
+    );
+  }
+  if (list.isPending) return part === 'pending' ? <Skeleton className="h-[96px] rounded-card" aria-busy="true" aria-label="Đang tải yêu cầu của bạn" /> : null;
 
   if (part === 'expired') {
     const expired = swaps.filter((s) => s.status === 'EXPIRED');
