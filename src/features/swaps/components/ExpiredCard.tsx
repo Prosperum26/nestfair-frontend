@@ -54,7 +54,7 @@ export function ExpiredCard({ houseId, swap }: { houseId: string; swap: Swap }) 
     );
   };
 
-  const buttons = escalateButtons(blocks);
+  const buttons = escalateButtons(blocks, escalate.isPending);
   const reason = buttons.find((b) => b.reason)?.reason;
   return (
     <section aria-label="Chưa ai nhận ca của bạn" className="rounded-card border border-tom bg-tom-bg p-4">
@@ -62,7 +62,7 @@ export function ExpiredCard({ houseId, swap }: { houseId: string; swap: Swap }) 
         <Hourglass className="size-4 shrink-0" aria-hidden />
         Chưa ai nhận ca của bạn
       </h2>
-      {slot && <p className="mt-1 text-cap text-tom">{slotLabel(slot)} · Chợ ca đã hết hạn</p>}
+      {slot && <p className="mt-1 text-cap text-tom">{slotLabel(slot)} · {swap.market ? 'Chợ ca đã hết hạn' : 'Yêu cầu đã hết hạn'}</p>}
 
       {rewarding && (
         <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_140px]">
