@@ -107,4 +107,14 @@ describe('messageForSwapError', () => {
     expect(messageForSwapError(new ApiError(0, 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.'))).toContain('Không kết nối');
     expect(messageForSwapError(null)).toBe('Có lỗi xảy ra, thử lại sau.');
   });
+
+  it('FENCE_VIOLATION có câu riêng trong bảng', () => {
+    expect(COPY.FENCE_VIOLATION).toBeTruthy();
+  });
+
+  it('429 và 5xx của framework (tiếng Anh) hiện câu tiếng Việt, không lộ chữ Anh', () => {
+    expect(messageForSwapError(new ApiError(429, 'ThrottlerException: Too Many Requests'))).toBe('Bạn thao tác hơi nhanh, đợi một chút rồi thử lại.');
+    expect(messageForSwapError(new ApiError(500, 'Internal server error'))).toBe('Máy chủ đang gặp sự cố, thử lại sau ít phút.');
+    expect(messageForSwapError(new ApiError(503, 'Service Unavailable'))).toBe('Máy chủ đang gặp sự cố, thử lại sau ít phút.');
+  });
 });

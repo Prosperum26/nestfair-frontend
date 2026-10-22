@@ -20,6 +20,7 @@ export const COPY: Record<string, string> = {
   SWAP_PENDING_LIMIT: 'Bạn đang có 3 yêu cầu chờ. Hãy hủy bớt trước khi gửi thêm.',
   SWAP_DAILY_LIMIT: 'Hôm nay bạn đã gửi 10 yêu cầu.',
   REWARD_OUT_OF_RANGE: 'Quà từ 1.000đ đến 500.000đ.',
+  FENCE_VIOLATION: 'Đổi này làm {name} lặp lại việc trong 3 tuần.',
   REWARD_NOT_INCREASED: 'Quà đăng lại phải nhiều hơn lần trước hoặc có lời nhắn mới.',
   ESCALATE_TOO_LATE: 'Còn quá ít thời gian để đăng lại. Bạn có thể tự làm ca này.',
   NO_RESEND_CANDIDATE: 'Không còn ai để gửi thêm. Hãy đăng Chợ ca hoặc tự làm ca này.',
@@ -53,6 +54,8 @@ export const COPY: Record<string, string> = {
 };
 
 const GENERIC = 'Có lỗi xảy ra, thử lại sau.';
+const TOO_FAST = 'Bạn thao tác hơi nhanh, đợi một chút rồi thử lại.';
+const SERVER_DOWN = 'Máy chủ đang gặp sự cố, thử lại sau ít phút.';
 const DEFAULTS = { name: 'Người này', chore: 'việc này', date: 'đã chọn' };
 
 export interface CopyContext {
@@ -80,6 +83,9 @@ export function copyFor(code: string, ctx?: CopyContext): string {
  */
 export function messageForSwapError(error: unknown, ctx?: CopyContext): string {
   if (error instanceof ApiError) {
+    // Lỗi của framework (throttler, 5xx) có chữ tiếng Anh và không mang mã nghiệp vụ.
+    if (!error.code && error.statusCode === 429) return TOO_FAST;
+    if (!error.code && error.statusCode >= 500) return SERVER_DOWN;
     const clean = !LEAK.test(error.message) ? error.message : null;
     if (error.code && COPY[error.code]) {
       const hasSlots = /\{(name|chore|date)\}/.test(COPY[error.code]);
