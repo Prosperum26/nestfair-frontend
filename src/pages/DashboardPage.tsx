@@ -110,7 +110,7 @@ function LiveTicker({ members }: { members: HouseMember[] | undefined }) {
 function QuickActions() {
   const items: { to: string; label: string; icon: ReactNode }[] = [
     { to: '/expenses?new=1', label: 'Thêm chi', icon: <Plus /> },
-    { to: '/expenses', label: 'Quét HĐ', icon: <ScanLine /> },
+    { to: '/expenses/scan', label: 'Quét HĐ', icon: <ScanLine /> },
     { to: '/chores', label: 'Vòng quay', icon: <Dice5 /> },
     { to: '/assistant', label: 'Trợ lý', icon: <Sparkles /> },
   ];

@@ -7,6 +7,8 @@ export interface PublicUser {
   bankBin: string | null;
   bankAccount: string | null;
   avatarUrl: string | null;
+  /** Lúc người dùng đồng ý gửi ảnh hóa đơn tới Google Gemini. null = chưa đồng ý (quét OCR bị chặn). */
+  ocrConsentAt: string | null;
   createdAt: string;
 }
 
