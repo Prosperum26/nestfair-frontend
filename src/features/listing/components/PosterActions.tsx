@@ -51,7 +51,10 @@ export function PosterActions({ status, slug, poster }: { status: ListingStatus 
         <Button
           variant="secondary"
           leftIcon={<ImagePlus />}
-          onClick={() => document.getElementById('listing-photos-title')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          onClick={() => {
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            document.getElementById('listing-photos-title')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+          }}
         >
           Đổi ảnh bìa
         </Button>
