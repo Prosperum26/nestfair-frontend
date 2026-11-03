@@ -1,7 +1,6 @@
 import { Bed, MapPin, Users } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { GridPaper } from '@/components/ui/GridPaper.tsx';
-import { Logo } from '@/components/ui/Logo.tsx';
+import { useId } from 'react';
 import { formatVnd } from '@/lib/format.ts';
 import { genderPosterLine, listingHeadline } from '../format.ts';
 import type { GenderWanted } from '../types.ts';
@@ -34,6 +33,38 @@ const QR_LOGO =
   );
 /** Cạnh logo giữa QR: 52px / 260px = 20% cạnh (4% diện tích), mức sửa lỗi H chịu được. */
 const QR_LOGO_SIZE = 52;
+
+/**
+ * Lưới giấy kẻ ô và logo của poster dùng thuộc tính `fill`/`stroke` trực tiếp (không dùng class Tailwind như GridPaper và Logo):
+ * `html-to-image` làm mất fill/stroke đặt bằng class trên phần tử con của SVG, nên PNG xuất ra sẽ mất lưới và logo bị đen.
+ */
+function PosterGrid() {
+  const id = `poster-grid-${useId().replace(/\W/g, '')}`;
+  return (
+    <svg className="pointer-events-none absolute inset-0 size-full" aria-hidden>
+      <defs>
+        <pattern id={id} width="32" height="32" patternUnits="userSpaceOnUse">
+          <path d="M32 0V32M0 32H32" fill="none" stroke="#3A4459" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill={`url(#${id})`} opacity="0.45" />
+    </svg>
+  );
+}
+
+function PosterLogo() {
+  return (
+    <span className="inline-flex items-center gap-5">
+      <svg viewBox="0 0 32 32" width="76" height="76" aria-hidden>
+        <rect width="32" height="32" rx="9" fill="#F5D547" />
+        <path d="M8 15.5 16 8.5l8 7" fill="none" stroke="#1C2333" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="10" y="18" width="12" height="2.6" rx="1.3" fill="#1C2333" />
+        <rect x="10" y="22.6" width="12" height="2.6" rx="1.3" fill="#1C2333" />
+      </svg>
+      <span className="font-display text-[64px] leading-[76px] font-bold tracking-[-1.5px] text-white">NestFair</span>
+    </span>
+  );
+}
 
 /** Hình minh họa khi chưa có ảnh bìa: đường núi + giường (ảnh 20_Poster). */
 function CoverPlaceholder() {
@@ -68,10 +99,10 @@ export function Poster({
       style={{ width: `${POSTER_WIDTH}px`, height: `${POSTER_HEIGHT}px` }}
       className="relative flex flex-col overflow-hidden bg-ink px-[65px] py-[65px] font-sans text-white"
     >
-      <GridPaper tone="ink" />
+      <PosterGrid />
 
       <div className="relative flex items-center justify-between">
-        <Logo tone="onInk" className="gap-5 [&_svg]:size-[76px] [&_span]:text-[64px] [&_span]:leading-[76px] [&_span]:tracking-[-1.5px]" />
+        <PosterLogo />
         <p className="font-mono text-[30px] font-medium tracking-[6px] text-hl">TÌM BẠN Ở GHÉP</p>
       </div>
 

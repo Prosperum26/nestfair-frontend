@@ -64,23 +64,20 @@ export function ListingPage() {
           />
         </div>
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <ListingForm
-              key={listing.data.listing?.id ?? 'new'}
-              houseId={house.id}
-              data={listing.data}
-              canEdit={canEdit}
-              photosSlot={
-                listing.data.listing ? (
-                  <PhotoGroups houseId={house.id} photos={listing.data.listing.photos} canEdit={canEdit} />
-                ) : (
-                  <PhotosNeedDraft />
-                )
-              }
-            />
-          </div>
-          {/* F5, F6: cột phải (lg:col-span-5) chứa poster xem trước và link công khai. */}
+        <div className="mt-6">
+          <ListingForm
+            key={listing.data.listing?.id ?? 'new'}
+            houseId={house.id}
+            data={listing.data}
+            canEdit={canEdit}
+            photosSlot={
+              listing.data.listing ? (
+                <PhotoGroups houseId={house.id} photos={listing.data.listing.photos} canEdit={canEdit} />
+              ) : (
+                <PhotosNeedDraft />
+              )
+            }
+          />
         </div>
       )}
     </>

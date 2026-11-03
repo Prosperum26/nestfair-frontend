@@ -15,6 +15,7 @@ import { useSaveListing, useSetListingStatus } from '../hooks.ts';
 import { type ListingFormOutput, type ListingFormValues, listingFormSchema } from '../schemas.ts';
 import type { AdminListingResponse, GenderWanted } from '../types.ts';
 import { CostFields } from './CostFields.tsx';
+import { ListingAside } from './ListingAside.tsx';
 
 const GENDER_OPTIONS: { value: GenderWanted; label: string }[] = [
   { value: 'MALE', label: 'Nam' },
@@ -114,7 +115,12 @@ export function ListingForm({
   const closedFull = listing?.status === 'CLOSED' && listing.closeReason === 'FULL';
 
   return (
-    <form noValidate onSubmit={submit(action === 'PUBLISH' || action === 'REOPEN' ? 'OPEN' : 'NONE')} className="flex flex-col gap-6">
+    <form noValidate onSubmit={submit(action === 'PUBLISH' || action === 'REOPEN' ? 'OPEN' : 'NONE')} className="grid gap-6 lg:grid-cols-12 lg:items-start">
+      {/* Mobile: poster lên đầu (ảnh 20 mobile). Desktop: cột phải, dính khi cuộn. */}
+      <aside className="order-first lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:sticky lg:top-24">
+        <ListingAside form={form} data={data} />
+      </aside>
+      <div className="flex min-w-0 flex-col gap-6 lg:col-span-7 lg:col-start-1 lg:row-start-1">
       {listing?.status === 'CLOSED' && (
         <p role="status" className="rounded-btn bg-hl-soft px-4 py-3 text-sm text-hl-ink">
           {closedFull ? 'Tin đã tự đóng vì nhà đủ người.' : 'Bạn đã đóng tin này.'}{' '}
@@ -248,6 +254,7 @@ export function ListingForm({
           </div>
         </div>
       )}
+      </div>
     </form>
   );
 }
