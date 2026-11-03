@@ -23,7 +23,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/payments', label: 'Thanh toán', icon: ArrowLeftRight },
   { to: '/members', label: 'Thành viên', icon: Users },
   { to: '/assistant', label: 'Trợ lý', icon: Sparkles },
-  { to: '/listing', label: 'Tin đăng', icon: Megaphone },
+  { to: '/house/listing', label: 'Tin đăng', icon: Megaphone },
 ];
 
 /** Tab bar mobile: Tổng quan · Việc nhà · [FAB] · Chi tiêu · Thanh toán. */

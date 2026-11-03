@@ -9,11 +9,13 @@ import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
 import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
+import { ListingPage } from '@/pages/ListingPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
 import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
+import { PublicListingPage } from '@/pages/PublicListingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
 import { GuestRoute, ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
 import { HomeRedirect, RequireHouse } from '@/routes/RequireHouse.tsx';
@@ -21,6 +23,8 @@ import { HomeRedirect, RequireHouse } from '@/routes/RequireHouse.tsx';
 const router = createBrowserRouter([
   // Backend chuyển về đây sau Google OAuth (không đặt trong GuestRoute để còn hiện lỗi).
   { path: '/auth/callback', element: <AuthCallbackPage /> },
+  // Trang công khai cho khách: ngoài ProtectedRoute và AppShell.
+  { path: '/r/:slug', element: <PublicListingPage /> },
   {
     element: <GuestRoute />,
     children: [
@@ -58,16 +62,8 @@ const router = createBrowserRouter([
                   />
                 ),
               },
-              {
-                path: '/listing',
-                element: (
-                  <ComingSoonPage
-                    overline="Tìm người ở ghép"
-                    title="Tin đăng"
-                    description="Tin tuyển thành viên, trang công khai và poster QR."
-                  />
-                ),
-              },
+              { path: '/house/listing', element: <ListingPage /> },
+              { path: '/listing', element: <Navigate to="/house/listing" replace /> },
               {
                 path: '/profile',
                 element: (
