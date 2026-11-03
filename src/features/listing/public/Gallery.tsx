@@ -104,6 +104,7 @@ export function Gallery({ photos }: { photos: GalleryPhotos }) {
       {tabs.length > 1 && (
         <SegmentedControl
           label="Nhóm ảnh"
+          size="lg"
           options={tabs.map((t) => ({ value: t.key, label: t.label }))}
           value={current.category}
           onChange={pickCategory}

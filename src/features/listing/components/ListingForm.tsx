@@ -167,7 +167,7 @@ export function ListingForm({
               control={control}
               name="genderWanted"
               render={({ field }) => (
-                <SegmentedControl label="Giới tính cần tìm" options={GENDER_OPTIONS} value={field.value} onChange={field.onChange} />
+                <SegmentedControl label="Giới tính cần tìm" size="lg" options={GENDER_OPTIONS} value={field.value} onChange={field.onChange} />
               )}
             />
           </div>
