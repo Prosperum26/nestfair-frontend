@@ -71,3 +71,13 @@ describe('listingFormSchema', () => {
     expect(errorsOf({ genderWanted: 'OTHER' })).toEqual(['genderWanted']);
   });
 });
+
+describe('ô tiền để trống', () => {
+  it('tiền thuê trống bị báo lỗi ở rentPerMonth', () => {
+    expect(errorsOf({ rentPerMonth: null })).toEqual(['rentPerMonth']);
+  });
+
+  it('khoản phí chưa nhập số tiền bị báo lỗi ở dòng đó', () => {
+    expect(errorsOf({ otherFees: [{ name: 'Wifi', amount: null }] })).toEqual(['otherFees.0.amount']);
+  });
+});

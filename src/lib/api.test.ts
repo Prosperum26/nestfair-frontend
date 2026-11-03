@@ -87,6 +87,14 @@ describe('api', () => {
     expect(err).toMatchObject({ statusCode: 409, code: 'ASSIGNMENT_STATE_CHANGED', message: 'Ca vừa đổi' });
   });
 
+  it('lỗi mang theo body trong details để đọc trường thêm (vd. missing)', async () => {
+    mockFetch({
+      'PATCH /z': [() => json(422, { statusCode: 422, message: 'Thiếu ảnh', error: 'Unprocessable Entity', code: 'LISTING_INCOMPLETE', missing: ['PHOTO_LIVING'] })],
+    });
+    const err = (await api('/z', { method: 'PATCH' }).catch((e: unknown) => e)) as ApiError;
+    expect(err.details).toMatchObject({ missing: ['PHOTO_LIVING'] });
+  });
+
   it('gặp 401 thì refresh rồi gọi lại với token mới', async () => {
     const calls = mockFetch({
       'GET /auth/me': [() => json(401, { message: 'Unauthorized' }), () => json(200, user)],

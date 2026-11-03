@@ -13,6 +13,8 @@ export class ApiError extends Error {
     message: string,
     /** Mã lỗi máy đọc được (vd. PROOF_DUPLICATE) nếu backend có gửi. */
     public readonly code?: string,
+    /** Body lỗi đầy đủ, để đọc trường thêm backend gửi kèm (vd. `missing` của LISTING_INCOMPLETE). */
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -57,7 +59,12 @@ async function parse<T>(res: Response): Promise<T> {
     const message = Array.isArray(data?.message)
       ? data.message[0]
       : (data?.message ?? 'Có lỗi xảy ra, thử lại sau.');
-    throw new ApiError(res.status, message, typeof data?.code === 'string' ? data.code : undefined);
+    throw new ApiError(
+      res.status,
+      message,
+      typeof data?.code === 'string' ? data.code : undefined,
+      data && typeof data === 'object' ? data : undefined,
+    );
   }
   return data as T;
 }
