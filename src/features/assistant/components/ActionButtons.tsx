@@ -10,7 +10,7 @@ import { reminderConfirmation } from '../thread.ts';
 
 /** Nút hành động: viền line-2, nền surface, icon 16 trái, chữ btns. KHÔNG dùng nút accent vàng — CTA chính của màn là ô gửi. */
 const BUTTON_CLS =
-  'inline-flex h-9 items-center gap-2 rounded-btn border border-line-2 bg-surface px-3.5 text-btns text-ink transition-colors hover:bg-paper focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-[0.38] [&_svg]:size-4';
+  'inline-flex h-9 max-sm:h-11 items-center gap-2 rounded-btn border border-line-2 bg-surface px-3.5 text-btns text-ink transition-colors hover:bg-paper focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-[0.38] [&_svg]:size-4';
 
 /**
  * Khối nút hành động dưới tin trợ lý (ảnh 19): tiêu đề "Gợi ý · bấm để làm, trợ lý không tự ghi"

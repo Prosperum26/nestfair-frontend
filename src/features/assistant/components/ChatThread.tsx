@@ -100,7 +100,7 @@ export function ChatThread({
         <>
           {thread.hasNextPage && (
             <div className="mb-4 flex flex-col items-center gap-1">
-              <Button variant="secondary" size="sm" leftIcon={<ChevronUp />} loading={thread.isFetchingNextPage} onClick={() => void thread.fetchNextPage()}>
+              <Button variant="secondary" size="sm" className="max-sm:h-11" leftIcon={<ChevronUp />} loading={thread.isFetchingNextPage} onClick={() => void thread.fetchNextPage()}>
                 Tải tin cũ hơn
               </Button>
               {thread.isFetchNextPageError && (

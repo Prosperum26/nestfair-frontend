@@ -11,7 +11,7 @@ export function QuickChips({ disabled, onPick }: { disabled?: boolean; onPick: (
           type="button"
           disabled={disabled}
           onClick={() => onPick(prompt)}
-          className="inline-flex h-8 items-center rounded-full border border-line-2 bg-surface px-3.5 text-cap text-ink transition-colors hover:bg-paper focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-[0.38]"
+          className="inline-flex h-8 max-sm:h-11 items-center rounded-full border border-line-2 bg-surface px-3.5 text-cap text-ink transition-colors hover:bg-paper focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-[0.38]"
         >
           {prompt}
         </button>
