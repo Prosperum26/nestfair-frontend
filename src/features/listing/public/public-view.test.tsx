@@ -130,6 +130,12 @@ describe('PublicListingView', () => {
     expect(html).not.toContain('Mong muốn về bạn cùng phòng');
   });
 
+  it('roster = null thì không có thẻ Lịch trực; có roster thì có thẻ', () => {
+    expect(render()).not.toContain('Lịch trực tuần này');
+    const roster = { weekKey: '2026-W41', rows: [{ title: 'Rửa chén', cells: [['TV1'], [], [], [], [], [], []] }] };
+    expect(render({ ...listing, roster })).toContain('Lịch trực tuần này');
+  });
+
   it('mỗi liên kết liên hệ có ở thanh đáy (di động) và thẻ phải (desktop); id không trùng', () => {
     const html = render();
     expect(html.match(/href="https:\/\/zalo\.me\/0901234567"/g)).toHaveLength(2);

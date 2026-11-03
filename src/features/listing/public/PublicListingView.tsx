@@ -8,6 +8,7 @@ import { ContactBar } from './ContactBar.tsx';
 import { CostBreakdown } from './CostBreakdown.tsx';
 import { Gallery } from './Gallery.tsx';
 import { PriceCard } from './PriceCard.tsx';
+import { RosterTable } from './RosterTable.tsx';
 
 /** Vệt bút dạ vàng sau chữ (đúng 1 lần mỗi màn, Design.md): khối màu đặc đặt phía sau, không dùng gradient. */
 function Marker({ children }: { children: ReactNode }) {
@@ -79,6 +80,11 @@ export function PublicListingView({ listing }: { listing: PublicListingOpen }) {
             <TextSection title="Mô tả" text={listing.description} />
             <TextSection title="Mong muốn về bạn cùng phòng" text={listing.roommateExpectations} />
           </div>
+          {listing.roster && (
+            <div className="order-8 lg:order-none">
+              <RosterTable roster={listing.roster} />
+            </div>
+          )}
           <p className="order-9 text-cap text-ink-2 lg:order-none">Tạo bằng NestFair · thông tin và ảnh do trưởng phòng cung cấp</p>
         </div>
 
