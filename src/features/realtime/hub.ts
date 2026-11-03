@@ -28,6 +28,9 @@ export interface SocketLike {
   offAny: (listener: (event: string, ...args: unknown[]) => void) => unknown;
 }
 
+/** Server cũ hoặc gói tin thiếu trường thì coi như chưa ai online, để UI không bao giờ nhận undefined. */
+const onlineIds = (value: unknown): string[] => (Array.isArray(value) ? (value as string[]) : []);
+
 export type JoinAck = { ok: true; onlineUserIds: string[]; serverNow: string } | { ok: false; code: string };
 
 /** Vòng đệm id đã thấy: `true` nếu là lần đầu. */
@@ -85,7 +88,7 @@ export function createRealtimeHub(socket: SocketLike, houseId: string, cb: HubCa
   const join = () => {
     socket.emit('house:join_room', { houseId }, (ack: JoinAck) => {
       if (ack?.ok) {
-        cb.onPresence?.(ack.onlineUserIds);
+        cb.onPresence?.(onlineIds(ack.onlineUserIds));
         cb.onClockOffset?.(Date.parse(ack.serverNow) - Date.now());
       }
     });
@@ -109,7 +112,7 @@ export function createRealtimeHub(socket: SocketLike, houseId: string, cb: HubCa
     const envelope = args[0];
     if (!isEnvelope(envelope) || !firstSeen(envelope.eventId)) return;
     if (envelope.houseId && envelope.houseId !== houseId && event !== 'member:left') return;
-    if (event === 'presence:update') cb.onPresence?.((envelope.payload as { onlineUserIds: string[] }).onlineUserIds);
+    if (event === 'presence:update') cb.onPresence?.(onlineIds((envelope.payload as { onlineUserIds?: unknown } | null)?.onlineUserIds));
     dispatch(event, envelope);
   };
 

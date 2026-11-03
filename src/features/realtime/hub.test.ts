@@ -112,6 +112,23 @@ describe('createRealtimeHub', () => {
     expect(onPresence).toHaveBeenLastCalledWith(['u1', 'u2']);
   });
 
+  it('ack join thiếu onlineUserIds (server cũ) thì coi như không ai online, không để undefined', () => {
+    const { socket } = fakeSocket(true, { ok: true, serverNow: new Date().toISOString() });
+    const onPresence = vi.fn();
+    createRealtimeHub(socket, 'h1', { onPresence });
+    expect(onPresence).toHaveBeenCalledWith([]);
+  });
+
+  it('presence:update thiếu onlineUserIds thì báo danh sách rỗng, không để undefined', () => {
+    const { socket, server } = fakeSocket(true);
+    const onPresence = vi.fn();
+    createRealtimeHub(socket, 'h1', { onPresence });
+    server('presence:update', env('presence:update', 'p2', { payload: {} }));
+    server('presence:update', env('presence:update', 'p3', { payload: null }));
+    expect(onPresence).toHaveBeenLastCalledWith([]);
+    expect(onPresence).not.toHaveBeenCalledWith(undefined);
+  });
+
   it('nối lại: debounce 300 ms rồi báo $resync một lần dù connect bắn nhiều lần (RT-01, RT-09)', () => {
     const { socket, fire } = fakeSocket(true);
     const onResync = vi.fn();
