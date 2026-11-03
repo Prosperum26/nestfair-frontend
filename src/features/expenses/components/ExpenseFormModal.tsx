@@ -22,7 +22,7 @@ import { useCreateExpense, useUpdateExpense } from '../hooks.ts';
 import { IMAGE_ACCEPT, prepareImage } from '../image-upload.ts';
 import { expenseFormSchema } from '../schemas.ts';
 import { type ExpenseFormValues, type FormSplitType, previewSplit, toExpenseInput } from '../split-preview.ts';
-import type { Expense, UserBrief } from '../types.ts';
+import type { Expense, ExpenseCategory, UserBrief } from '../types.ts';
 import { AmountInput } from './AmountInput.tsx';
 import { Person } from './bits.tsx';
 
@@ -35,6 +35,17 @@ const SPLIT_OPTIONS: { value: FormSplitType; label: string }[] = [
 const selectCls =
   'h-12 w-full rounded-btn border border-line-2 bg-surface px-3.5 text-b text-ink focus:border-[1.5px] focus:border-ink focus:shadow-focus focus:outline-none';
 
+/** Giá trị điền sẵn cho khoản chi MỚI (từ quét hóa đơn). `receiptScanId` gắn bản nháp OCR vào khoản chi khi lưu. */
+export interface ExpensePrefill {
+  title?: string;
+  /** YYYY-MM-DD */
+  date?: string;
+  totalAmount?: number | null;
+  category?: ExpenseCategory;
+  receiptImageUrl?: string | null;
+  receiptScanId?: string;
+}
+
 interface FormProps {
   houseId: string;
   houseName: string;
@@ -42,23 +53,25 @@ interface FormProps {
   members: UserBrief[];
   meId: string | undefined;
   expense: Expense | null;
+  /** Chỉ dùng khi `expense` là null (thêm mới). */
+  prefill?: ExpensePrefill;
   onClose: () => void;
   onSaved: (expense: Expense) => void;
 }
 
-function defaultsFor(expense: Expense | null, memberIds: string[], meId: string | undefined): ExpenseFormValues {
+function defaultsFor(expense: Expense | null, memberIds: string[], meId: string | undefined, prefill?: ExpensePrefill): ExpenseFormValues {
   if (!expense) {
     return {
-      title: '',
-      date: localDateOf(new Date()),
-      totalAmount: null,
+      title: prefill?.title ?? '',
+      date: prefill?.date ?? localDateOf(new Date()),
+      totalAmount: prefill?.totalAmount ?? null,
       payerId: meId && memberIds.includes(meId) ? meId : (memberIds[0] ?? ''),
-      category: 'FOOD',
+      category: prefill?.category ?? 'FOOD',
       splitType: 'EQUAL',
       participants: memberIds,
       exact: {},
       note: '',
-      receiptImageUrl: null,
+      receiptImageUrl: prefill?.receiptImageUrl ?? null,
     };
   }
   const splitType: FormSplitType = expense.splitType === 'ITEMIZED' ? 'EXACT' : expense.splitType;
@@ -76,7 +89,7 @@ function defaultsFor(expense: Expense | null, memberIds: string[], meId: string 
   };
 }
 
-function ExpenseForm({ houseId, members, meId, expense, onClose, onSaved }: FormProps) {
+function ExpenseForm({ houseId, members, meId, expense, prefill, onClose, onSaved }: FormProps) {
   const memberIds = useMemo(() => members.map((m) => m.id), [members]);
   const today = localDateOf(new Date());
   const schema = useMemo(() => expenseFormSchema(memberIds, today), [memberIds, today]);
@@ -96,7 +109,7 @@ function ExpenseForm({ houseId, members, meId, expense, onClose, onSaved }: Form
   } = useForm<ExpenseFormValues>({
     resolver: zodResolver(schema),
     mode: 'onTouched',
-    defaultValues: defaultsFor(expense, memberIds, meId),
+    defaultValues: defaultsFor(expense, memberIds, meId, prefill),
   });
   const [total, splitType, participants, exact, receiptImageUrl] = useWatch({
     control,
@@ -150,7 +163,7 @@ function ExpenseForm({ houseId, members, meId, expense, onClose, onSaved }: Form
     };
     const fail = (e: unknown) => setError(ledgerErrorMessage(e));
     if (expense) update.mutate({ id: expense.id, body }, { onSuccess: done, onError: fail });
-    else create.mutate(body, { onSuccess: done, onError: fail });
+    else create.mutate(prefill?.receiptScanId ? { ...body, receiptScanId: prefill.receiptScanId } : body, { onSuccess: done, onError: fail });
   });
 
   const exactBlocked = splitType === 'EXACT' && !preview.ok;

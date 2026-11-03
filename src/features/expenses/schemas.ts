@@ -7,7 +7,8 @@ import { previewSplit } from './split-preview.ts';
 export const MAX_AMOUNT = 1_000_000_000;
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
-const isRealDate = (d: string) => {
+/** Ngày thật dạng YYYY-MM-DD (loại 2026-02-30). */
+export const isRealDate = (d: string) => {
   if (!DATE_ONLY.test(d)) return false;
   const date = new Date(`${d}T00:00:00Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === d;

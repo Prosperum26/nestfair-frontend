@@ -1,6 +1,6 @@
 import type { ExpenseCategory, ExpenseInput } from './types.ts';
 
-/** Kiểu chia người dùng chọn được trên form (ITEMIZED chờ issue OCR). */
+/** Kiểu chia chọn được trên form thêm/sửa chi tiêu. ITEMIZED (theo món) chỉ có ở màn xác nhận hóa đơn quét. */
 export type FormSplitType = 'EQUAL' | 'CUSTOM' | 'EXACT';
 
 export interface SplitPreviewInput {
