@@ -5,7 +5,6 @@ export type ListingCloseReason = 'FULL' | 'MANUAL';
 export type GenderWanted = 'MALE' | 'FEMALE' | 'ANY';
 export type PhotoCategory = 'BEDROOM' | 'BATHROOM' | 'LIVING';
 
-export const PHOTO_CATEGORIES: readonly PhotoCategory[] = ['BEDROOM', 'BATHROOM', 'LIVING'];
 /** Tối đa ảnh mỗi nhóm (L5), khớp backend. */
 export const MAX_PHOTOS_PER_CATEGORY = 6;
 

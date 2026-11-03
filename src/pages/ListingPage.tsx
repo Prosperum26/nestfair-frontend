@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { messageForListingError } from '@/features/listing/errors.ts';
 import { useListing } from '@/features/listing/hooks.ts';
 import { ListingForm } from '@/features/listing/components/ListingForm.tsx';
+import { PhotoGroups } from '@/features/listing/components/PhotoGroups.tsx';
 import { ListingStatusBar } from '@/features/listing/components/ListingStatusBar.tsx';
 import { useCurrentHouse } from '@/features/houses/hooks.ts';
 
@@ -16,6 +17,19 @@ function ListingSkeleton() {
       <Skeleton className="h-[300px] rounded-card" />
       <Skeleton className="h-[220px] rounded-card" />
     </div>
+  );
+}
+
+/** Chưa có tin thì chưa có chỗ gắn ảnh (backend trả LISTING_NOT_FOUND): nhắc lưu nháp trước. */
+function PhotosNeedDraft() {
+  return (
+    <section aria-labelledby="listing-photos-title" className="rounded-card border border-line bg-surface p-4 sm:p-6">
+      <p className="font-mono text-over uppercase text-ink-2">Mỗi nhóm cần ít nhất 1 ảnh</p>
+      <h2 id="listing-photos-title" className="font-display text-ct text-ink">
+        Ảnh theo nhóm
+      </h2>
+      <p className="mt-2 text-sm text-ink-2">Bấm Lưu nháp ở cuối trang trước, rồi thêm ảnh Phòng ngủ, Phòng vệ sinh và Gian sinh hoạt.</p>
+    </section>
   );
 }
 
@@ -57,7 +71,13 @@ export function ListingPage() {
               houseId={house.id}
               data={listing.data}
               canEdit={canEdit}
-              // F4: photosSlot={<PhotoGroups ... />}
+              photosSlot={
+                listing.data.listing ? (
+                  <PhotoGroups houseId={house.id} photos={listing.data.listing.photos} canEdit={canEdit} />
+                ) : (
+                  <PhotosNeedDraft />
+                )
+              }
             />
           </div>
           {/* F5, F6: cột phải (lg:col-span-5) chứa poster xem trước và link công khai. */}
