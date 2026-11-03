@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { draftToReviewValues, receiptFlags, receiptReviewSchema, type ReviewFormValues, toItemizedInput } from './draft-form.ts';
+import { draftToReviewValues, prefillItemsFromReview, receiptFlags, receiptReviewSchema, type ReviewFormValues, toItemizedInput } from './draft-form.ts';
 import type { ReceiptDraft } from './types.ts';
 
 const members = ['hung', 'thien', 'mai', 'quan'];
@@ -174,5 +174,23 @@ describe('receiptFlags: ô nào tô vàng từ cảnh báo ban đầu', () => {
   it('không cảnh báo, hoặc chỉ ghi chú của AI / dòng bị bỏ, thì không bật cờ nào', () => {
     expect(receiptFlags(draft())).toEqual({ total: false, date: false });
     expect(receiptFlags(draft({ warnings: [w('AI_NOTE'), w('DROPPED_ITEMS')] }))).toEqual({ total: false, date: false });
+  });
+});
+
+describe("prefillItemsFromReview", () => {
+  const item = (name: string, lineTotal: number | null) => ({ name, lineTotal });
+
+  it("bỏ món tên rỗng hoặc tiền trống / 0 / âm, và cắt khoảng trắng tên", () => {
+    expect(prefillItemsFromReview([item("  Trứng  ", 32_000), item("   ", 5_000), item("Sữa", null), item("Túi", 0), item("Giảm", -100)])).toEqual([
+      { name: "Trứng", lineTotal: 32_000 },
+    ]);
+  });
+
+  it("giữ thứ tự và cắt tối đa 100 món", () => {
+    const many = Array.from({ length: 120 }, (_, i) => item("Món " + i, 1_000 + i));
+    const out = prefillItemsFromReview(many);
+    expect(out).toHaveLength(100);
+    expect(out[0]).toEqual({ name: "Món 0", lineTotal: 1_000 });
+    expect(out[99]).toEqual({ name: "Món 99", lineTotal: 1_099 });
   });
 });

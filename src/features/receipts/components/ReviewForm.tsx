@@ -18,7 +18,7 @@ import type { Expense, UserBrief } from '@/features/expenses/types.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
 import { formatSignedVnd, formatVnd } from '@/lib/format.ts';
-import { draftToReviewValues, receiptFlags, receiptReviewSchema, type ReviewFormValues, type ReviewItem, toItemizedInput } from '../draft-form.ts';
+import { draftToReviewValues, prefillItemsFromReview, receiptFlags, receiptReviewSchema, type ReviewFormValues, type ReviewItem, toItemizedInput } from '../draft-form.ts';
 import { previewItemized } from '../itemized.ts';
 import type { ReceiptDraft } from '../types.ts';
 import { ItemRow } from './ItemRow.tsx';
@@ -254,7 +254,15 @@ export function ReviewForm({ houseId, members, meId, draft, previewUrl, fileName
                 leftIcon={<Users />}
                 onClick={() => {
                   const v = getValues();
-                  onOtherSplit({ title: v.title, date: v.date, totalAmount: v.totalAmount, category: v.category, receiptImageUrl: imageUrl, receiptScanId: scanId ?? undefined });
+                  onOtherSplit({
+                    title: v.title,
+                    date: v.date,
+                    totalAmount: v.totalAmount,
+                    category: v.category,
+                    receiptImageUrl: imageUrl,
+                    receiptScanId: scanId ?? undefined,
+                    items: prefillItemsFromReview(v.items),
+                  });
                 }}
               >
                 Chia kiểu khác
