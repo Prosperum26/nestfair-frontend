@@ -45,7 +45,7 @@ export function PosterActions({ status, slug, poster }: { status: ListingStatus 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button variant="accent" leftIcon={<Download />} loading={busy} disabled={!canExport} onClick={() => void download()} className="flex-1">
+        <Button variant="accent" leftIcon={<Download />} loading={busy} disabled={!canExport} onClick={() => void download()} className="sm:flex-1">
           {busy ? 'Đang tạo ảnh…' : 'Tải poster PNG'}
         </Button>
         <Button
