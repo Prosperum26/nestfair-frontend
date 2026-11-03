@@ -6,6 +6,7 @@ import { publishedOverline } from '../public-state.ts';
 import type { PublicListingOpen } from '../types.ts';
 import { ContactBar } from './ContactBar.tsx';
 import { CostBreakdown } from './CostBreakdown.tsx';
+import { Gallery } from './Gallery.tsx';
 import { PriceCard } from './PriceCard.tsx';
 
 /** Vệt bút dạ vàng sau chữ (đúng 1 lần mỗi màn, Design.md): khối màu đặc đặt phía sau, không dùng gradient. */
@@ -71,6 +72,9 @@ export function PublicListingView({ listing }: { listing: PublicListingOpen }) {
               <span className="min-w-0 break-words">{listing.locationText}</span>
             </p>
           </header>
+          <div className="order-3 lg:order-none">
+            <Gallery photos={listing.photos} />
+          </div>
           <div className="order-6 flex flex-col gap-6 lg:order-none">
             <TextSection title="Mô tả" text={listing.description} />
             <TextSection title="Mong muốn về bạn cùng phòng" text={listing.roommateExpectations} />
