@@ -11,6 +11,7 @@ import { QuickChips } from '@/features/assistant/components/QuickChips.tsx';
 import { AssistantQuotaError, assistantErrorMessage } from '@/features/assistant/errors.ts';
 import { useSendMessage } from '@/features/assistant/hooks.ts';
 import type { AssistantConsentUser } from '@/features/assistant/types.ts';
+import { markDraftDone } from '@/features/assistant/draft-done.ts';
 import type { ExpensePrefill } from '@/features/expenses/components/ExpenseFormModal.tsx';
 import { ExpenseFormModal } from '@/features/expenses/components/ExpenseFormModal.tsx';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
@@ -58,7 +59,7 @@ export function AssistantPage() {
   const [pendingText, setPendingText] = useState<string | null>(null);
 
   // Bản nháp chi tiêu (DRAFT_EXPENSE): chỉ mở form, người dùng bấm Lưu mới tạo khoản.
-  const [expenseDraft, setExpenseDraft] = useState<ExpensePrefill | null>(null);
+  const [expenseDraft, setExpenseDraft] = useState<{ prefill: ExpensePrefill; key: string } | null>(null);
 
   const [bannerOpen, setBannerOpen] = useState(false);
 
@@ -165,7 +166,7 @@ export function AssistantPage() {
               skipHistory={skipHistory}
               sending={send.isPending}
               systemNote={systemNote}
-              onDraftExpense={(prefill) => setExpenseDraft(prefill)}
+              onDraftExpense={(prefill, key) => setExpenseDraft({ prefill, key })}
             />
             <div className="flex flex-col gap-3 px-4 pb-5 sm:px-6">
               <QuickChips disabled={quotaLocked || send.isPending} onPick={submit} />
@@ -222,9 +223,12 @@ export function AssistantPage() {
         members={members}
         meId={user?.id}
         expense={null}
-        prefill={expenseDraft ?? undefined}
+        prefill={expenseDraft?.prefill}
         onClose={() => setExpenseDraft(null)}
-        onSaved={() => setExpenseDraft(null)}
+        onSaved={() => {
+          if (expenseDraft) markDraftDone(expenseDraft.key);
+          setExpenseDraft(null);
+        }}
       />
     </>
   );

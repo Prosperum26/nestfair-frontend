@@ -67,7 +67,7 @@ export function ChatThread({
   sending: boolean;
   /** Ghi chú hệ thống cuối thread (vd. "Hôm nay bạn đã hỏi đủ 30 câu rồi…"). */
   systemNote: string | null;
-  onDraftExpense: (prefill: ExpensePrefill) => void;
+  onDraftExpense: (prefill: ExpensePrefill, key: string) => void;
 }) {
   const thread = useAssistantMessages(houseId, threadId, !skipHistory);
   const scrollRef = useRef<HTMLDivElement>(null);

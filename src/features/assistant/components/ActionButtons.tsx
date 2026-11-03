@@ -7,6 +7,7 @@ import type { ExpensePrefill } from '@/features/expenses/components/ExpenseFormM
 import type { AssistantMessageDto } from '../types.ts';
 import { actionRequest } from '../actions.ts';
 import { reminderConfirmation } from '../thread.ts';
+import { draftKey, useDraftDoneKeys } from '../draft-done.ts';
 
 /** Nút hành động: viền line-2, nền surface, icon 16 trái, chữ btns. KHÔNG dùng nút accent vàng — CTA chính của màn là ô gửi. */
 const BUTTON_CLS =
@@ -27,9 +28,10 @@ export function ActionButtons({
 }: {
   message: AssistantMessageDto;
   houseId: string;
-  onDraftExpense: (prefill: ExpensePrefill) => void;
+  onDraftExpense: (prefill: ExpensePrefill, key: string) => void;
 }) {
   const create = useCreateReminder();
+  const expenseDone = useDraftDoneKeys();
   // Server đã đánh dấu done (CREATE_REMINDER đã bấm trước đó) + những nút vừa bấm thành công trong phiên này.
   const [localDone, setLocalDone] = useState<number[]>([]);
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
@@ -46,7 +48,7 @@ export function ActionButtons({
         setError('Giờ nhắc đã qua hoặc thiếu, bạn nhập lại giờ khác nhé.');
         return;
       case 'open-expense-draft':
-        onDraftExpense(request.prefill);
+        onDraftExpense(request.prefill, draftKey(message.id, index));
         return;
       case 'locked':
         setError('Tạo việc đột xuất sắp có, hiện hãy tự thêm vào lịch nhé.');
@@ -82,7 +84,7 @@ export function ActionButtons({
       <div className="flex flex-col items-start gap-1.5">
         {message.actions.map((action, index) => {
           const request = requests[index];
-          const done = action.done || localDone.includes(index);
+          const done = action.done || localDone.includes(index) || expenseDone.includes(draftKey(message.id, index));
           if (request.kind === 'locked') {
             return (
               <button key={index} type="button" disabled className={BUTTON_CLS} aria-label="Tính năng sắp có">
