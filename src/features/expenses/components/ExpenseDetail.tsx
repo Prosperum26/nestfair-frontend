@@ -15,6 +15,7 @@ import { dayMonth } from '../grouping.ts';
 import { useDeleteExpense } from '../hooks.ts';
 import type { Expense } from '../types.ts';
 import { CategoryTile } from './bits.tsx';
+import { ExpenseItemsList } from './ExpenseItemsList.tsx';
 
 const pad = (n: number) => n.toString().padStart(2, '0');
 const timeOf = (iso: string) => {
@@ -105,6 +106,12 @@ export function ExpenseDetail({
             />
           ))}
         </div>
+        {expense.items.length > 0 && (
+          <>
+            <div className="my-4 border-t-[1.5px] border-dashed border-line-2" />
+            <ExpenseItemsList items={expense.items} totalAmount={expense.totalAmount} people={expense.splits} meId={meId} />
+          </>
+        )}
         {expense.note && <p className="mt-4 text-sm text-ink-2">{expense.note}</p>}
 
         {expense.receiptImageUrl && (
