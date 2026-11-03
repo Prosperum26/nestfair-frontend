@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="Phòng ngủ minh họa 1">
+  <title>Phòng ngủ minh họa 1</title>
+  <rect width="1200" height="800" fill="#F4EFE6"/>
+  <rect x="760" y="110" width="280" height="260" rx="14" fill="#CFE3F2" stroke="#1C2333" stroke-width="6"/>
+  <path d="M760 330 Q860 230 960 300 T1040 290 V370 H760Z" fill="#9BBF9F"/>
+  <line x1="900" y1="110" x2="900" y2="370" stroke="#1C2333" stroke-width="6"/>
+  <rect x="0" y="620" width="1200" height="180" fill="#E3D7C3"/>
+  <rect x="150" y="470" width="640" height="190" rx="18" fill="#E8A87C" stroke="#1C2333" stroke-width="6"/>
+  <rect x="150" y="400" width="60" height="260" rx="14" fill="#8A6A4D" stroke="#1C2333" stroke-width="6"/>
+  <rect x="215" y="430" width="190" height="70" rx="30" fill="#FFFFFF" stroke="#1C2333" stroke-width="6"/>
+  <rect x="150" y="620" width="640" height="26" fill="#8A6A4D"/>
+</svg>
