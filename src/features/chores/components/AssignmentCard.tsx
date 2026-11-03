@@ -50,8 +50,9 @@ export function AssignmentCard({
           <h3 className={cn('text-h4 text-ink', compact ? 'break-words' : 'truncate')}>{assignment.choreTitle}</h3>
           <p className="mt-0.5 text-cap text-ink-2">
             Độ nặng <span className="font-mono">{assignment.weight}</span> · hạn{' '}
-            <span className="font-mono whitespace-nowrap">
-              {dueLabel(assignment.dueAt)} · {dueTimeLabel(assignment.dueAt)}
+            <span className="font-mono">
+              <span className="whitespace-nowrap">{dueLabel(assignment.dueAt)} ·</span>{' '}
+              <span className="whitespace-nowrap">{dueTimeLabel(assignment.dueAt)}</span>
             </span>
           </p>
         </div>

@@ -2,6 +2,11 @@ import { Bell, Plus } from 'lucide-react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { IconButton } from '@/components/ui/IconButton.tsx';
+import { useCurrentHouse } from '@/features/houses/hooks.ts';
+import { ConnectionDot, ReconnectBanner } from '@/features/realtime/ConnectionIndicator.tsx';
+import { RealtimeProvider } from '@/features/realtime/RealtimeProvider.tsx';
+import { WheelModal } from '@/features/wheel/components/WheelModal.tsx';
+import { useWheelRealtime } from '@/features/wheel/hooks.ts';
 import { Logo } from '@/components/ui/Logo.tsx';
 import { useReminderRealtime } from '@/features/reminders/realtime.ts';
 import { cn } from '@/lib/cn.ts';
@@ -44,7 +49,11 @@ function TopNav() {
         <div className="flex shrink-0 items-center gap-3">
           <HouseSwitcher />
           <IconButton icon={<Bell />} label="Thông báo" onClick={notificationsSoon} />
-          <UserMenu />
+          {/* Chấm kết nối gắn ở góc avatar: không thêm bề rộng vào hàng, menu 7 mục vẫn đủ chỗ ở xl. */}
+          <div className="relative">
+            <UserMenu />
+            <ConnectionDot className="pointer-events-none absolute top-[26px] left-[26px]" />
+          </div>
         </div>
       </div>
     </header>
@@ -62,6 +71,7 @@ function MobileTopBar() {
         <HouseSwitcher compact />
         <p className="truncate font-display text-ct text-ink">{title}</p>
       </div>
+      <ConnectionDot />
       <IconButton icon={<Bell />} label="Thông báo" onClick={notificationsSoon} />
     </header>
   );
@@ -103,18 +113,29 @@ function TabBar() {
   );
 }
 
-/** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). */
+/** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). Một kết nối realtime cho nhà đang xem. */
+/** Đồng bộ vòng quay cho cả app (cần nằm trong RealtimeProvider). */
+function WheelSync({ houseId }: { houseId: string | undefined }) {
+  useWheelRealtime(houseId);
+  return <WheelModal houseId={houseId} />;
+}
+
 export function AppShell() {
+  const { house } = useCurrentHouse();
   // Chỉ được mount khi đã đăng nhập (ProtectedRoute → RequireHouse): nghe nhắc việc đến hạn một lần cho cả app.
   useReminderRealtime();
   return (
-    <div className="min-h-svh bg-paper">
-      <TopNav />
-      <MobileTopBar />
-      <main className="mx-auto max-w-page px-4 pt-6 pb-32 lg:px-6 lg:pt-10 lg:pb-24 xl:px-0">
-        <Outlet />
-      </main>
-      <TabBar />
-    </div>
+    <RealtimeProvider houseId={house?.id}>
+      <div className="min-h-svh bg-paper">
+        <TopNav />
+        <MobileTopBar />
+        <ReconnectBanner />
+        <main className="mx-auto max-w-page px-4 pt-6 pb-32 lg:px-6 lg:pt-10 lg:pb-24 xl:px-0">
+          <Outlet />
+        </main>
+        <TabBar />
+      </div>
+      <WheelSync houseId={house?.id} />
+    </RealtimeProvider>
   );
 }

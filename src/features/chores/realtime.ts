@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getSocket } from '@/lib/socket.ts';
+import { useSocket } from '@/features/realtime/context.ts';
+import { RESYNC, type RealtimeHandler } from '@/features/realtime/hub.ts';
 import { choreKeys } from './hooks.ts';
 
 export const CHORE_EVENTS = [
@@ -12,40 +13,18 @@ export const CHORE_EVENTS = [
   'chore:cancelled',
 ] as const;
 
-/** Phần của socket.io-client mà bindChoreRealtime dùng (để test bằng socket giả). */
-export interface SocketLike {
-  connected: boolean;
-  connect: () => unknown;
-  emit: (event: string, ...args: unknown[]) => unknown;
-  on: (event: string, listener: (...args: unknown[]) => void) => unknown;
-  off: (event: string, listener: (...args: unknown[]) => void) => unknown;
-  io: {
-    on: (event: string, listener: (...args: unknown[]) => void) => unknown;
-    off: (event: string, listener: (...args: unknown[]) => void) => unknown;
-  };
-}
+/** Sự kiện làm lịch trực thay đổi: 6 sự kiện việc nhà, vòng quay ra kết quả / bị hủy, và nối lại sau mất mạng. */
+export const SCHEDULE_CHANGE_EVENTS = [...CHORE_EVENTS, 'wheel:result', 'wheel:voided', RESYNC] as const;
+
+type Subscribe = (event: string, handler: RealtimeHandler) => () => void;
 
 /**
- * Vào room nhà, gọi `onChange` mỗi khi có event việc nhà và khi nối lại sau mất mạng.
+ * Gọi `onChange` mỗi khi có sự kiện làm đổi lịch trực (kể cả khi nối lại sau mất mạng).
  * Socket chỉ để báo "có thay đổi": dữ liệu luôn tải lại qua REST. Trả về hàm gỡ.
  */
-export function bindChoreRealtime(socket: SocketLike, houseId: string, onChange: () => void): () => void {
-  const join = () => socket.emit('house:join_room', { houseId });
-  const change = () => onChange();
-
-  socket.on('connect', join);
-  for (const event of CHORE_EVENTS) socket.on(event, change);
-  // Manager 'reconnect' chỉ bắn khi nối LẠI (không bắn ở lần nối đầu), đúng ý "reconnect thì tải lại".
-  socket.io.on('reconnect', change);
-
-  if (socket.connected) join();
-  else socket.connect();
-
-  return () => {
-    socket.off('connect', join);
-    for (const event of CHORE_EVENTS) socket.off(event, change);
-    socket.io.off('reconnect', change);
-  };
+export function bindChoreRealtime(subscribe: Subscribe, onChange: () => void): () => void {
+  const offs = SCHEDULE_CHANGE_EVENTS.map((event) => subscribe(event, () => onChange()));
+  return () => offs.forEach((off) => off());
 }
 
 /**
@@ -62,6 +41,7 @@ export function createChangeHandler(opts: { isModalOpen: () => boolean; invalida
  */
 export function useChoresRealtime(houseId: string | undefined, modalOpen: boolean): { stale: boolean; refresh: () => void } {
   const queryClient = useQueryClient();
+  const { subscribe } = useSocket();
   const [stale, setStale] = useState(false);
   const modalOpenRef = useRef(modalOpen);
   useEffect(() => {
@@ -80,8 +60,8 @@ export function useChoresRealtime(houseId: string | undefined, modalOpen: boolea
       invalidate: () => void queryClient.invalidateQueries({ queryKey: choreKeys.assignments(houseId) }),
       markStale: () => setStale(true),
     });
-    return bindChoreRealtime(getSocket() as unknown as SocketLike, houseId, handle);
-  }, [houseId, queryClient]);
+    return bindChoreRealtime(subscribe, handle);
+  }, [houseId, queryClient, subscribe]);
 
   return { stale, refresh };
 }
