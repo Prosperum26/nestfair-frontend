@@ -29,9 +29,9 @@ function DebtSummaryCard() {
     <div className="w-full max-w-[320px] rounded-card bg-ink p-5 text-white lg:absolute lg:top-0 lg:right-0 lg:w-[300px] lg:rotate-[3deg]">
       <p className="font-mono text-over uppercase text-ink-on2">Rút gọn nợ · tháng 10</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Chip tone="outline" className="border-ink-line bg-ink-soft text-white">
+        <span className="inline-flex h-[26px] items-center rounded-full border border-ink-line bg-ink-soft px-2.5 text-cap font-semibold whitespace-nowrap text-white">
           6 khoản nợ chéo
-        </Chip>
+        </span>
         <ArrowRight className="size-4 text-ink-on2" aria-hidden />
         <Chip tone="hl">2 giao dịch</Chip>
       </div>
@@ -55,7 +55,7 @@ function DebtSummaryCard() {
 /** Hóa đơn răng cưa "Đi chợ cuối tuần" kèm con dấu ĐÃ NHẬN. */
 function ReceiptCard() {
   return (
-    <div className="relative lg:absolute lg:top-[130px] lg:left-0 lg:-rotate-[2deg]">
+    <div className="relative max-lg:mb-12 lg:absolute lg:top-[210px] lg:left-0 lg:-rotate-[2deg]">
       <Receipt>
         <div className="flex items-center gap-3">
           <IconTile icon={<ShoppingCart />} tone="mint" size={36} />
@@ -87,8 +87,10 @@ function ReceiptCard() {
             />
           ))}
         </div>
+        {/* Dải trống ở cuối hóa đơn dành cho con dấu, để dấu không che số tiền. */}
+        <p className="mt-4 flex h-14 items-end text-cap text-ink-2">4/4 người đã xác nhận</p>
       </Receipt>
-      <Stamp label="ĐÃ NHẬN" date="06.10.2026" tone="mint" className="absolute -right-3 -bottom-8 max-sm:-right-1 max-sm:-bottom-10" />
+      <Stamp label="ĐÃ NHẬN" date="06.10.2026" tone="mint" className="absolute -right-3 -bottom-12 max-sm:-right-1" />
     </div>
   );
 }
@@ -96,7 +98,7 @@ function ReceiptCard() {
 /** Toast "Mai đã duyệt Rửa chén" (minh họa việc nhà được duyệt). */
 function ApprovedToast() {
   return (
-    <div className="flex w-full max-w-[320px] items-center gap-3 rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[250px] lg:right-0 lg:w-[270px]">
+    <div className="flex w-full max-w-[320px] items-center gap-3 rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]">
       <Person k="M" size={32} />
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-ink">Mai đã duyệt “Rửa chén”</p>
@@ -150,7 +152,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative flex flex-col items-start gap-5 max-lg:items-center lg:block lg:h-[500px]">
+        <div className="relative flex flex-col items-start gap-5 max-lg:items-center lg:block lg:h-[620px]">
           <DebtSummaryCard />
           <ReceiptCard />
           <ApprovedToast />
