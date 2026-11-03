@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { queryClient } from '@/lib/query-client.ts';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
 import { ChoresPage } from '@/pages/ChoresPage.tsx';
+import { ContactPage } from '@/pages/ContactPage.tsx';
 import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
@@ -14,12 +15,15 @@ import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
 import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
+import { PrivacyPage } from '@/pages/PrivacyPage.tsx';
 import { ScanReceiptPage } from '@/pages/ScanReceiptPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
+import { TermsPage } from '@/pages/TermsPage.tsx';
+import { LandingRoute } from '@/routes/LandingRoute.tsx';
 import { GuestRoute, ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
-import { HomeRedirect, RequireHouse } from '@/routes/RequireHouse.tsx';
+import { RequireHouse } from '@/routes/RequireHouse.tsx';
 
 // Màn chat Trợ lý là màn nặng nhất (markdown + form chi tiêu) nên tách chunk, nạp khi vào trang.
 const AssistantPage = lazy(() => import('@/pages/AssistantPage.tsx').then((m) => ({ default: m.AssistantPage })));
@@ -27,6 +31,11 @@ const AssistantPage = lazy(() => import('@/pages/AssistantPage.tsx').then((m) =>
 const router = createBrowserRouter([
   // Backend chuyển về đây sau Google OAuth (không đặt trong GuestRoute để còn hiện lỗi).
   { path: '/auth/callback', element: <AuthCallbackPage /> },
+  // Trang công khai: ai cũng xem được, kể cả khi chưa đăng nhập.
+  { path: '/', element: <LandingRoute /> },
+  { path: '/terms', element: <TermsPage /> },
+  { path: '/privacy', element: <PrivacyPage /> },
+  { path: '/contact', element: <ContactPage /> },
   {
     element: <GuestRoute />,
     children: [
@@ -37,7 +46,6 @@ const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { path: '/', element: <HomeRedirect /> },
       { path: '/onboarding', element: <OnboardingPage /> },
       { path: '/onboarding/invite/:houseId', element: <OnboardingInvitePage /> },
       {
