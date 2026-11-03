@@ -17,6 +17,13 @@ export interface ExpenseShare {
   amount: number;
 }
 
+/** Một món của hóa đơn. `userIds` chỉ có với khoản chia theo món, các kiểu khác là []. */
+export interface ExpenseItem {
+  name: string;
+  lineTotal: number;
+  userIds: string[];
+}
+
 export interface Expense {
   id: string;
   title: string;
@@ -31,6 +38,8 @@ export interface Expense {
   createdAt: string;
   updatedAt: string;
   splits: ExpenseShare[];
+  /** Danh sách món của hóa đơn (rỗng nếu khoản không có). */
+  items: ExpenseItem[];
   /** Phần của người đang xem (0 nếu không chịu phần nào). */
   myShare: number;
   /** Người trả, người ghi hoặc trưởng phòng. */
@@ -64,8 +73,11 @@ export interface ExpenseInput {
   payerId?: string;
   participantIds?: string[];
   splits?: { userId: string; amount: number }[];
-  /** Chỉ với ITEMIZED (bắt buộc, tối đa 100 món). Phần chênh so với `totalAmount` được backend chia theo tỷ lệ tiền món. */
-  items?: { name: string; lineTotal: number; userIds: string[] }[];
+  /**
+   * Danh sách món (tối đa 100), lưu để xem lại với mọi kiểu chia. ITEMIZED bắt buộc có (mỗi món ít nhất một người) và được dùng để chia:
+   * phần chênh so với `totalAmount` chia theo tỷ lệ tiền món. Kiểu khác gửi `userIds: []`.
+   */
+  items?: ExpenseItem[];
   /** Bản nháp OCR mà khoản chi được tạo từ đó; chỉ khi tạo, mỗi bản nháp dùng một lần. */
   receiptScanId?: string;
   spentAt?: string;
