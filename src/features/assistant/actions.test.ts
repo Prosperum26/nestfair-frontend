@@ -86,8 +86,20 @@ describe('actionRequest: DRAFT_EXPENSE', () => {
 });
 
 describe('actionRequest: CREATE_ADHOC_TASK', () => {
-  it('tạo việc đột xuất chưa mở trong MVP → locked, không gọi API', () => {
-    const action: AssistantAction = { type: 'CREATE_ADHOC_TASK', label: 'Tạo việc đột xuất: Cọ WC', payload: {}, done: false };
-    expect(actionRequest(action, message(), 0, NOW)).toEqual({ kind: 'locked' });
+  it('chuyển sang vòng quay với tên việc từ payload và khóa nút theo tin nhắn + vị trí', () => {
+    const action: AssistantAction = { type: 'CREATE_ADHOC_TASK', label: 'Tạo việc đột xuất: Cọ WC', payload: { title: 'Cọ WC' }, done: false };
+    expect(actionRequest(action, message(), 2, NOW)).toEqual({ kind: 'open-wheel', title: 'Cọ WC', sourceKey: 'm1:2' });
+  });
+
+  it('thiếu tên việc thì để trống cho người dùng tự gõ, không lấy nhãn nút', () => {
+    const action: AssistantAction = { type: 'CREATE_ADHOC_TASK', label: 'Tạo việc đột xuất', payload: {}, done: false };
+    expect(actionRequest(action, message(), 0, NOW)).toMatchObject({ kind: 'open-wheel', title: '' });
+  });
+
+  it('tên dài hơn 60 ký tự được cắt cho vừa giới hạn của vòng quay', () => {
+    const long = 'Dọn dẹp toàn bộ nhà bếp và lau chùi tủ lạnh sau bữa tiệc cuối tuần của cả phòng';
+    const action: AssistantAction = { type: 'CREATE_ADHOC_TASK', label: 'x', payload: { title: long }, done: false };
+    const req = actionRequest(action, message(), 0, NOW);
+    expect(req.kind === 'open-wheel' && req.title.length).toBeLessThanOrEqual(60);
   });
 });

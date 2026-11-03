@@ -1,6 +1,6 @@
 import { ArrowLeftRight, Ban, Camera, CalendarDays, Dice5, Lock, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
-import { type ReactNode, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
@@ -30,6 +30,7 @@ import { type ChoresView, readView, writeView } from '@/features/chores/view-pre
 import { shiftWeek, weekKeyOf, weekRangeLabel } from '@/features/chores/week.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 import { VoidSpinModal } from '@/features/wheel/components/VoidSpinModal.tsx';
+import { readWheelPrefill } from '@/features/wheel/prefill.ts';
 import { useWheelStore } from '@/features/wheel/store.ts';
 import { SwapModal } from '@/features/swaps/components/SwapModal.tsx';
 import { SwapsTab } from '@/features/swaps/components/SwapsTab.tsx';
@@ -69,6 +70,15 @@ export function ChoresPage() {
   const [voidTarget, setVoidTarget] = useState<Assignment | null>(null);
   const [swapTarget, setSwapTarget] = useState<Assignment | null>(null);
   const openWheel = useWheelStore((s) => s.openModal);
+  const openWheelWithPrefill = useWheelStore((s) => s.openWithPrefill);
+  const location = useLocation();
+  // Từ nút gợi ý "việc đột xuất" của Trợ lý: mở Vòng quay với tên việc điền sẵn rồi xóa state để tải lại trang không mở lại.
+  useEffect(() => {
+    const prefill = readWheelPrefill(location.state);
+    if (!prefill) return;
+    openWheelWithPrefill(prefill);
+    void navigate(location.pathname + location.search, { replace: true, state: null });
+  }, [location, navigate, openWheelWithPrefill]);
 
   const week = useWeekView(house?.id, weekKey);
   const today = useTodayAssignments(house?.id);

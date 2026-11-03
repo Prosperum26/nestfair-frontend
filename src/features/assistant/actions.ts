@@ -1,3 +1,4 @@
+import { prefillTitle } from '@/features/wheel/selection.ts';
 import type { ExpensePrefill } from '@/features/expenses/components/ExpenseFormModal.tsx';
 import type { AssistantAction, AssistantMessageDto } from './types.ts';
 
@@ -18,14 +19,15 @@ export type AssistantActionRequest =
     }
   | { kind: 'invalid-time' }
   | { kind: 'open-expense-draft'; prefill: ExpensePrefill }
-  | { kind: 'locked' };
+  /** Rời chat, sang Việc nhà mở Vòng quay với tên việc điền sẵn; người dùng tự chọn người, hạn và bấm Quay. */
+  | { kind: 'open-wheel'; title: string; sourceKey: string };
 
 /**
  * Ánh xạ nút hành động → việc cần làm:
  * - CREATE_REMINDER → lời gọi POST /reminders kèm sourceMessageId/actionIndex; `remindAt` thiếu,
  *   sai định dạng hoặc đã qua (so với `now`) thì trả invalid-time để UI báo "nhập lại giờ", không gọi API.
  * - DRAFT_EXPENSE → chỉ mở ExpenseFormModal với prefill; người dùng bấm Lưu mới tạo khoản chi.
- * - CREATE_ADHOC_TASK → tính năng chưa mở, nút khóa "Sắp có".
+ * - CREATE_ADHOC_TASK → chỉ chuyển sang Vòng quay kèm tên việc; vòng quay chỉ chạy khi người dùng bấm Quay.
  */
 export function actionRequest(action: AssistantAction, message: AssistantMessageDto, index: number, now: Date = new Date()): AssistantActionRequest {
   switch (action.type) {
@@ -50,6 +52,6 @@ export function actionRequest(action: AssistantAction, message: AssistantMessage
         },
       };
     case 'CREATE_ADHOC_TASK':
-      return { kind: 'locked' };
+      return { kind: 'open-wheel', title: prefillTitle(action.payload.title ?? ''), sourceKey: `${message.id}:${index}` };
   }
 }
