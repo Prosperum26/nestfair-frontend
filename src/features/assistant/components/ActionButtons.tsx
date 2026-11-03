@@ -1,5 +1,6 @@
-import { Banknote, Bell, CircleCheck, Lock, TriangleAlert } from 'lucide-react';
+import { Banknote, Bell, CircleCheck, Dice5, TriangleAlert } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { assistantErrorMessage } from '../errors.ts';
 import { reminderWhen, type ReminderWhen } from '@/features/reminders/format.ts';
 import { useCreateReminder } from '@/features/reminders/hooks.ts';
@@ -7,6 +8,7 @@ import type { ExpensePrefill } from '@/features/expenses/components/ExpenseFormM
 import type { AssistantMessageDto } from '../types.ts';
 import { actionRequest } from '../actions.ts';
 import { reminderConfirmation } from '../thread.ts';
+import { useAdhocDoneKeys } from '../adhoc-done.ts';
 import { draftKey, useDraftDoneKeys } from '../draft-done.ts';
 
 /** Nút hành động: viền line-2, nền surface, icon 16 trái, chữ btns. KHÔNG dùng nút accent vàng — CTA chính của màn là ô gửi. */
@@ -19,7 +21,7 @@ const BUTTON_CLS =
  * - CREATE_REMINDER → POST /reminders kèm sourceMessageId/actionIndex; 409 → "Bạn đã tạo nhắc nhở này rồi";
  *   thành công → ghi chú xác nhận "Đã tạo nhắc nhở <thời điểm>"; remindAt thiếu / quá khứ → không gọi API.
  * - DRAFT_EXPENSE → mở ExpenseFormModal với prefill (người dùng bấm Lưu mới tạo khoản chi).
- * - CREATE_ADHOC_TASK → nút khóa "Sắp có".
+ * - CREATE_ADHOC_TASK → rời chat sang Việc nhà, mở Vòng quay với tên việc điền sẵn (người dùng tự chọn người, hạn và bấm Quay).
  */
 export function ActionButtons({
   message,
@@ -32,6 +34,8 @@ export function ActionButtons({
 }) {
   const create = useCreateReminder();
   const expenseDone = useDraftDoneKeys();
+  const adhocDone = useAdhocDoneKeys();
+  const navigate = useNavigate();
   // Server đã đánh dấu done (CREATE_REMINDER đã bấm trước đó) + những nút vừa bấm thành công trong phiên này.
   const [localDone, setLocalDone] = useState<number[]>([]);
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
@@ -50,8 +54,8 @@ export function ActionButtons({
       case 'open-expense-draft':
         onDraftExpense(request.prefill, draftKey(message.id, index));
         return;
-      case 'locked':
-        setError('Tạo việc đột xuất sắp có, hiện hãy tự thêm vào lịch nhé.');
+      case 'open-wheel':
+        void navigate('/chores', { state: { wheelPrefill: { title: request.title, sourceKey: request.sourceKey } } });
         return;
       case 'create-reminder':
         setPendingIndex(index);
@@ -84,15 +88,8 @@ export function ActionButtons({
       <div className="flex flex-col items-start gap-1.5">
         {message.actions.map((action, index) => {
           const request = requests[index];
-          const done = action.done || localDone.includes(index) || expenseDone.includes(draftKey(message.id, index));
-          if (request.kind === 'locked') {
-            return (
-              <button key={index} type="button" disabled className={BUTTON_CLS} aria-label="Tính năng sắp có">
-                <Lock className="text-ink-2" aria-hidden />
-                Sắp có
-              </button>
-            );
-          }
+          const key = draftKey(message.id, index);
+          const done = action.done || localDone.includes(index) || expenseDone.includes(key) || adhocDone.includes(key);
           return (
             <button
               key={index}
@@ -106,6 +103,8 @@ export function ActionButtons({
                 <CircleCheck className="text-mint" aria-hidden />
               ) : request.kind === 'open-expense-draft' ? (
                 <Banknote aria-hidden />
+              ) : request.kind === 'open-wheel' ? (
+                <Dice5 aria-hidden />
               ) : (
                 <Bell aria-hidden />
               )}
