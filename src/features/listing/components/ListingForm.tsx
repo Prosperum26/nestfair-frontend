@@ -115,7 +115,7 @@ export function ListingForm({
   const closedFull = listing?.status === 'CLOSED' && listing.closeReason === 'FULL';
 
   return (
-    <form noValidate onSubmit={submit(action === 'PUBLISH' || action === 'REOPEN' ? 'OPEN' : 'NONE')} className="grid gap-6 lg:grid-cols-12 lg:items-start">
+    <form noValidate onSubmit={submit(action === 'PUBLISH' || action === 'REOPEN' ? 'OPEN' : 'NONE')} className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
       {/* Mobile: poster lên đầu (ảnh 20 mobile). Desktop: cột phải, dính khi cuộn. */}
       <aside className="order-first lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:sticky lg:top-24">
         <ListingAside form={form} data={data} />
