@@ -9,17 +9,17 @@ import { cn } from '@/lib/cn.ts';
 export function Modal({
   open,
   onClose,
-  title,
   overline,
+  title,
   description,
   children,
   className,
 }: {
   open: boolean;
   onClose: () => void;
-  title: string;
-  /** Overline mono viết hoa phía trên tiêu đề. */
+  /** Dòng mono viết hoa phía trên tiêu đề ("VIETQR · NAPAS 247"). */
   overline?: string;
+  title: string;
   description?: ReactNode;
   children: ReactNode;
   className?: string;

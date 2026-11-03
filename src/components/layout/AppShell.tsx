@@ -1,5 +1,5 @@
 import { Bell, Plus } from 'lucide-react';
-import { NavLink, Outlet, useLocation } from 'react-router';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { useCurrentHouse } from '@/features/houses/hooks.ts';
@@ -8,6 +8,7 @@ import { RealtimeProvider } from '@/features/realtime/RealtimeProvider.tsx';
 import { WheelModal } from '@/features/wheel/components/WheelModal.tsx';
 import { useWheelRealtime } from '@/features/wheel/hooks.ts';
 import { Logo } from '@/components/ui/Logo.tsx';
+import { useReminderRealtime } from '@/features/reminders/realtime.ts';
 import { cn } from '@/lib/cn.ts';
 import { HouseSwitcher } from './HouseSwitcher.tsx';
 import { NAV_ITEMS, PAGE_TITLES, TAB_ITEMS } from './nav.ts';
@@ -78,6 +79,7 @@ function MobileTopBar() {
 
 /** Tab bar mobile: 4 tab + FAB giữa (52×52, r16, nền hl, viền ink, bóng 3/3). */
 function TabBar() {
+  const navigate = useNavigate();
   const tab = ({ to, label, icon: Icon }: (typeof TAB_ITEMS)[number]) => (
     <NavLink
       key={to}
@@ -100,7 +102,7 @@ function TabBar() {
         <button
           type="button"
           aria-label="Thêm chi tiêu"
-          onClick={() => toast('Thêm chi tiêu sẽ có ở phần Chi tiêu.')}
+          onClick={() => navigate('/expenses?new=1')}
           className="-mt-5 flex size-[52px] items-center justify-center rounded-[16px] border-[1.5px] border-ink bg-hl text-ink shadow-hard active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
         >
           <Plus className="size-6" aria-hidden />
@@ -120,6 +122,8 @@ function WheelSync({ houseId }: { houseId: string | undefined }) {
 
 export function AppShell() {
   const { house } = useCurrentHouse();
+  // Chỉ được mount khi đã đăng nhập (ProtectedRoute → RequireHouse): nghe nhắc việc đến hạn một lần cho cả app.
+  useReminderRealtime();
   return (
     <RealtimeProvider houseId={house?.id}>
       <div className="min-h-svh bg-paper">

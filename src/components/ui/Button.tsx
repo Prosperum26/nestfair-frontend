@@ -2,7 +2,7 @@ import { LoaderCircle } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/cn.ts';
 
-type Variant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'onInk';
+type Variant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'onInk' | 'danger' | 'dangerSoft';
 type Size = 'sm' | 'md' | 'lg';
 
 const variants: Record<Variant, string> = {
@@ -13,6 +13,8 @@ const variants: Record<Variant, string> = {
   secondary: 'bg-surface text-ink border border-line-2 hover:bg-paper',
   ghost: 'bg-transparent text-ink hover:bg-paper-2',
   onInk: 'bg-ink-soft text-white border border-ink-line',
+  danger: 'bg-tom text-white',
+  dangerSoft: 'bg-surface text-tom border border-tom-border hover:bg-tom-bg',
 };
 
 const sizes: Record<Size, string> = {

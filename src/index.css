@@ -132,3 +132,24 @@
     @apply bg-paper font-sans text-ink;
   }
 }
+
+/* Tia quét chạy dọc ảnh hóa đơn trong lúc chờ Gemini (đường mảnh một màu, không gradient hay bóng mờ). */
+@keyframes scan-sweep {
+  from {
+    top: 0;
+  }
+  to {
+    top: calc(100% - 2px);
+  }
+}
+
+.scan-line {
+  animation: scan-sweep 1.4s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-line {
+    animation: none;
+    top: 50%;
+  }
+}

@@ -1,20 +1,28 @@
 import { QueryClientProvider } from '@tanstack/react-query';
+import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { Toaster } from 'sonner';
 import { AppShell } from '@/components/layout/AppShell.tsx';
+import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { queryClient } from '@/lib/query-client.ts';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
 import { ChoresPage } from '@/pages/ChoresPage.tsx';
 import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
+import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
 import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
+import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
+import { ScanReceiptPage } from '@/pages/ScanReceiptPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
 import { GuestRoute, ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
 import { HomeRedirect, RequireHouse } from '@/routes/RequireHouse.tsx';
+
+// Màn chat Trợ lý là màn nặng nhất (markdown + form chi tiêu) nên tách chunk, nạp khi vào trang.
+const AssistantPage = lazy(() => import('@/pages/AssistantPage.tsx').then((m) => ({ default: m.AssistantPage })));
 
 const router = createBrowserRouter([
   // Backend chuyển về đây sau Google OAuth (không đặt trong GuestRoute để còn hiện lỗi).
@@ -43,35 +51,23 @@ const router = createBrowserRouter([
               // Module chưa làm: thay ComingSoonPage bằng trang thật khi bắt đầu module.
               { path: '/chores', element: <ChoresPage /> },
               { path: '/settings', element: <HouseSettingsPage /> },
-              {
-                path: '/expenses',
-                element: (
-                  <ComingSoonPage
-                    overline="Sổ chung"
-                    title="Chi tiêu"
-                    description="Ghi khoản chi, chia tiền, quét hóa đơn."
-                  />
-                ),
-              },
-              {
-                path: '/payments',
-                element: (
-                  <ComingSoonPage
-                    overline="Rút gọn nợ"
-                    title="Thanh toán"
-                    description="Ai trả ai bao nhiêu, trả nhanh bằng VietQR."
-                  />
-                ),
-              },
+              { path: '/expenses', element: <ExpensesPage /> },
+              { path: '/expenses/scan', element: <ScanReceiptPage /> },
+              { path: '/payments', element: <PaymentsPage /> },
               { path: '/members', element: <MembersPage /> },
               {
                 path: '/assistant',
                 element: (
-                  <ComingSoonPage
-                    overline="Trợ lý AI"
-                    title="Trợ lý phòng trọ"
-                    description="Hỏi mẹo vặt, xử lý sự cố, tạo nhắc nhở."
-                  />
+                  <Suspense
+                    fallback={
+                      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải trợ lý">
+                        <Skeleton className="h-10 w-64" />
+                        <Skeleton className="h-[480px] w-full rounded-card" />
+                      </div>
+                    }
+                  >
+                    <AssistantPage />
+                  </Suspense>
                 ),
               },
               {
