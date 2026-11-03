@@ -20,7 +20,7 @@ import {
 import { ExpenseStatsDesktop, ExpenseStatsError, ExpenseStatsMobile, ExpenseStatsSkeleton } from '@/features/expenses/components/ExpenseStats.tsx';
 import { CATEGORY_META } from '@/features/expenses/category.ts';
 import { useExpenses, useExpenseSummary } from '@/features/expenses/hooks.ts';
-import { monthKeyOf, monthOverlineOf, shiftMonth } from '@/features/expenses/month.ts';
+import { monthKeyOf, monthOverlineOf, parseMonthParam, shiftMonth } from '@/features/expenses/month.ts';
 import { useLedgerRealtime } from '@/features/expenses/realtime.ts';
 import type { Expense, ExpenseCategory, UserBrief } from '@/features/expenses/types.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
@@ -53,7 +53,8 @@ export function ExpensesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const thisMonth = monthKeyOf(new Date());
-  const [month, setMonth] = useState(thisMonth);
+  // ?month=YYYY-MM: quét hóa đơn lưu xong chuyển về đây đúng tháng của khoản vừa ghi.
+  const [month, setMonth] = useState(() => parseMonthParam(searchParams.get('month'), thisMonth) ?? thisMonth);
   const [category, setCategory] = useState<ExpenseCategory | undefined>();
   const [payerId, setPayerId] = useState<string | undefined>();
   const [search, setSearch] = useState('');

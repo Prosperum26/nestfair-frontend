@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, ScanLine, UserRound } from 'lucide-react';
+import { ChevronDown, LogOut, ScanLine, Sparkles, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -6,20 +6,28 @@ import { Avatar } from '@/components/ui/Avatar.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
 import { Menu, MenuItem, MenuSeparator } from '@/components/ui/Menu.tsx';
 import { useLogout } from '@/features/auth/hooks.ts';
+import type { AssistantConsentUser } from '@/features/assistant/types.ts';
+import { AssistantConsentDialog } from '@/features/assistant/components/AssistantConsentDialog.tsx';
+import { assistantErrorMessage } from '@/features/assistant/errors.ts';
+import { useSetAssistantConsent } from '@/features/assistant/hooks.ts';
 import { ledgerErrorMessage } from '@/features/expenses/errors.ts';
 import { OcrConsentDialog } from '@/features/receipts/components/OcrConsentDialog.tsx';
 import { ocrToggleLabel } from '@/features/receipts/consent.ts';
 import { useSetOcrConsent } from '@/features/receipts/hooks.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
-/** Avatar + chevron (desktop) hoặc avatar 40 (mobile): Hồ sơ, bật/tắt quét hóa đơn bằng AI, Đăng xuất. */
+/** Avatar + chevron (desktop) hoặc avatar 40 (mobile): Hồ sơ, bật/tắt quét hóa đơn bằng AI, Trợ lý AI, Đăng xuất. */
 export function UserMenu({ compact = false }: { compact?: boolean }) {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
   const navigate = useNavigate();
   const setConsent = useSetOcrConsent();
+  const setAssistantConsent = useSetAssistantConsent();
   const [consentOpen, setConsentOpen] = useState(false);
+  const [assistantConsentOpen, setAssistantConsentOpen] = useState(false);
   if (!user) return null;
+  // Backend trả assistantConsentAt cùng hồ sơ; auth/types.ts chưa khai báo nên mở rộng tại chỗ dùng.
+  const assistantConsentAt = (user as AssistantConsentUser).assistantConsentAt ?? null;
 
   return (
     <>
@@ -77,6 +85,24 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
               </span>
             </MenuItem>
             <MenuItem
+              icon={<Sparkles />}
+              onSelect={() => {
+                close();
+                // Công tắc Trợ lý AI (D5), theo mẫu quét hóa đơn: đang Tắt thì hỏi đồng ý trước.
+                if (assistantConsentAt === null) setAssistantConsentOpen(true);
+                else
+                  setAssistantConsent.mutate(false, {
+                    onSuccess: () => toast('Đã tắt Trợ lý AI.'),
+                    onError: (e) => toast.error(assistantErrorMessage(e)),
+                  });
+              }}
+            >
+              <span className="flex items-center justify-between gap-2">
+                Trợ lý AI
+                <span className="font-mono text-over uppercase text-ink-2">{assistantConsentAt === null ? 'Tắt' : 'Bật'}</span>
+              </span>
+            </MenuItem>
+            <MenuItem
               icon={<LogOut />}
               onSelect={() => {
                 close();
@@ -95,6 +121,14 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
         toast('Đã bật quét hóa đơn bằng AI.');
       }}
       onDecline={() => setConsentOpen(false)}
+    />
+    <AssistantConsentDialog
+      open={assistantConsentOpen}
+      onAgree={() => {
+        setAssistantConsentOpen(false);
+        toast('Đã bật Trợ lý AI. Vào mục Trợ lý để trò chuyện nhé.');
+      }}
+      onDecline={() => setAssistantConsentOpen(false)}
     />
     </>
   );

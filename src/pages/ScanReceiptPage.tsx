@@ -7,6 +7,7 @@ import { ExpenseFormModal, type ExpensePrefill } from '@/features/expenses/compo
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { ledgerErrorMessage } from '@/features/expenses/errors.ts';
 import { prepareImage } from '@/features/expenses/image-upload.ts';
+import { monthKeyOf } from '@/features/expenses/month.ts';
 import type { UserBrief } from '@/features/expenses/types.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 import { ReviewForm } from '@/features/receipts/components/ReviewForm.tsx';
@@ -120,7 +121,7 @@ export function ScanReceiptPage() {
               imageUrl={stage.result.imageUrl}
               scanId={stage.result.scanId}
               onRescan={() => dispatch({ type: 'reset' })}
-              onSaved={() => navigate('/expenses')}
+              onSaved={(saved) => navigate(`/expenses?month=${monthKeyOf(new Date(saved.spentAt))}`)}
               onOtherSplit={openManual}
             />
           ) : (
@@ -141,7 +142,7 @@ export function ScanReceiptPage() {
           expense={null}
           prefill={manual.prefill}
           onClose={() => setManual((m) => ({ ...m, open: false }))}
-          onSaved={() => navigate('/expenses')}
+          onSaved={(saved) => navigate(`/expenses?month=${monthKeyOf(new Date(saved.spentAt))}`)}
         />
       )}
     </>

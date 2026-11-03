@@ -5,6 +5,12 @@ export function monthKeyOf(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
 }
 
+/** Giá trị ?month= trên URL: hợp lệ (YYYY-MM, không quá tháng \`max\`) thì trả về, ngược lại null. */
+export function parseMonthParam(value: string | null, max: string): string | null {
+  if (!value || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return null;
+  return value <= max ? value : null;
+}
+
 function parse(key: string): { year: number; month: number } {
   const [year, month] = key.split('-').map(Number);
   return { year, month };

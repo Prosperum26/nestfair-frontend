@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { Logo } from '@/components/ui/Logo.tsx';
+import { useReminderRealtime } from '@/features/reminders/realtime.ts';
 import { cn } from '@/lib/cn.ts';
 import { HouseSwitcher } from './HouseSwitcher.tsx';
 import { NAV_ITEMS, PAGE_TITLES, TAB_ITEMS } from './nav.ts';
@@ -104,6 +105,8 @@ function TabBar() {
 
 /** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). */
 export function AppShell() {
+  // Chỉ được mount khi đã đăng nhập (ProtectedRoute → RequireHouse): nghe nhắc việc đến hạn một lần cho cả app.
+  useReminderRealtime();
   return (
     <div className="min-h-svh bg-paper">
       <TopNav />

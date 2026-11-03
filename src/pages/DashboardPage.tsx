@@ -1,7 +1,5 @@
 import {
   ArrowLeftRight,
-  ArrowRight,
-  Bell,
   CalendarDays,
   Dice5,
   History,
@@ -31,6 +29,7 @@ import { monthKeyOf } from '@/features/expenses/month.ts';
 import { useLedgerRealtime } from '@/features/expenses/realtime.ts';
 import { myPosition } from '@/features/settlements/plan-view.ts';
 import type { PlanMember, SettlementPlan } from '@/features/settlements/types.ts';
+import { RemindersWidget } from '@/features/reminders/components/RemindersWidget.tsx';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 /*
@@ -269,17 +268,7 @@ export function DashboardPage() {
           <DashCard overline="Yêu cầu · Chợ ca · Nợ ca" title="Đổi ca">
             <CardEmpty icon={<ArrowLeftRight />}>Yêu cầu nhờ trực dùm và ca trên Chợ ca sẽ hiện ở đây.</CardEmpty>
           </DashCard>
-          <DashCard
-            overline="3 nhắc gần nhất"
-            title="Nhắc nhở"
-            aside={
-              <Link to="/assistant" className={cn(linkCls, 'flex items-center gap-1')}>
-                Mở trợ lý <ArrowRight className="size-4" aria-hidden />
-              </Link>
-            }
-          >
-            <CardEmpty icon={<Bell />}>Nhờ Trợ lý tạo nhắc nhở, 3 nhắc gần nhất sẽ hiện ở đây.</CardEmpty>
-          </DashCard>
+          <RemindersWidget />
         </div>
       </div>
     </>
