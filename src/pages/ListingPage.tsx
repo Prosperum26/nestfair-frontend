@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { messageForListingError } from '@/features/listing/errors.ts';
 import { useListing } from '@/features/listing/hooks.ts';
+import { useListingRealtime } from '@/features/listing/realtime.ts';
 import { ListingForm } from '@/features/listing/components/ListingForm.tsx';
 import { PhotoGroups } from '@/features/listing/components/PhotoGroups.tsx';
 import { ListingStatusBar } from '@/features/listing/components/ListingStatusBar.tsx';
@@ -37,6 +38,7 @@ function PhotosNeedDraft() {
 export function ListingPage() {
   const { house } = useCurrentHouse();
   const listing = useListing(house?.id);
+  useListingRealtime(house?.id);
   const canEdit = house?.myRole === 'ADMIN';
 
   return (

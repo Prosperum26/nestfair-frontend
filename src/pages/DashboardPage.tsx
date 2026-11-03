@@ -6,6 +6,7 @@ import {
   Dice5,
   History,
   ListChecks,
+  Megaphone,
   Plus,
   QrCode,
   ScanLine,
@@ -106,18 +107,19 @@ function LiveTicker({ members }: { members: HouseMember[] | undefined }) {
   );
 }
 
-/** Hàng nút nhanh mobile (Design.md mục 5): Thêm chi · Quét HĐ · Vòng quay · Trợ lý. */
+/** Hàng nút nhanh mobile (Design.md mục 5): Thêm chi · Quét HĐ · Vòng quay · Trợ lý · Tin đăng. */
 function QuickActions() {
   const items: { to: string; label: string; icon: ReactNode }[] = [
     { to: '/expenses?new=1', label: 'Thêm chi', icon: <Plus /> },
     { to: '/expenses', label: 'Quét HĐ', icon: <ScanLine /> },
     { to: '/chores', label: 'Vòng quay', icon: <Dice5 /> },
     { to: '/assistant', label: 'Trợ lý', icon: <Sparkles /> },
+    { to: '/house/listing', label: 'Tin đăng', icon: <Megaphone /> },
   ];
   return (
-    <nav aria-label="Thao tác nhanh" className="grid grid-cols-4 gap-2.5 lg:hidden">
+    <nav aria-label="Thao tác nhanh" className="grid grid-cols-5 gap-2 lg:hidden">
       {items.map(({ to, label, icon }) => (
-        <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap text-ink">
+        <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap whitespace-nowrap text-ink">
           <span className="flex h-14 w-full items-center justify-center rounded-card border border-line bg-surface [&_svg]:size-6">
             {icon}
           </span>
