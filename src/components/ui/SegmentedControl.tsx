@@ -11,12 +11,15 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
   label,
+  size = 'md',
   className,
 }: {
   options: Option<T>[];
   value: T;
   onChange: (value: T) => void;
   label: string;
+  /** lg: mục cao 44px cho vùng bấm trên mobile; md (mặc định) cao 36px. */
+  size?: 'md' | 'lg';
   className?: string;
 }) {
   return (
