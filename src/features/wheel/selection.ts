@@ -9,6 +9,12 @@ export function normalizeTitle(value: string): string {
 export const TITLE_MIN = 3;
 export const TITLE_MAX = 60;
 
+/** Tên việc điền sẵn vào form từ gợi ý bên ngoài (Trợ lý): gọn, cắt về TITLE_MAX; quá ngắn thì để trống cho người dùng tự gõ. */
+export function prefillTitle(raw: string): string {
+  const t = normalizeTitle(raw).slice(0, TITLE_MAX).trim();
+  return t.length < TITLE_MIN ? '' : t;
+}
+
 export function titleError(raw: string): string | null {
   const t = normalizeTitle(raw);
   if (!t) return 'Nhập tên việc đột xuất.';

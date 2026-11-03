@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import confetti from 'canvas-confetti';
 import { Ban, CircleCheck, Dice5, Radio, ShieldCheck, TriangleAlert, Volume2, VolumeX } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { markAdhocDone } from '@/features/assistant/adhoc-done.ts';
 import { useNavigate } from 'react-router';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
@@ -42,7 +43,8 @@ function SetupForm({ houseId }: { houseId: string }) {
   const options = useWheelOptions(houseId, true);
   const spin = useSpin(houseId);
   const show = useWheelStore((s) => s.show);
-  const [title, setTitle] = useState('');
+  // Form được remount mỗi lần modal mở (key ở WheelModal), nên đọc tên điền sẵn từ Trợ lý một lần lúc khởi tạo.
+  const [title, setTitle] = useState(() => useWheelStore.getState().prefill?.title ?? '');
   const [touched, setTouched] = useState(false);
   const [selected, setSelected] = useState<string[] | null>(null);
   const [dueKey, setDueKey] = useState<DueKey | null>(null);
@@ -86,6 +88,8 @@ function SetupForm({ houseId }: { houseId: string }) {
       {
         onSuccess: (s) => {
           keyRef.current = null;
+          const sourceKey = useWheelStore.getState().prefill?.sourceKey;
+          if (sourceKey) markAdhocDone(sourceKey);
           show(s, { open: true });
         },
         onError: (e) => {
@@ -391,7 +395,7 @@ export function WheelModal({ houseId }: { houseId: string | undefined }) {
       ) : checking || !houseId ? (
         <Skeleton className="h-64" />
       ) : (
-        <SetupForm houseId={houseId} />
+        <SetupForm key={open ? 'open' : 'closed'} houseId={houseId} />
       )}
     </Modal>
   );

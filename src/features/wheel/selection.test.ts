@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canSpin, formatDue, normalizeTitle, resultAnnouncement, resultHeadline, titleError, toggleParticipant } from './selection.ts';
+import { canSpin, formatDue, normalizeTitle, resultAnnouncement, prefillTitle, resultHeadline, titleError, toggleParticipant } from './selection.ts';
 
 const members = [
   { id: 'h', absentToday: false },
@@ -55,5 +55,22 @@ describe('câu kết quả', () => {
   it('người xem là người trúng: "Bạn"', () => {
     expect(resultHeadline(quan, 'u-quan')).toBe('Bạn đã trúng secret!');
     expect(resultAnnouncement(quan, 'Mua nước bình 20L', 'u-quan')).toBe('Kết quả: Bạn đã trúng secret! Mua nước bình 20L');
+  });
+});
+
+describe('prefillTitle: tên việc điền sẵn từ gợi ý của trợ lý', () => {
+  it('gọn khoảng trắng, giữ nguyên tên hợp lệ', () => {
+    expect(prefillTitle('  Cọ   WC ')).toBe('Cọ WC');
+  });
+
+  it('cắt về tối đa 60 ký tự, không để khoảng trắng thừa ở cuối', () => {
+    const out = prefillTitle('Dọn dẹp toàn bộ nhà bếp và lau chùi tủ lạnh sau bữa tiệc cuối tuần của cả phòng');
+    expect(out.length).toBeLessThanOrEqual(60);
+    expect(out).toBe(out.trim());
+  });
+
+  it('ngắn hơn 3 ký tự thì để trống để người dùng tự gõ', () => {
+    expect(prefillTitle('WC')).toBe('');
+    expect(prefillTitle('')).toBe('');
   });
 });
