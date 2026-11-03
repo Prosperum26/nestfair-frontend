@@ -118,6 +118,17 @@ type ValidatedReview = Omit<ReviewFormValues, 'totalAmount' | 'items'> & {
 };
 
 /** Giá trị form (đã qua schema) → body `POST /expenses` kiểu ITEMIZED. `scanId = null` khi engine OCR không đi qua backend. */
+/**
+ * Món của màn xem lại → danh sách món đi theo sang form chia kiểu khác (chỉ tên + tiền):
+ * bỏ món chưa có tên hoặc tiền không dương, cắt khoảng trắng, tối đa 100 món như backend.
+ */
+export function prefillItemsFromReview(items: readonly { name: string; lineTotal: number | null }[]): { name: string; lineTotal: number }[] {
+  return items
+    .map((i) => ({ name: i.name.trim(), lineTotal: i.lineTotal }))
+    .filter((i): i is { name: string; lineTotal: number } => i.name !== '' && i.lineTotal !== null && i.lineTotal > 0)
+    .slice(0, 100);
+}
+
 export function toItemizedInput(v: ValidatedReview, scan: { scanId: string | null; imageUrl: string }): ExpenseInput {
   return {
     title: v.title.trim(),

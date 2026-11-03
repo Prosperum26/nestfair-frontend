@@ -20,6 +20,7 @@ import { ledgerErrorMessage } from '../errors.ts';
 import { localDateOf } from '../grouping.ts';
 import { useCreateExpense, useUpdateExpense } from '../hooks.ts';
 import { IMAGE_ACCEPT, prepareImage } from '../image-upload.ts';
+import { withPrefillExtras } from '../prefill.ts';
 import { expenseFormSchema } from '../schemas.ts';
 import { type ExpenseFormValues, type FormSplitType, previewSplit, toExpenseInput } from '../split-preview.ts';
 import type { Expense, ExpenseCategory, UserBrief } from '../types.ts';
@@ -44,6 +45,8 @@ export interface ExpensePrefill {
   category?: ExpenseCategory;
   receiptImageUrl?: string | null;
   receiptScanId?: string;
+  /** Món của hóa đơn quét (tên + tiền), lưu kèm khoản chi để xem lại. */
+  items?: { name: string; lineTotal: number }[];
 }
 
 interface FormProps {
@@ -163,7 +166,7 @@ function ExpenseForm({ houseId, members, meId, expense, prefill, onClose, onSave
     };
     const fail = (e: unknown) => setError(ledgerErrorMessage(e));
     if (expense) update.mutate({ id: expense.id, body }, { onSuccess: done, onError: fail });
-    else create.mutate(prefill?.receiptScanId ? { ...body, receiptScanId: prefill.receiptScanId } : body, { onSuccess: done, onError: fail });
+    else create.mutate(withPrefillExtras(body, prefill), { onSuccess: done, onError: fail });
   });
 
   const exactBlocked = splitType === 'EXACT' && !preview.ok;
