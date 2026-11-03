@@ -218,7 +218,7 @@ export function ListingForm({
               {...register('roommateExpectations')}
             />
           </Field>
-          <Checkbox id="listing-roster" label="Hiện lịch trực ẩn danh trên trang công khai" {...register('showChoreSchedule')} />
+          <Checkbox id="listing-roster" className="py-3" label="Hiện lịch trực ẩn danh trên trang công khai" {...register('showChoreSchedule')} />
         </Card>
       </fieldset>
 

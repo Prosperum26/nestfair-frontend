@@ -16,7 +16,7 @@ export function PublicLinkCard({ publicUrl }: { publicUrl: string | null }) {
           <span className="min-w-0 flex-1 truncate font-mono text-ms text-ink" title={publicUrl}>
             {publicUrlDisplay(publicUrl)}
           </span>
-          <Button size="sm" variant="secondary" leftIcon={<Copy />} onClick={() => void copyText(publicUrl, 'Đã sao chép link tin.')}>
+          <Button variant="secondary" leftIcon={<Copy />} onClick={() => void copyText(publicUrl, 'Đã sao chép link tin.')}>
             Sao chép
           </Button>
         </div>

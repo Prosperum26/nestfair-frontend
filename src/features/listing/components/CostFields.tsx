@@ -59,7 +59,6 @@ export function CostFields({
         </h2>
         {!disabled && (
           <Button
-            size="sm"
             variant="secondary"
             leftIcon={<Plus />}
             disabled={fields.length >= MAX_OTHER_FEES}
