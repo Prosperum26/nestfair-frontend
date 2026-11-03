@@ -1,7 +1,6 @@
 import { api } from '@/lib/api.ts';
 import type {
   AdminListingResponse,
-  Listing,
   ListingInput,
   ListingPhoto,
   ListingStatus,
@@ -13,9 +12,9 @@ const h = (houseId: string) => `/houses/${houseId}/listing`;
 
 export const listingApi = {
   get: (houseId: string) => api<AdminListingResponse>(h(houseId)),
-  save: (houseId: string, body: ListingInput) => api<Listing>(h(houseId), { method: 'PUT', body }),
+  save: (houseId: string, body: ListingInput) => api<AdminListingResponse>(h(houseId), { method: 'PUT', body }),
   setStatus: (houseId: string, status: ListingStatus) =>
-    api<Listing>(`${h(houseId)}/status`, { method: 'PATCH', body: { status } }),
+    api<AdminListingResponse>(`${h(houseId)}/status`, { method: 'PATCH', body: { status } }),
   uploadPhoto: (houseId: string, category: PhotoCategory, photo: Blob, filename: string) => {
     const body = new FormData();
     body.append('category', category);
