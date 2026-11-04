@@ -11,12 +11,15 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
   label,
+  size = 'md',
   className,
 }: {
   options: Option<T>[];
   value: T;
   onChange: (value: T) => void;
   label: string;
+  /** lg: mục cao 44px cho vùng bấm trên mobile; md (mặc định) cao 36px. */
+  size?: 'md' | 'lg';
   className?: string;
 }) {
   return (
@@ -35,7 +38,8 @@ export function SegmentedControl<T extends string>({
             aria-checked={active}
             onClick={() => onChange(o.value)}
             className={cn(
-              'h-9 flex-1 rounded-btn-sm text-sm transition-colors focus-visible:outline-none focus-visible:shadow-focus',
+              size === 'lg' ? 'h-11' : 'h-9',
+              'flex-1 rounded-btn-sm text-sm transition-colors focus-visible:outline-none focus-visible:shadow-focus',
               active ? 'bg-surface font-semibold text-ink shadow-[0_0_0_1px_var(--color-line)]' : 'text-ink-2 hover:text-ink',
             )}
           >

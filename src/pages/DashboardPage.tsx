@@ -2,6 +2,7 @@ import {
   CalendarDays,
   Dice5,
   ListChecks,
+  Megaphone,
   Plus,
   QrCode,
   ScanLine,
@@ -83,7 +84,7 @@ function BalanceCard({ month, plan, meId }: { month: string; plan: SettlementPla
   );
 }
 
-/** Hàng nút nhanh mobile (Design.md mục 5): Thêm chi · Quét HĐ · Vòng quay · Trợ lý. */
+/** Hàng nút nhanh mobile (Design.md mục 5): Thêm chi · Quét HĐ · Vòng quay · Trợ lý · Tin đăng. */
 function QuickActions() {
   const openWheel = useWheelStore((s) => s.openModal);
   const items: { to?: string; onClick?: () => void; label: string; icon: ReactNode }[] = [
@@ -91,20 +92,21 @@ function QuickActions() {
     { to: '/expenses/scan', label: 'Quét HĐ', icon: <ScanLine /> },
     { onClick: openWheel, label: 'Vòng quay', icon: <Dice5 /> },
     { to: '/assistant', label: 'Trợ lý', icon: <Sparkles /> },
+    { to: '/house/listing', label: 'Tin đăng', icon: <Megaphone /> },
   ];
   const tile = (icon: ReactNode) => (
     <span className="flex h-14 w-full items-center justify-center rounded-card border border-line bg-surface [&_svg]:size-6">{icon}</span>
   );
   return (
-    <nav aria-label="Thao tác nhanh" className="grid grid-cols-4 gap-2.5 lg:hidden">
+    <nav aria-label="Thao tác nhanh" className="grid grid-cols-5 gap-2 lg:hidden">
       {items.map(({ to, onClick, label, icon }) =>
         to ? (
-          <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap text-ink">
+          <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap whitespace-nowrap text-ink">
             {tile(icon)}
             {label}
           </Link>
         ) : (
-          <button key={label} type="button" onClick={onClick} className="flex flex-col items-center gap-1.5 text-cap text-ink">
+          <button key={label} type="button" onClick={onClick} className="flex flex-col items-center gap-1.5 text-cap whitespace-nowrap text-ink">
             {tile(icon)}
             {label}
           </button>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" role="img" aria-label="Gian sinh hoạt minh họa 1">
+  <title>Gian sinh hoạt minh họa 1</title>
+  <rect width="1200" height="800" fill="#F4EFE6"/>
+  <rect x="0" y="620" width="1200" height="180" fill="#E3D7C3"/>
+  <rect x="180" y="400" width="560" height="190" rx="28" fill="#D98E73" stroke="#1C2333" stroke-width="6"/>
+  <rect x="150" y="440" width="80" height="190" rx="28" fill="#D98E73" stroke="#1C2333" stroke-width="6"/>
+  <rect x="690" y="440" width="80" height="190" rx="28" fill="#D98E73" stroke="#1C2333" stroke-width="6"/>
+  <rect x="860" y="500" width="240" height="26" rx="8" fill="#8A6A4D" stroke="#1C2333" stroke-width="6"/>
+  <rect x="890" y="526" width="14" height="100" fill="#8A6A4D"/>
+  <rect x="1050" y="526" width="14" height="100" fill="#8A6A4D"/>
+  <rect x="780" y="120" width="300" height="200" rx="12" fill="#CFE3F2" stroke="#1C2333" stroke-width="6"/>
+  <rect x="220" y="120" width="220" height="150" rx="10" fill="#FFFFFF" stroke="#1C2333" stroke-width="6"/>
+  <path d="M240 250 L310 190 L360 230 L400 200 L420 250Z" fill="#9BBF9F"/>
+</svg>

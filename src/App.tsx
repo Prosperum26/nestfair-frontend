@@ -8,10 +8,10 @@ import { queryClient } from '@/lib/query-client.ts';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
 import { ChoresPage } from '@/pages/ChoresPage.tsx';
 import { ContactPage } from '@/pages/ContactPage.tsx';
-import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
 import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
+import { ListingPage } from '@/pages/ListingPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
 import { ProfilePage } from '@/pages/ProfilePage.tsx';
@@ -20,6 +20,7 @@ import { PrivacyPage } from '@/pages/PrivacyPage.tsx';
 import { ScanReceiptPage } from '@/pages/ScanReceiptPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
+import { PublicListingPage } from '@/pages/PublicListingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
 import { TermsPage } from '@/pages/TermsPage.tsx';
 import { LandingRoute } from '@/routes/LandingRoute.tsx';
@@ -32,6 +33,8 @@ const AssistantPage = lazy(() => import('@/pages/AssistantPage.tsx').then((m) =>
 const router = createBrowserRouter([
   // Backend chuyển về đây sau Google OAuth (không đặt trong GuestRoute để còn hiện lỗi).
   { path: '/auth/callback', element: <AuthCallbackPage /> },
+  // Trang công khai cho khách: ngoài ProtectedRoute và AppShell.
+  { path: '/r/:slug', element: <PublicListingPage /> },
   // Trang công khai: ai cũng xem được, kể cả khi chưa đăng nhập.
   { path: '/', element: <LandingRoute /> },
   { path: '/terms', element: <TermsPage /> },
@@ -79,16 +82,8 @@ const router = createBrowserRouter([
                   </Suspense>
                 ),
               },
-              {
-                path: '/listing',
-                element: (
-                  <ComingSoonPage
-                    overline="Tìm người ở ghép"
-                    title="Tin đăng"
-                    description="Tin tuyển thành viên, trang công khai và poster QR."
-                  />
-                ),
-              },
+              { path: '/house/listing', element: <ListingPage /> },
+              { path: '/listing', element: <Navigate to="/house/listing" replace /> },
               { path: '/profile', element: <ProfilePage /> },
             ],
           },
