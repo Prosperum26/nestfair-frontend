@@ -14,6 +14,7 @@ import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
 import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
+import { ProfilePage } from '@/pages/ProfilePage.tsx';
 import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
 import { PrivacyPage } from '@/pages/PrivacyPage.tsx';
 import { ScanReceiptPage } from '@/pages/ScanReceiptPage.tsx';
@@ -88,16 +89,7 @@ const router = createBrowserRouter([
                   />
                 ),
               },
-              {
-                path: '/profile',
-                element: (
-                  <ComingSoonPage
-                    overline="Tài khoản"
-                    title="Hồ sơ"
-                    description="Thông tin cá nhân và tài khoản nhận tiền."
-                  />
-                ),
-              },
+              { path: '/profile', element: <ProfilePage /> },
             ],
           },
         ],
