@@ -69,6 +69,12 @@ export function RealtimeProvider({ houseId, children }: { houseId: string | unde
       }),
     [subscribe, me, queryClient, navigate],
   );
+  // Đề xuất nội quy mới / đã xử lý: tải lại chi tiết nhà (gồm cả danh sách đề xuất, nội quy).
+  useEffect(() => {
+    const refresh = () => houseId && void queryClient.invalidateQueries({ queryKey: houseKeys.detail(houseId) });
+    const offs = [subscribe('rule_proposal:created', refresh), subscribe('rule_proposal:decided', refresh)];
+    return () => offs.forEach((off) => off());
+  }, [subscribe, queryClient, houseId]);
   useEffect(
     () => subscribe('member:joined', () => void queryClient.invalidateQueries({ queryKey: houseKeys.all })),
     [subscribe, queryClient],

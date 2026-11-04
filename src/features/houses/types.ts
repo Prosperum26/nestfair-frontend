@@ -38,3 +38,22 @@ export interface HouseDetail {
   myRole: HouseRole;
   members: HouseMember[];
 }
+
+export type RuleProposalKind = 'ADD' | 'EDIT' | 'REMOVE';
+export type RuleProposalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+
+/** Khớp RuleProposalDto backend. */
+export interface RuleProposal {
+  id: string;
+  kind: RuleProposalKind;
+  /** EDIT / REMOVE: điều đang có lúc đề xuất. */
+  targetText: string | null;
+  /** ADD / EDIT: nội dung mới. */
+  content: string | null;
+  reason: string | null;
+  status: RuleProposalStatus;
+  proposer: { userId: string; fullName: string; avatarUrl: string | null };
+  decidedAt: string | null;
+  rejectReason: string | null;
+  createdAt: string;
+}
