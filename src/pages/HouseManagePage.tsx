@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { HouseInfoSection } from '@/features/houses/components/HouseInfoSection.tsx';
 import { InvitePanel } from '@/features/houses/components/InvitePanel.tsx';
+import { PendingProposalsSection } from '@/features/houses/components/PendingProposalsSection.tsx';
 import { RulesSection } from '@/features/houses/components/RulesSection.tsx';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
 
@@ -71,6 +72,7 @@ export function HouseManagePage() {
         <InvitePanel house={detail.data} />
         <HouseInfoSection house={detail.data} />
         <RulesSection house={detail.data} />
+        <PendingProposalsSection houseId={detail.data.id} />
       </div>
     </>
   );

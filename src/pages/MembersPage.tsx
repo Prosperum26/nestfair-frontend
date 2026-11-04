@@ -106,7 +106,7 @@ export function MembersPage() {
           ))}
         </ul>
 
-        <RulesCard rules={house.rules} />
+        <RulesCard house={house} meId={me?.id} />
       </div>
     </>
   );
