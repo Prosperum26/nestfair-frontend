@@ -4,6 +4,7 @@ import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
+import { RulesCard } from '@/features/houses/components/RulesCard.tsx';
 import { InvitePanel } from '@/features/houses/components/InvitePanel.tsx';
 import { MemberCard, MemberRow } from '@/features/houses/components/MemberCard.tsx';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
@@ -104,6 +105,8 @@ export function MembersPage() {
             <MemberRow key={m.userId} member={m} isMe={m.userId === me?.id} />
           ))}
         </ul>
+
+        <RulesCard rules={house.rules} />
       </div>
     </>
   );

@@ -33,5 +33,6 @@ export const TAB_ITEMS: NavItem[] = [NAV_ITEMS[0], NAV_ITEMS[1], NAV_ITEMS[2], N
 export const PAGE_TITLES: Record<string, string> = {
   ...Object.fromEntries(NAV_ITEMS.map((i) => [i.to, i.label])),
   '/profile': 'Hồ sơ',
-  '/settings': 'Cài đặt nhà',
+  '/house': 'Cài đặt nhà',
+  '/settings': 'Cài đặt việc nhà',
 };
