@@ -7,6 +7,15 @@ export interface CreateHouseInput {
   maxMembers: number;
 }
 
+export interface UpdateHouseInput {
+  name?: string;
+  /** Chuỗi rỗng để xóa. */
+  address?: string;
+  maxMembers?: number;
+  /** Chuỗi rỗng để xóa. */
+  rules?: string;
+}
+
 export const housesApi = {
   list: () => api<HouseSummary[]>('/houses'),
   detail: (houseId: string) => api<HouseDetail>(`/houses/${houseId}`),
@@ -14,6 +23,8 @@ export const housesApi = {
     api<HouseDetail>('/houses', { method: 'POST', body }),
   join: (inviteCode: string) =>
     api<HouseDetail>('/houses/join', { method: 'POST', body: { inviteCode } }),
+  update: (houseId: string, body: UpdateHouseInput) =>
+    api<HouseDetail>(`/houses/${houseId}`, { method: 'PATCH', body }),
   regenerateInviteCode: (houseId: string) =>
     api<HouseDetail>(`/houses/${houseId}/invite-code`, { method: 'POST' }),
 };

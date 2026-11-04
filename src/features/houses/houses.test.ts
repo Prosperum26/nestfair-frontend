@@ -3,7 +3,8 @@ import { bankLabel } from '@/lib/banks.ts';
 import { daysLeft, firstName, formatDayOverline, greeting } from '@/lib/date.ts';
 import { pickCurrentHouse } from './current-house.ts';
 import { sanitizeInviteCode } from './invite-code.ts';
-import { createHouseSchema } from './schemas.ts';
+import { rulesLines } from './rules.ts';
+import { createHouseSchema, houseInfoSchema, rulesSchema } from './schemas.ts';
 import type { HouseSummary } from './types.ts';
 
 const house = (id: string): HouseSummary => ({
@@ -53,6 +54,53 @@ describe('createHouseSchema', () => {
   it('tên quá ngắn', () => {
     const r = createHouseSchema.safeParse({ name: 'A', address: '', maxMembers: 4 });
     expect(r.error?.issues[0].message).toBe('Tên nhà cần từ 2 đến 60 ký tự.');
+  });
+});
+
+describe('houseInfoSchema', () => {
+  const ok = { name: ' Nhà 12B ', address: ' Hẻm 51 ', maxMembers: 4 };
+
+  it('cắt khoảng trắng, địa chỉ rỗng giữ chuỗi rỗng để backend xóa', () => {
+    expect(houseInfoSchema(2).parse(ok)).toEqual({ name: 'Nhà 12B', address: 'Hẻm 51', maxMembers: 4 });
+    expect(houseInfoSchema(2).parse({ ...ok, address: '  ' }).address).toBe('');
+  });
+
+  it('số người tối đa không thấp hơn số người đang ở', () => {
+    const r = houseInfoSchema(3).safeParse({ ...ok, maxMembers: 2 });
+    expect(r.error?.issues[0].message).toBe('Nhà đang có 3 người, số người tối đa không thể thấp hơn.');
+    expect(houseInfoSchema(3).safeParse({ ...ok, maxMembers: 3 }).success).toBe(true);
+  });
+
+  it('tên quá ngắn, quá 10 người', () => {
+    expect(houseInfoSchema(1).safeParse({ ...ok, name: 'A' }).success).toBe(false);
+    expect(houseInfoSchema(1).safeParse({ ...ok, maxMembers: 11 }).success).toBe(false);
+  });
+});
+
+describe('rulesSchema', () => {
+  it('cắt khoảng trắng hai đầu, rỗng được phép (xóa nội quy)', () => {
+    expect(rulesSchema.parse({ rules: '  1. Giữ yên lặng  ' }).rules).toBe('1. Giữ yên lặng');
+    expect(rulesSchema.parse({ rules: '   ' }).rules).toBe('');
+  });
+
+  it('tối đa 1000 ký tự', () => {
+    expect(rulesSchema.safeParse({ rules: 'a'.repeat(1000) }).success).toBe(true);
+    expect(rulesSchema.safeParse({ rules: 'a'.repeat(1001) }).error?.issues[0].message).toBe('Nội quy tối đa 1000 ký tự.');
+  });
+});
+
+describe('rulesLines', () => {
+  it('mỗi dòng một điều, bỏ số thứ tự gõ tay và dòng trống', () => {
+    expect(rulesLines('1. Giữ yên lặng sau 23h\n\n2) Rửa chén ngay\n  Không hút thuốc ')).toEqual([
+      'Giữ yên lặng sau 23h',
+      'Rửa chén ngay',
+      'Không hút thuốc',
+    ]);
+  });
+
+  it('không có nội quy thì rỗng', () => {
+    expect(rulesLines(null)).toEqual([]);
+    expect(rulesLines('  \n ')).toEqual([]);
   });
 });
 

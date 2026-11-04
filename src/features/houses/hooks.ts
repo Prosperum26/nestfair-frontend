@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useHouseStore } from '@/stores/house-store.ts';
-import { type CreateHouseInput, housesApi } from './api.ts';
+import { type CreateHouseInput, type UpdateHouseInput, housesApi } from './api.ts';
 import { pickCurrentHouse } from './current-house.ts';
 import type { HouseDetail } from './types.ts';
 
@@ -56,6 +56,18 @@ export function useRegenerateInviteCode(houseId: string) {
   return useMutation({
     mutationFn: () => housesApi.regenerateInviteCode(houseId),
     onSuccess: (house) => queryClient.setQueryData(houseKeys.detail(house.id), house),
+  });
+}
+
+/** Trưởng phòng sửa thông tin / nội quy: cập nhật cache chi tiết, tải lại danh sách nhà (tên, sức chứa). */
+export function useUpdateHouse(houseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateHouseInput) => housesApi.update(houseId, input),
+    onSuccess: (house) => {
+      queryClient.setQueryData(houseKeys.detail(house.id), house);
+      return queryClient.invalidateQueries({ queryKey: houseKeys.all, exact: true });
+    },
   });
 }
 
