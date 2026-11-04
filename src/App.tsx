@@ -1,30 +1,45 @@
 import { QueryClientProvider } from '@tanstack/react-query';
+import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { Toaster } from 'sonner';
 import { AppShell } from '@/components/layout/AppShell.tsx';
+import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { queryClient } from '@/lib/query-client.ts';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
 import { ChoresPage } from '@/pages/ChoresPage.tsx';
-import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
+import { ContactPage } from '@/pages/ContactPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
 import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { ListingPage } from '@/pages/ListingPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
+import { ProfilePage } from '@/pages/ProfilePage.tsx';
 import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
+import { PrivacyPage } from '@/pages/PrivacyPage.tsx';
+import { ScanReceiptPage } from '@/pages/ScanReceiptPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
 import { PublicListingPage } from '@/pages/PublicListingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
+import { TermsPage } from '@/pages/TermsPage.tsx';
+import { LandingRoute } from '@/routes/LandingRoute.tsx';
 import { GuestRoute, ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
-import { HomeRedirect, RequireHouse } from '@/routes/RequireHouse.tsx';
+import { RequireHouse } from '@/routes/RequireHouse.tsx';
+
+// Màn chat Trợ lý là màn nặng nhất (markdown + form chi tiêu) nên tách chunk, nạp khi vào trang.
+const AssistantPage = lazy(() => import('@/pages/AssistantPage.tsx').then((m) => ({ default: m.AssistantPage })));
 
 const router = createBrowserRouter([
   // Backend chuyển về đây sau Google OAuth (không đặt trong GuestRoute để còn hiện lỗi).
   { path: '/auth/callback', element: <AuthCallbackPage /> },
   // Trang công khai cho khách: ngoài ProtectedRoute và AppShell.
   { path: '/r/:slug', element: <PublicListingPage /> },
+  // Trang công khai: ai cũng xem được, kể cả khi chưa đăng nhập.
+  { path: '/', element: <LandingRoute /> },
+  { path: '/terms', element: <TermsPage /> },
+  { path: '/privacy', element: <PrivacyPage /> },
+  { path: '/contact', element: <ContactPage /> },
   {
     element: <GuestRoute />,
     children: [
@@ -35,7 +50,6 @@ const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { path: '/', element: <HomeRedirect /> },
       { path: '/onboarding', element: <OnboardingPage /> },
       { path: '/onboarding/invite/:houseId', element: <OnboardingInvitePage /> },
       {
@@ -50,30 +64,27 @@ const router = createBrowserRouter([
               { path: '/chores', element: <ChoresPage /> },
               { path: '/settings', element: <HouseSettingsPage /> },
               { path: '/expenses', element: <ExpensesPage /> },
+              { path: '/expenses/scan', element: <ScanReceiptPage /> },
               { path: '/payments', element: <PaymentsPage /> },
               { path: '/members', element: <MembersPage /> },
               {
                 path: '/assistant',
                 element: (
-                  <ComingSoonPage
-                    overline="Trợ lý AI"
-                    title="Trợ lý phòng trọ"
-                    description="Hỏi mẹo vặt, xử lý sự cố, tạo nhắc nhở."
-                  />
+                  <Suspense
+                    fallback={
+                      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải trợ lý">
+                        <Skeleton className="h-10 w-64" />
+                        <Skeleton className="h-[480px] w-full rounded-card" />
+                      </div>
+                    }
+                  >
+                    <AssistantPage />
+                  </Suspense>
                 ),
               },
               { path: '/house/listing', element: <ListingPage /> },
               { path: '/listing', element: <Navigate to="/house/listing" replace /> },
-              {
-                path: '/profile',
-                element: (
-                  <ComingSoonPage
-                    overline="Tài khoản"
-                    title="Hồ sơ"
-                    description="Thông tin cá nhân và tài khoản nhận tiền."
-                  />
-                ),
-              },
+              { path: '/profile', element: <ProfilePage /> },
             ],
           },
         ],

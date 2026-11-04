@@ -1,10 +1,6 @@
 import {
-  ArrowLeftRight,
-  ArrowRight,
-  Bell,
   CalendarDays,
   Dice5,
-  History,
   ListChecks,
   Megaphone,
   Plus,
@@ -12,7 +8,7 @@ import {
   ScanLine,
   Sparkles,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
@@ -21,17 +17,24 @@ import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
-import { CardEmpty, DashCard } from '@/features/dashboard/DashCard.tsx';
+import { ActivityList, ActivityPanel } from '@/features/activity/components/ActivityList.tsx';
+import { LiveTicker } from '@/features/activity/components/LiveTicker.tsx';
+import { useActivityFeed } from '@/features/activity/hooks.ts';
+import { TodayCard } from '@/features/chores/components/TodayCard.tsx';
+import { DashCard } from '@/features/dashboard/DashCard.tsx';
+import { SwapSummaryWidget } from '@/features/swaps/components/SwapSummaryWidget.tsx';
+import { WheelPreview } from '@/features/wheel/components/WheelPreview.tsx';
+import { useWheelStore } from '@/features/wheel/store.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
-import type { HouseMember } from '@/features/houses/types.ts';
 import { cn } from '@/lib/cn.ts';
-import { firstName, formatDayOverline, formatDayShort, greeting, monthOverline } from '@/lib/date.ts';
+import { firstName, formatDayOverline, greeting, monthOverline } from '@/lib/date.ts';
 import { formatSignedVnd, formatVnd } from '@/lib/format.ts';
 import { useExpenseSummary, useSettlementPlan } from '@/features/expenses/hooks.ts';
 import { monthKeyOf } from '@/features/expenses/month.ts';
 import { useLedgerRealtime } from '@/features/expenses/realtime.ts';
 import { myPosition } from '@/features/settlements/plan-view.ts';
 import type { PlanMember, SettlementPlan } from '@/features/settlements/types.ts';
+import { RemindersWidget } from '@/features/reminders/components/RemindersWidget.tsx';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 /*
@@ -81,51 +84,34 @@ function BalanceCard({ month, plan, meId }: { month: string; plan: SettlementPla
   );
 }
 
-/** Dải "TRỰC TIẾP": chấm đỏ + avatar cả nhà; sự kiện realtime sẽ chạy ngang ở đây (Socket.IO). */
-function LiveTicker({ members }: { members: HouseMember[] | undefined }) {
-  return (
-    <div className="flex h-11 items-center gap-3 overflow-hidden rounded-[14px] bg-ink px-4 lg:h-[52px]">
-      <span className="flex shrink-0 items-center gap-2">
-        <span className="size-2 rounded-full bg-tom-v" aria-hidden />
-        <span className="font-mono text-over uppercase text-hl">Trực tiếp</span>
-      </span>
-      <span className="hidden shrink-0 -space-x-1.5 sm:flex">
-        {members?.map((m) => (
-          <Avatar
-            key={m.userId}
-            name={m.fullName}
-            tone={avatarToneFor(m.userId)}
-            src={m.avatarUrl}
-            size={24}
-            className="ring-2 ring-ink"
-          />
-        ))}
-      </span>
-      <span className="hidden h-5 w-px shrink-0 bg-ink-line sm:block" aria-hidden />
-      <p className="truncate text-sm text-ink-on2">Hoạt động của cả nhà sẽ chạy ở đây theo thời gian thực.</p>
-    </div>
-  );
-}
-
 /** Hàng nút nhanh mobile (Design.md mục 5): Thêm chi · Quét HĐ · Vòng quay · Trợ lý · Tin đăng. */
 function QuickActions() {
-  const items: { to: string; label: string; icon: ReactNode }[] = [
+  const openWheel = useWheelStore((s) => s.openModal);
+  const items: { to?: string; onClick?: () => void; label: string; icon: ReactNode }[] = [
     { to: '/expenses?new=1', label: 'Thêm chi', icon: <Plus /> },
-    { to: '/expenses', label: 'Quét HĐ', icon: <ScanLine /> },
-    { to: '/chores', label: 'Vòng quay', icon: <Dice5 /> },
+    { to: '/expenses/scan', label: 'Quét HĐ', icon: <ScanLine /> },
+    { onClick: openWheel, label: 'Vòng quay', icon: <Dice5 /> },
     { to: '/assistant', label: 'Trợ lý', icon: <Sparkles /> },
     { to: '/house/listing', label: 'Tin đăng', icon: <Megaphone /> },
   ];
+  const tile = (icon: ReactNode) => (
+    <span className="flex h-14 w-full items-center justify-center rounded-card border border-line bg-surface [&_svg]:size-6">{icon}</span>
+  );
   return (
     <nav aria-label="Thao tác nhanh" className="grid grid-cols-5 gap-2 lg:hidden">
-      {items.map(({ to, label, icon }) => (
-        <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap whitespace-nowrap text-ink">
-          <span className="flex h-14 w-full items-center justify-center rounded-card border border-line bg-surface [&_svg]:size-6">
-            {icon}
-          </span>
-          {label}
-        </Link>
-      ))}
+      {items.map(({ to, onClick, label, icon }) =>
+        to ? (
+          <Link key={label} to={to} className="flex flex-col items-center gap-1.5 text-cap whitespace-nowrap text-ink">
+            {tile(icon)}
+            {label}
+          </Link>
+        ) : (
+          <button key={label} type="button" onClick={onClick} className="flex flex-col items-center gap-1.5 text-cap whitespace-nowrap text-ink">
+            {tile(icon)}
+            {label}
+          </button>
+        ),
+      )}
     </nav>
   );
 }
@@ -201,6 +187,9 @@ export function DashboardPage() {
   const now = new Date();
   const month = monthOverline(now);
   const members = detail.data?.members;
+  const feed = useActivityFeed(house?.id);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const openWheel = useWheelStore((s) => s.openModal);
   const plan = useSettlementPlan(house?.id);
   const summary = useExpenseSummary(house?.id, monthKeyOf(now));
   useLedgerRealtime(house?.id);
@@ -229,7 +218,14 @@ export function DashboardPage() {
 
       <div className="mt-6 flex flex-col gap-4 lg:mt-8 lg:grid lg:grid-cols-12 lg:gap-6">
         <div className="order-2 lg:order-none lg:col-span-12">
-          <LiveTicker members={members} />
+          <LiveTicker
+            items={feed.data}
+            status={feed.status}
+            members={members}
+            me={user?.id}
+            onRetry={() => void feed.refetch()}
+            onOpen={() => setHistoryOpen(true)}
+          />
         </div>
         <div className="order-3 lg:hidden">
           <QuickActions />
@@ -242,48 +238,30 @@ export function DashboardPage() {
           <FairnessCard members={plan.data?.members} month={month} totalAmount={summary.data?.totalAmount} expenseCount={summary.data?.expenseCount} />
         </div>
 
-        <DashCard
-          className="order-4 lg:order-none lg:col-span-7"
-          overline={formatDayShort(now)}
-          title="Việc hôm nay"
-          aside={<Chip tone="outline">0 việc</Chip>}
-        >
-          <CardEmpty icon={<ListChecks />}>
-            Chưa có lịch trực. Trưởng phòng tạo danh sách việc nhà để NestFair xếp lịch xoay vòng công bằng.{' '}
-            <Link to="/chores" className={linkCls}>
-              Mở Việc nhà
-            </Link>
-          </CardEmpty>
-        </DashCard>
+        <TodayCard className="order-4 lg:order-none lg:col-span-7" houseId={house?.id} meUserId={user?.id} />
         <DashCard className="order-8 lg:order-none lg:col-span-5" overline="Việc phát sinh" title="Vòng quay may mắn">
-          <CardEmpty icon={<Dice5 />}>
-            Có việc đột xuất chưa ai nhận? Quay để chọn người công bằng, cả nhà cùng xem.
-          </CardEmpty>
+          <WheelPreview members={members} onSpin={openWheel} />
         </DashCard>
 
         <DashCard
           className="order-9 lg:order-none lg:col-span-7"
           title="Hoạt động gần đây"
+          aside={
+            feed.data?.length ? (
+              <button type="button" className={linkCls} onClick={() => setHistoryOpen(true)}>
+                Xem tất cả
+              </button>
+            ) : undefined
+          }
         >
-          <CardEmpty icon={<History />}>Chi tiêu, check-in việc nhà và đổi ca của cả nhà sẽ hiện ở đây.</CardEmpty>
+          <ActivityList items={feed.data} status={feed.status} me={user?.id} onRetry={() => void feed.refetch()} limit={5} />
         </DashCard>
         <div className="order-5 flex flex-col gap-4 lg:order-none lg:col-span-5 lg:gap-6">
-          <DashCard overline="Yêu cầu · Chợ ca · Nợ ca" title="Đổi ca">
-            <CardEmpty icon={<ArrowLeftRight />}>Yêu cầu nhờ trực dùm và ca trên Chợ ca sẽ hiện ở đây.</CardEmpty>
-          </DashCard>
-          <DashCard
-            overline="3 nhắc gần nhất"
-            title="Nhắc nhở"
-            aside={
-              <Link to="/assistant" className={cn(linkCls, 'flex items-center gap-1')}>
-                Mở trợ lý <ArrowRight className="size-4" aria-hidden />
-              </Link>
-            }
-          >
-            <CardEmpty icon={<Bell />}>Nhờ Trợ lý tạo nhắc nhở, 3 nhắc gần nhất sẽ hiện ở đây.</CardEmpty>
-          </DashCard>
+          <SwapSummaryWidget houseId={house?.id} />
+          <RemindersWidget />
         </div>
       </div>
+      <ActivityPanel houseId={house?.id} open={historyOpen} onClose={() => setHistoryOpen(false)} me={user?.id} />
     </>
   );
 }

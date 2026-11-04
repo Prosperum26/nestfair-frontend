@@ -51,6 +51,8 @@ export interface Assignment {
   dueAt: string;
   status: AssignmentStatus;
   source: AssignmentSource;
+  /** Vòng quay sinh ra ca này (source = WHEEL). */
+  wheelSpinId: string | null;
   proofImageUrl: string | null;
   submittedAt: string | null;
   /** Nộp trong khoảng ân hạn sau hạn. */

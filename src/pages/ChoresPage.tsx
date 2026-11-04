@@ -1,7 +1,8 @@
-import { Camera, CalendarDays, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { ArrowLeftRight, Ban, Camera, CalendarDays, Dice5, Lock, ChevronLeft, ChevronRight, Eye, ListChecks, Plus, RefreshCw, RotateCw, Settings, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
+import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
@@ -18,7 +19,8 @@ import { ShuffleControls } from '@/features/chores/components/ShuffleControls.ts
 import { VerifyModal } from '@/features/chores/components/VerifyModal.tsx';
 import { WeeklyCalendar } from '@/features/chores/components/WeeklyCalendar.tsx';
 import { messageForError } from '@/features/chores/errors.ts';
-import { useChoreSettings, useChores, useWeekView } from '@/features/chores/hooks.ts';
+import { mergeAssignments, waitingForReview } from '@/features/chores/grouping.ts';
+import { useChoreSettings, useChores, useTodayAssignments, useWeekView } from '@/features/chores/hooks.ts';
 import { canAppeal, canCheckin, canVerify, overrideActions } from '@/features/chores/permissions.ts';
 import { reasonsFor } from '@/features/chores/reasons.ts';
 import { useChoresRealtime } from '@/features/chores/realtime.ts';
@@ -27,9 +29,17 @@ import type { Assignment } from '@/features/chores/types.ts';
 import { type ChoresView, readView, writeView } from '@/features/chores/view-preference.ts';
 import { shiftWeek, weekKeyOf, weekRangeLabel } from '@/features/chores/week.ts';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
+import { VoidSpinModal } from '@/features/wheel/components/VoidSpinModal.tsx';
+import { readWheelPrefill } from '@/features/wheel/prefill.ts';
+import { useWheelStore } from '@/features/wheel/store.ts';
+import { SwapModal } from '@/features/swaps/components/SwapModal.tsx';
+import { SwapsTab } from '@/features/swaps/components/SwapsTab.tsx';
+import { useSwapList, useSwapSummary } from '@/features/swaps/hooks.ts';
+import { useSwapRealtime } from '@/features/swaps/realtime.ts';
+import { lockedAssignmentIds, swapEntry } from '@/features/swaps/swap-entry.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
-const VIEW_OPTIONS: { value: ChoresView; label: string }[] = [
+const BASE_VIEWS: { value: ChoresView; label: string }[] = [
   { value: 'calendar', label: 'Lịch tuần' },
   { value: 'kanban', label: 'Kanban' },
 ];
@@ -52,15 +62,37 @@ export function ChoresPage() {
   const me = useAuthStore((s) => s.user);
   const thisWeek = weekKeyOf(new Date());
   const [weekKey, setWeekKey] = useState(thisWeek);
-  const [view, setView] = useState<ChoresView>(readView);
+  const [searchParams] = useSearchParams();
+  const [view, setView] = useState<ChoresView>(() => (searchParams.get('view') === 'market' ? 'market' : readView()));
   const [checkinTarget, setCheckinTarget] = useState<Assignment | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<Assignment | null>(null);
   const [overrideTarget, setOverrideTarget] = useState<Assignment | null>(null);
+  const [voidTarget, setVoidTarget] = useState<Assignment | null>(null);
+  const [swapTarget, setSwapTarget] = useState<Assignment | null>(null);
+  const openWheel = useWheelStore((s) => s.openModal);
+  const openWheelWithPrefill = useWheelStore((s) => s.openWithPrefill);
+  const location = useLocation();
+  // Từ nút gợi ý "việc đột xuất" của Trợ lý: mở Vòng quay với tên việc điền sẵn rồi xóa state để tải lại trang không mở lại.
+  useEffect(() => {
+    const prefill = readWheelPrefill(location.state);
+    if (!prefill) return;
+    openWheelWithPrefill(prefill);
+    void navigate(location.pathname + location.search, { replace: true, state: null });
+  }, [location, navigate, openWheelWithPrefill]);
 
   const week = useWeekView(house?.id, weekKey);
+  const today = useTodayAssignments(house?.id);
   const chores = useChores(house?.id);
   const settings = useChoreSettings(house?.id);
-  const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget);
+  useSwapRealtime(house?.id);
+  // Ca đang nằm trong yêu cầu chờ (cả ca nguồn lẫn ca đích): khóa nút Đổi ca và hiện nhãn "Đang chờ đổi".
+  const outgoing = useSwapList(house?.id, 'OUTGOING');
+  const incoming = useSwapList(house?.id, 'INCOMING');
+  const lockedIds = useMemo(() => lockedAssignmentIds([...(outgoing.data ?? []), ...(incoming.data ?? [])]), [outgoing.data, incoming.data]);
+  const summary = useSwapSummary(house?.id);
+  const marketCount = summary.data?.market ?? 0;
+  const viewOptions: { value: ChoresView; label: string }[] = [...BASE_VIEWS, { value: 'market', label: `Chợ ca (${marketCount})` }];
+  const modalOpen = !!(checkinTarget || verifyTarget || overrideTarget || voidTarget || swapTarget);
   const { stale, refresh } = useChoresRealtime(house?.id, modalOpen);
 
   const isAdmin = house?.myRole === 'ADMIN';
@@ -76,6 +108,8 @@ export function ChoresPage() {
     setCheckinTarget(null);
     setVerifyTarget(null);
     setOverrideTarget(null);
+    setVoidTarget(null);
+    setSwapTarget(null);
     // Có thay đổi từ người khác trong lúc đang mở modal: tải lại ngay khi đóng.
     if (stale) refresh();
   };
@@ -102,6 +136,27 @@ export function ChoresPage() {
       );
     }
     if (house && canAppeal(a, me?.id)) nodes.push(<AppealButton key="appeal" houseId={house.id} assignment={a} />);
+    const swap = swapEntry(a, me?.id, new Date(), lockedIds);
+    if (swap.canOpen) {
+      nodes.push(
+        <Button key="swap" size="sm" variant="secondary" leftIcon={<ArrowLeftRight />} onClick={() => setSwapTarget(a)}>
+          Đổi ca
+        </Button>,
+      );
+    } else if (a.assigneeUserId === me?.id && lockedIds.has(a.id)) {
+      nodes.push(
+        <Chip key="swap-locked" tone="neutral" size="sm" icon={<Lock />}>
+          Đang chờ đổi
+        </Chip>,
+      );
+    }
+    if (isAdmin && a.source === 'WHEEL' && a.wheelSpinId && a.status === 'TODO' && !a.submittedAt) {
+      nodes.push(
+        <Button key="void" size="sm" variant="ghost" leftIcon={<Ban />} onClick={() => setVoidTarget(a)}>
+          Hủy vòng quay
+        </Button>,
+      );
+    }
     if (overrideActions(a, who).length > 0) {
       nodes.push(
         <Button key="override" size="sm" variant="ghost" leftIcon={<ShieldCheck />} onClick={() => setOverrideTarget(a)}>
@@ -116,7 +171,8 @@ export function ChoresPage() {
     else if (canVerify(a, me?.id)) setVerifyTarget(a);
     else if (overrideActions(a, who).length > 0) setOverrideTarget(a);
   };
-  const waitingForMe = assignments.filter((a) => canVerify(a, me?.id));
+  // Gồm ca vòng quay đã nộp (kể cả ca còn mở từ tuần trước): duyệt như ca thường.
+  const waitingForMe = waitingForReview(mergeAssignments(assignments, today.assignments), me?.id);
 
   const showToday = view === 'calendar' && weekKey === thisWeek && assignments.length > 0;
   const waitingSection =
@@ -126,7 +182,7 @@ export function ChoresPage() {
           <h2 className="font-display text-ct text-ink">Chờ bạn duyệt</h2>
           <span className="font-mono text-cap text-ink-2">{waitingForMe.length}</span>
         </div>
-        <div className={showToday ? 'grid gap-4' : 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'}>
+        <div className={showToday ? 'grid grid-cols-1 gap-4' : 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'}>
           {waitingForMe.map((a) => (
             <AssignmentCard key={a.id} assignment={a} actions={renderActions(a)} />
           ))}
@@ -156,6 +212,9 @@ export function ChoresPage() {
                 inRange={inRange}
                 hasActivity={hasActivity}
               />
+              <Button variant="secondary" leftIcon={<Dice5 />} onClick={openWheel}>
+                Vòng quay
+              </Button>
               <Button variant={shuffle.kind === 'CREATE' ? 'secondary' : 'accent'} leftIcon={<Settings />} onClick={() => navigate('/settings')}>
                 Cài đặt việc nhà
               </Button>
@@ -174,8 +233,8 @@ export function ChoresPage() {
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <SegmentedControl label="Kiểu xem" options={VIEW_OPTIONS} value={view} onChange={changeView} className="w-full sm:w-[260px]" />
-        <div className="flex items-center gap-2 max-sm:w-full max-sm:justify-between sm:ml-auto">
+        <SegmentedControl label="Kiểu xem" options={viewOptions} value={view} onChange={changeView} className="w-full sm:w-[380px]" />
+        <div className={view === 'market' ? 'hidden' : 'flex items-center gap-2 max-sm:w-full max-sm:justify-between sm:ml-auto'}>
           <IconButton icon={<ChevronLeft />} label="Tuần trước" onClick={() => setWeekKey(shiftWeek(weekKey, -1))} />
           <Button variant="secondary" disabled={weekKey === thisWeek} onClick={() => setWeekKey(thisWeek)}>
             Tuần này
@@ -184,13 +243,17 @@ export function ChoresPage() {
         </div>
       </div>
 
-      {schedule && schedule.status !== 'EMPTY' && (
+      {view === 'market' && house ? (
+        <SwapsTab houseId={house.id} myFullName={me?.fullName} />
+      ) : null}
+
+      {view !== 'market' && schedule && schedule.status !== 'EMPTY' && (
         <div className="mt-4">
           <ScheduleBanner schedule={schedule} />
         </div>
       )}
 
-      {week.isPending ? (
+      {view === 'market' ? null : week.isPending ? (
         <ChoresSkeleton />
       ) : week.isError ? (
         <div className="mt-6 rounded-card border border-line bg-surface">
@@ -244,8 +307,8 @@ export function ChoresPage() {
             <div className="flex flex-col gap-6">
               <WeeklyCalendar assignments={assignments} weekKey={weekKey} meUserId={me?.id} onSelect={selectAssignment} renderActions={renderActions} />
               {showToday && house && (
-                <div className="order-first grid items-start gap-6 md:order-last md:grid-cols-2">
-                  <TodayPanel assignments={assignments} houseId={house.id} meUserId={me?.id} graceHours={graceHours} />
+                <div className="order-first grid grid-cols-1 items-start gap-6 md:order-last md:grid-cols-2">
+                  <TodayPanel assignments={today.assignments} houseId={house.id} meUserId={me?.id} graceHours={graceHours} />
                   {waitingSection}
                 </div>
               )}
@@ -256,13 +319,27 @@ export function ChoresPage() {
         </div>
       )}
 
-      {!showToday && waitingSection && <div className="mt-8">{waitingSection}</div>}
+      {view !== 'market' && !showToday && waitingSection && <div className="mt-8">{waitingSection}</div>}
 
       {house && (
         <>
           <CheckinModal assignment={checkinTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
           <VerifyModal assignment={verifyTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
           <OverrideModal assignment={overrideTarget} houseId={house.id} meUserId={me?.id} onClose={closeModals} />
+          <SwapModal
+            assignment={swapTarget}
+            houseId={house.id}
+            entry={swapTarget ? swapEntry(swapTarget, me?.id, new Date(), lockedIds) : { canOpen: false, exchange: null, cover: null, giftOnly: false, blocked: null }}
+            onClose={closeModals}
+          />
+          <VoidSpinModal
+            assignment={voidTarget}
+            onClose={closeModals}
+            onDone={() => {
+              closeModals();
+              refresh();
+            }}
+          />
         </>
       )}
     </>

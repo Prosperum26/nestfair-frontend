@@ -6,7 +6,7 @@ import { IconTile } from '@/components/ui/IconTile.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
-import { buildCalendarRows, collapseDay, groupByDay, prioritizeForMe } from '../grouping.ts';
+import { buildCalendarRows, collapseDay, groupByDay, onCalendar, prioritizeForMe } from '../grouping.ts';
 import type { Assignment } from '../types.ts';
 import { dayKeyOf, dueTimeLabel, weekDays } from '../week.ts';
 import { AssignmentCard } from './AssignmentCard.tsx';
@@ -74,8 +74,10 @@ export function WeeklyCalendar({
 }) {
   const days = weekDays(weekKey);
   const todayKey = dayKeyOf(today);
-  const rows = buildCalendarRows(assignments, weekKey);
-  const byDay = groupByDay(assignments, weekKey);
+  // Lịch tuần chỉ có lịch xoay vòng: bỏ ca vòng quay (cả lưới, danh sách mobile và số "+N").
+  const visible = onCalendar(assignments);
+  const rows = buildCalendarRows(visible, weekKey);
+  const byDay = groupByDay(visible, weekKey);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   return (

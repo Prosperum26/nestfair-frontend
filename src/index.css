@@ -113,6 +113,14 @@
   --shadow-focus: 0 0 0 4px #fbefb0;
 
   --container-page: 1200px;
+
+  /* Live ticker: dải chữ chạy ngang (nội dung nhân đôi, chạy nửa chiều dài rồi lặp). */
+  --animate-ticker: ticker var(--ticker-duration, 40s) linear infinite;
+  @keyframes ticker {
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 @layer base {
@@ -134,5 +142,26 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Tia quét chạy dọc ảnh hóa đơn trong lúc chờ Gemini (đường mảnh một màu, không gradient hay bóng mờ). */
+@keyframes scan-sweep {
+  from {
+    top: 0;
+  }
+  to {
+    top: calc(100% - 2px);
+  }
+}
+
+.scan-line {
+  animation: scan-sweep 1.4s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-line {
+    animation: none;
+    top: 50%;
   }
 }

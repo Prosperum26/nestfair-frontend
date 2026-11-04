@@ -1,52 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
-import { bindChoreRealtime, CHORE_EVENTS, createChangeHandler, type SocketLike } from './realtime.ts';
+import { RESYNC, type RealtimeHandler } from '@/features/realtime/hub.ts';
+import { bindChoreRealtime, CHORE_EVENTS, createChangeHandler, SCHEDULE_CHANGE_EVENTS } from './realtime.ts';
 
-/** Socket giả: lưu listener để test tự bắn sự kiện. */
-function fakeSocket(connected: boolean) {
-  const handlers = new Map<string, Set<(...args: unknown[]) => void>>();
-  const managerHandlers = new Map<string, Set<(...args: unknown[]) => void>>();
-  const add = (map: typeof handlers, ev: string, fn: (...args: unknown[]) => void) => {
-    if (!map.has(ev)) map.set(ev, new Set());
-    map.get(ev)!.add(fn);
+/** subscribe giả: lưu handler để test tự bắn sự kiện. */
+function fakeSubscribe() {
+  const handlers = new Map<string, Set<RealtimeHandler>>();
+  const subscribe = (event: string, handler: RealtimeHandler) => {
+    if (!handlers.has(event)) handlers.set(event, new Set());
+    handlers.get(event)!.add(handler);
+    return () => handlers.get(event)!.delete(handler);
   };
-  const del = (map: typeof handlers, ev: string, fn: (...args: unknown[]) => void) => map.get(ev)?.delete(fn);
-  const socket = {
-    connected,
-    connect: vi.fn(),
-    emit: vi.fn(),
-    on: (ev: string, fn: (...args: unknown[]) => void) => add(handlers, ev, fn),
-    off: (ev: string, fn: (...args: unknown[]) => void) => del(handlers, ev, fn),
-    io: {
-      on: (ev: string, fn: (...args: unknown[]) => void) => add(managerHandlers, ev, fn),
-      off: (ev: string, fn: (...args: unknown[]) => void) => del(managerHandlers, ev, fn),
-    },
-  };
-  const fire = (ev: string) => handlers.get(ev)?.forEach((fn) => fn());
-  const fireManager = (ev: string) => managerHandlers.get(ev)?.forEach((fn) => fn());
-  const listenerCount = () =>
-    [...handlers.values(), ...managerHandlers.values()].reduce((n, set) => n + set.size, 0);
-  return { socket: socket as unknown as SocketLike & typeof socket, fire, fireManager, listenerCount };
+  const fire = (event: string) =>
+    handlers.get(event)?.forEach((h) => h({ eventId: 'e', type: event, houseId: 'h1', occurredAt: '', actor: null, payload: {} }));
+  const count = () => [...handlers.values()].reduce((n, s) => n + s.size, 0);
+  return { subscribe, fire, count };
 }
 
 describe('bindChoreRealtime', () => {
-  it('đang kết nối: vào room nhà ngay, không gọi connect lại', () => {
-    const { socket } = fakeSocket(true);
-    bindChoreRealtime(socket, 'h1', vi.fn());
-    expect(socket.emit).toHaveBeenCalledWith('house:join_room', { houseId: 'h1' });
-    expect(socket.connect).not.toHaveBeenCalled();
-  });
-
-  it('chưa kết nối: gọi connect, và vào room khi sự kiện connect tới (kể cả lần nối lại)', () => {
-    const { socket, fire } = fakeSocket(false);
-    bindChoreRealtime(socket, 'h1', vi.fn());
-    expect(socket.connect).toHaveBeenCalledTimes(1);
-    expect(socket.emit).not.toHaveBeenCalled();
-    fire('connect');
-    fire('connect');
-    expect(socket.emit).toHaveBeenCalledTimes(2);
-  });
-
-  it('đủ 6 event việc nhà làm tải lại dữ liệu, event khác thì không', () => {
+  it('đủ 6 event việc nhà, kết quả / hủy vòng quay và nối lại làm tải lại; event khác thì không', () => {
     expect([...CHORE_EVENTS].sort()).toEqual([
       'chore:cancelled',
       'chore:missed',
@@ -55,31 +26,26 @@ describe('bindChoreRealtime', () => {
       'chore:submitted',
       'chore:verified',
     ]);
-    const { socket, fire } = fakeSocket(true);
+    const { subscribe, fire } = fakeSubscribe();
     const onChange = vi.fn();
-    bindChoreRealtime(socket, 'h1', onChange);
+    bindChoreRealtime(subscribe, onChange);
     for (const ev of CHORE_EVENTS) fire(ev);
-    expect(onChange).toHaveBeenCalledTimes(6);
+    fire('wheel:result');
+    fire('wheel:voided');
+    fire(RESYNC);
+    expect(onChange).toHaveBeenCalledTimes(9);
     fire('expense:new');
-    fire('connect');
-    expect(onChange).toHaveBeenCalledTimes(6);
+    fire('wheel:spinning');
+    expect(onChange).toHaveBeenCalledTimes(9);
   });
 
-  it('nối lại sau khi mất kết nối thì tải lại dữ liệu', () => {
-    const { socket, fireManager } = fakeSocket(true);
+  it('hủy bind gỡ hết handler', () => {
+    const { subscribe, fire, count } = fakeSubscribe();
     const onChange = vi.fn();
-    bindChoreRealtime(socket, 'h1', onChange);
-    fireManager('reconnect');
-    expect(onChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('hủy bind gỡ hết listener', () => {
-    const { socket, fire, listenerCount } = fakeSocket(true);
-    const onChange = vi.fn();
-    const unbind = bindChoreRealtime(socket, 'h1', onChange);
-    expect(listenerCount()).toBeGreaterThan(0);
+    const unbind = bindChoreRealtime(subscribe, onChange);
+    expect(count()).toBe(SCHEDULE_CHANGE_EVENTS.length);
     unbind();
-    expect(listenerCount()).toBe(0);
+    expect(count()).toBe(0);
     fire('chore:shuffled');
     expect(onChange).not.toHaveBeenCalled();
   });

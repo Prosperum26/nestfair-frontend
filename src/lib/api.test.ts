@@ -10,6 +10,9 @@ const user = {
   bankBin: null,
   bankAccount: null,
   avatarUrl: null,
+  ocrConsentAt: null,
+  assistantConsentAt: null,
+  notificationPrefs: null,
   createdAt: '2026-10-08T00:00:00Z',
 };
 
