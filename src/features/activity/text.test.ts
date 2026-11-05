@@ -14,6 +14,13 @@ const hung = { id: 'u-hung', name: 'Trần Minh Hùng' };
 const text = (x: Activity, me?: string) => activityLine(x, me).text;
 
 describe('activityLine', () => {
+  it('rời nhà và bị trưởng phòng xóa khỏi nhà', () => {
+    expect(text(a('member.left', { userId: 'u-mai', name: 'Phạm Ngọc Mai', kicked: false }))).toBe('Mai đã rời nhà');
+    const kicked = a('member.left', { userId: 'u-quan', name: 'Nguyễn Minh Quân', kicked: true }, hung);
+    expect(text(kicked)).toBe('Hùng đã xóa Quân khỏi nhà');
+    expect(text(kicked, 'u-hung')).toBe('Bạn đã xóa Quân khỏi nhà');
+  });
+
   it('check-in dùng tên gọi và ngoặc kép quanh tên việc', () => {
     expect(text(a('chore.submitted', { choreTitle: 'Rửa chén tối' }))).toBe('Mai vừa nộp ảnh “Rửa chén tối”');
   });

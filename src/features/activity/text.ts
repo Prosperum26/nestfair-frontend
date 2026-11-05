@@ -111,7 +111,10 @@ export function activityLine(a: Activity, meUserId?: string | null): ActivityLin
     case 'member.joined':
       return { icon: UserPlus, text: `${actor} vừa vào nhà` };
     case 'member.left':
-      return { icon: UserMinus, text: `${actor} đã rời nhà` };
+      // Trưởng phòng xóa người khác thì actor là trưởng phòng, người bị xóa nằm trong params.
+      return p.kicked
+        ? { icon: UserMinus, text: `${actor} đã xóa ${person(p.userId, p.name)} khỏi nhà` }
+        : { icon: UserMinus, text: `${actor} đã rời nhà` };
     case 'swap.accepted':
       return { icon: ArrowLeftRight, text: `${actor} nhận trực dùm ca ${chore} của ${target}${p.withGift ? ' kèm quà' : ''}` };
     case 'expense.created':
