@@ -3,8 +3,10 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { houseKeys } from '@/features/houses/hooks.ts';
+import { useInvalidateAfterMemberChange } from '@/features/membership/hooks.ts';
 import { getSocket } from '@/lib/socket.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
+import { useHouseStore } from '@/stores/house-store.ts';
 import { BANNER_AFTER_MS, connectionStatus, OFFLINE_AFTER_MS, showReconnectBanner } from './connection.ts';
 import { RealtimeContext, type RealtimeContextValue } from './context.ts';
 import { createRealtimeHub, type RealtimeHandler, type SocketLike } from './hub.ts';
@@ -23,6 +25,8 @@ export function RealtimeProvider({ houseId, children }: { houseId: string | unde
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const me = useAuthStore((s) => s.user?.id);
+  const selectHouse = useHouseStore((s) => s.selectHouse);
+  const invalidateAfterMemberChange = useInvalidateAfterMemberChange();
   const [disconnectedAt, setDisconnectedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [onlineUserIds, setOnline] = useState<string[]>([]);
@@ -54,20 +58,27 @@ export function RealtimeProvider({ houseId, children }: { houseId: string | unde
     };
   }, [houseId, queryClient]);
 
-  // Người dùng bị xóa khỏi nhà / rời nhà ở thiết bị khác.
+  // Một người rời / bị xóa: số dư, lịch trực, đổi ca của cả nhà đổi theo. Chính mình: rời khỏi nhà này
+  // (tự rời ở thiết bị khác thì im lặng, bị trưởng phòng xóa thì báo). Còn nhà khác thì vào nhà đó, hết nhà thì /onboarding.
   useEffect(
     () =>
       subscribe('member:left', (env) => {
-        const p = env.payload as { userId: string };
+        const p = env.payload as { userId: string; kicked?: boolean };
         if (p.userId !== me) {
-          void queryClient.invalidateQueries({ queryKey: houseKeys.all });
+          if (env.houseId) void invalidateAfterMemberChange(env.houseId);
           return;
         }
-        toast('Bạn không còn là thành viên của nhà này.');
+        if (p.kicked) toast('Trưởng phòng đã xóa bạn khỏi nhà này.');
+        selectHouse(null);
         void queryClient.invalidateQueries({ queryKey: houseKeys.all });
-        void navigate('/onboarding', { replace: true });
+        void navigate('/dashboard', { replace: true });
       }),
-    [subscribe, me, queryClient, navigate],
+    [subscribe, me, queryClient, navigate, invalidateAfterMemberChange, selectHouse],
+  );
+  // Đổi trưởng phòng: vai trò của mình (myRole) có thể đã đổi.
+  useEffect(
+    () => subscribe('member:role_changed', () => void queryClient.invalidateQueries({ queryKey: houseKeys.all })),
+    [subscribe, queryClient],
   );
   // Đề xuất nội quy mới / đã xử lý: tải lại chi tiết nhà (gồm cả danh sách đề xuất, nội quy).
   useEffect(() => {
