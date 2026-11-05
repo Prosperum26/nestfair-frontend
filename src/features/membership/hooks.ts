@@ -2,13 +2,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { choreKeys } from '@/features/chores/hooks.ts';
 import { ledgerKeys } from '@/features/expenses/hooks.ts';
 import { houseKeys } from '@/features/houses/hooks.ts';
+import type { HouseSummary } from '@/features/houses/types.ts';
 import { swapKeys } from '@/features/swaps/keys.ts';
 import { useHouseStore } from '@/stores/house-store.ts';
 import { membershipApi } from './api.ts';
 import type { KickInput } from './types.ts';
 
+/** Không đặt dưới ['houses', …]: người vừa bị xóa thì xem trước trả 404, không được tải lại theo danh sách nhà. */
 export const membershipKeys = {
-  preview: (houseId: string, userId: string) => ['houses', houseId, 'leave-preview', userId] as const,
+  preview: (houseId: string, userId: string) => ['leave-preview', houseId, userId] as const,
 };
 
 /** Số dư, ca sắp tới… để dựng hộp thoại. Luôn tải mới khi mở (số dư có thể vừa đổi). */
@@ -49,6 +51,7 @@ export function useLeaveHouse(houseId: string) {
     mutationFn: (newAdminUserId?: string) => membershipApi.leave(houseId, newAdminUserId),
     onSuccess: async () => {
       selectHouse(null);
+      queryClient.setQueryData<HouseSummary[]>(houseKeys.all, (list) => list?.filter((h) => h.id !== houseId));
       queryClient.removeQueries({ queryKey: houseKeys.detail(houseId) });
       await queryClient.invalidateQueries({ queryKey: houseKeys.all });
     },

@@ -3,6 +3,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { houseKeys } from '@/features/houses/hooks.ts';
+import type { HouseSummary } from '@/features/houses/types.ts';
 import { useInvalidateAfterMemberChange } from '@/features/membership/hooks.ts';
 import { getSocket } from '@/lib/socket.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
@@ -70,7 +71,13 @@ export function RealtimeProvider({ houseId, children }: { houseId: string | unde
         }
         if (p.kicked) toast('Trưởng phòng đã xóa bạn khỏi nhà này.');
         selectHouse(null);
-        void queryClient.invalidateQueries({ queryKey: houseKeys.all });
+        // Bỏ nhà vừa rời khỏi cache trước (danh sách + chi tiết): nếu không, trang chọn lại nhà đó và tải chi tiết bị 403.
+        if (env.houseId) {
+          const left = env.houseId;
+          queryClient.setQueryData<HouseSummary[]>(houseKeys.all, (list) => list?.filter((h) => h.id !== left));
+          queryClient.removeQueries({ queryKey: houseKeys.detail(left) });
+        }
+        void queryClient.invalidateQueries({ queryKey: houseKeys.all, exact: true });
         void navigate('/dashboard', { replace: true });
       }),
     [subscribe, me, queryClient, navigate, invalidateAfterMemberChange, selectHouse],
