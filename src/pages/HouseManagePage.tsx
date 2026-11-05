@@ -9,12 +9,15 @@ import { InvitePanel } from '@/features/houses/components/InvitePanel.tsx';
 import { PendingProposalsSection } from '@/features/houses/components/PendingProposalsSection.tsx';
 import { RulesSection } from '@/features/houses/components/RulesSection.tsx';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
+import { LeaveHouseSection, TransferAdminSection } from '@/features/membership/components/HouseRoleSections.tsx';
+import { useAuthStore } from '@/stores/auth-store.ts';
 
 /** Cài đặt nhà (chỉ trưởng phòng): thông tin, mã mời, nội quy. Việc nhà nằm ở /settings. */
 export function HouseManagePage() {
   const navigate = useNavigate();
   const { house: current, isPending: housesPending } = useCurrentHouse();
   const detail = useHouseDetail(current?.id);
+  const meId = useAuthStore((s) => s.user?.id);
 
   // Thành viên thường không vào được trang này.
   if (current && current.myRole !== 'ADMIN') return <Navigate to="/dashboard" replace />;
@@ -23,7 +26,7 @@ export function HouseManagePage() {
     <PageHeader
       overline={current?.name}
       title="Cài đặt nhà"
-      description="Thông tin nhà, mã mời và nội quy. Chỉ trưởng phòng thấy trang này."
+      description="Thông tin nhà, mã mời, nội quy và quyền trưởng phòng. Chỉ trưởng phòng thấy trang này."
       actions={
         <Button variant="secondary" leftIcon={<ListChecks />} onClick={() => navigate('/settings')}>
           Cài đặt việc nhà
@@ -73,6 +76,8 @@ export function HouseManagePage() {
         <HouseInfoSection house={detail.data} />
         <RulesSection house={detail.data} />
         <PendingProposalsSection houseId={detail.data.id} />
+        {meId && <TransferAdminSection house={detail.data} meId={meId} />}
+        {meId && <LeaveHouseSection house={detail.data} meId={meId} />}
       </div>
     </>
   );

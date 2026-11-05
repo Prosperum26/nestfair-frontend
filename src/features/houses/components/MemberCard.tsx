@@ -40,10 +40,13 @@ export function MemberCard({
   member,
   isMe,
   month,
+  actions,
 }: {
   member: HouseMember;
   isMe: boolean;
   month: number;
+  /** Menu thao tác của trưởng phòng (xóa, giao quyền). */
+  actions?: ReactNode;
 }) {
   const bank = bankLabel(member.bankBin, member.bankAccountLast4);
   return (
@@ -56,7 +59,7 @@ export function MemberCard({
     >
       <div className="flex items-start justify-between">
         <Avatar name={member.fullName} tone={avatarToneFor(member.userId)} src={member.avatarUrl} size={48} />
-        {isMe && <Chip tone="hl">Bạn</Chip>}
+        {isMe ? <Chip tone="hl">Bạn</Chip> : actions}
       </div>
       <h3 className="mt-4 truncate font-display text-[20px] leading-7 font-semibold text-ink">
         {member.fullName}
@@ -91,7 +94,7 @@ export function MemberCard({
 }
 
 /** Dòng thành viên gọn cho mobile (preview 11 mobile). */
-export function MemberRow({ member, isMe }: { member: HouseMember; isMe: boolean }) {
+export function MemberRow({ member, isMe, actions }: { member: HouseMember; isMe: boolean; actions?: ReactNode }) {
   const bank = bankLabel(member.bankBin, member.bankAccountLast4);
   return (
     <li className="flex items-center gap-3 py-3.5">
@@ -109,6 +112,7 @@ export function MemberRow({ member, isMe }: { member: HouseMember; isMe: boolean
       <span className="font-mono text-ms text-ink-3" aria-label="Số dư chưa có">
         —
       </span>
+      {!isMe && actions}
     </li>
   );
 }
