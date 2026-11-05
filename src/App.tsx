@@ -10,6 +10,7 @@ import { ChoresPage } from '@/pages/ChoresPage.tsx';
 import { ContactPage } from '@/pages/ContactPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
+import { HouseManagePage } from '@/pages/HouseManagePage.tsx';
 import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { ListingPage } from '@/pages/ListingPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
               { path: '/dashboard', element: <DashboardPage /> },
               // Module chưa làm: thay ComingSoonPage bằng trang thật khi bắt đầu module.
               { path: '/chores', element: <ChoresPage /> },
+              { path: '/house', element: <HouseManagePage /> },
               { path: '/settings', element: <HouseSettingsPage /> },
               { path: '/expenses', element: <ExpensesPage /> },
               { path: '/expenses/scan', element: <ScanReceiptPage /> },

@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
@@ -24,9 +24,16 @@ export function HouseSettingsPage() {
         title="Cài đặt việc nhà"
         description={isAdmin ? 'Quản lý việc, quy tắc, vắng mặt và xem nhật ký.' : 'Khai vắng và xem nhật ký. Chỉ trưởng phòng sửa được việc và quy tắc.'}
         actions={
-          <Button variant="secondary" leftIcon={<ArrowLeft />} onClick={() => navigate('/chores')}>
-            Về lịch việc nhà
-          </Button>
+          <>
+            {isAdmin && (
+              <Button variant="secondary" leftIcon={<Settings />} onClick={() => navigate('/house')}>
+                Cài đặt nhà
+              </Button>
+            )}
+            <Button variant="secondary" leftIcon={<ArrowLeft />} onClick={() => navigate('/chores')}>
+              Về lịch việc nhà
+            </Button>
+          </>
         }
       />
       {house && (

@@ -1,4 +1,5 @@
-import { Crown, Home, UserRound } from 'lucide-react';
+import { Crown, Home, LogOut, UserRound } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
@@ -6,6 +7,8 @@ import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { useMyHouses } from '@/features/houses/hooks.ts';
 import { ROLE_LABELS } from '@/features/houses/types.ts';
+import { LeaveHouseDialog } from '@/features/membership/components/LeaveHouseDialog.tsx';
+import { useAuthStore } from '@/stores/auth-store.ts';
 import { useHouseStore } from '@/stores/house-store.ts';
 import { ProfileSection } from './ProfileSection.tsx';
 
@@ -13,6 +16,8 @@ import { ProfileSection } from './ProfileSection.tsx';
 export function MyHousesSection({ currentHouseId }: { currentHouseId: string | null }) {
   const houses = useMyHouses();
   const selectHouse = useHouseStore((s) => s.selectHouse);
+  const meId = useAuthStore((s) => s.user?.id);
+  const [leaving, setLeaving] = useState<{ id: string; name: string } | null>(null);
 
   return (
     <ProfileSection id="profile-houses" title="Nhà của tôi">
@@ -42,7 +47,7 @@ export function MyHousesSection({ currentHouseId }: { currentHouseId: string | n
             const current = h.id === currentHouseId;
             return (
               <li key={h.id} className="flex flex-wrap items-center gap-3 rounded-btn border border-line px-4 py-3">
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 basis-full sm:basis-0">
                   <p className="truncate text-sm font-semibold text-ink">{h.name}</p>
                   <p className="mt-0.5 text-cap text-ink-2">
                     {h.memberCount}/{h.maxMembers} thành viên
@@ -58,11 +63,15 @@ export function MyHousesSection({ currentHouseId }: { currentHouseId: string | n
                     Xem nhà này
                   </Button>
                 )}
+                <Button size="sm" variant="ghost" leftIcon={<LogOut />} onClick={() => setLeaving({ id: h.id, name: h.name })}>
+                  Rời nhà
+                </Button>
               </li>
             );
           })}
         </ul>
       )}
+      {leaving && meId && <LeaveHouseDialog houseId={leaving.id} houseName={leaving.name} meId={meId} onClose={() => setLeaving(null)} />}
     </ProfileSection>
   );
 }

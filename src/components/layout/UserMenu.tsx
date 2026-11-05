@@ -1,10 +1,11 @@
-import { ChevronDown, LogOut, ScanLine, Sparkles, UserRound } from 'lucide-react';
+import { ChevronDown, LogOut, ScanLine, Settings, Sparkles, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
 import { Menu, MenuItem, MenuSeparator } from '@/components/ui/Menu.tsx';
+import { useCurrentHouse } from '@/features/houses/hooks.ts';
 import { useLogout } from '@/features/auth/hooks.ts';
 import type { AssistantConsentUser } from '@/features/assistant/types.ts';
 import { AssistantConsentDialog } from '@/features/assistant/components/AssistantConsentDialog.tsx';
@@ -20,6 +21,7 @@ import { useAuthStore } from '@/stores/auth-store.ts';
 export function UserMenu({ compact = false }: { compact?: boolean }) {
   const user = useAuthStore((s) => s.user);
   const logout = useLogout();
+  const { house } = useCurrentHouse();
   const navigate = useNavigate();
   const setConsent = useSetOcrConsent();
   const setAssistantConsent = useSetAssistantConsent();
@@ -66,6 +68,17 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
             >
               Hồ sơ & tài khoản nhận tiền
             </MenuItem>
+            {house?.myRole === 'ADMIN' && (
+              <MenuItem
+                icon={<Settings />}
+                onSelect={() => {
+                  close();
+                  navigate('/house');
+                }}
+              >
+                Cài đặt nhà
+              </MenuItem>
+            )}
             <MenuItem
               icon={<ScanLine />}
               onSelect={() => {
