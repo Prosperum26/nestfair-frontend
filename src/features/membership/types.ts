@@ -29,3 +29,9 @@ export interface RemoveMemberResult {
   shifts: ShiftMode;
   futureShifts: number;
 }
+
+export interface DissolveResult {
+  houseId: string;
+  members: number;
+  imagesRemoved: number;
+}

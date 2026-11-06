@@ -30,7 +30,7 @@ export function kickBody(state: { net: number; mode: AdjustmentMode | null; toUs
 
 /** Lý do chưa rời nhà được (khớp 409 của backend), null nếu rời được. */
 export function leaveBlocker(preview: LeavePreview): { code: 'LAST_MEMBER' | 'HAS_BALANCE'; message: string } | null {
-  if (preview.isLastMember) return { code: 'LAST_MEMBER', message: 'Bạn là người cuối cùng trong nhà nên chưa rời được.' };
+  if (preview.isLastMember) return { code: 'LAST_MEMBER', message: 'Bạn là người cuối cùng trong nhà nên chưa rời được. Muốn dừng hẳn thì giải tán nhà ở Cài đặt nhà.' };
   if (preview.net < 0) {
     return { code: 'HAS_BALANCE', message: `Bạn còn nợ ${formatVnd(-preview.net)}. Thanh toán xong rồi mới rời nhà được.` };
   }
@@ -39,6 +39,9 @@ export function leaveBlocker(preview: LeavePreview): { code: 'LAST_MEMBER' | 'HA
   }
   return null;
 }
+
+/** Giải tán nhà cần gõ lại đúng tên nhà (khớp với backend: bỏ khoảng trắng đầu cuối, phân biệt hoa thường). */
+export const dissolveNameMatches = (typed: string, houseName: string) => typed.trim() !== '' && typed.trim() === houseName.trim();
 
 /** Lỗi nghiệp vụ có câu tiếng Việt từ backend; lỗi khác dùng câu chung. */
 export function membershipErrorMessage(error: unknown): string {

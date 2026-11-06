@@ -9,7 +9,7 @@ import { InvitePanel } from '@/features/houses/components/InvitePanel.tsx';
 import { PendingProposalsSection } from '@/features/houses/components/PendingProposalsSection.tsx';
 import { RulesSection } from '@/features/houses/components/RulesSection.tsx';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
-import { LeaveHouseSection, TransferAdminSection } from '@/features/membership/components/HouseRoleSections.tsx';
+import { DissolveHouseSection, LeaveHouseSection, TransferAdminSection } from '@/features/membership/components/HouseRoleSections.tsx';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 /** Cài đặt nhà (chỉ trưởng phòng): thông tin, mã mời, nội quy. Việc nhà nằm ở /settings. */
@@ -78,6 +78,7 @@ export function HouseManagePage() {
         <PendingProposalsSection houseId={detail.data.id} />
         {meId && <TransferAdminSection house={detail.data} meId={meId} />}
         {meId && <LeaveHouseSection house={detail.data} meId={meId} />}
+        <DissolveHouseSection house={detail.data} />
       </div>
     </>
   );
