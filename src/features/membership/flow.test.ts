@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { balanceSentence, kickBody, kickSteps, leaveBlocker, projectedBalance } from './flow.ts';
+import { balanceSentence, dissolveNameMatches, kickBody, kickSteps, leaveBlocker, projectedBalance } from './flow.ts';
 import type { LeavePreview } from './types.ts';
 
 const preview = (over: Partial<LeavePreview> = {}): LeavePreview => ({
@@ -56,7 +56,7 @@ describe('leaveBlocker', () => {
   it('người cuối cùng không rời được', () => {
     expect(leaveBlocker(preview({ isLastMember: true, role: 'ADMIN' }))).toEqual({
       code: 'LAST_MEMBER',
-      message: 'Bạn là người cuối cùng trong nhà nên chưa rời được.',
+      message: 'Bạn là người cuối cùng trong nhà nên chưa rời được. Muốn dừng hẳn thì giải tán nhà ở Cài đặt nhà.',
     });
   });
 
@@ -73,5 +73,20 @@ describe('leaveBlocker', () => {
 
   it('hết nợ thì rời được', () => {
     expect(leaveBlocker(preview())).toBeNull();
+  });
+});
+
+describe('dissolveNameMatches', () => {
+  it('khớp đúng tên nhà, bỏ khoảng trắng đầu cuối', () => {
+    expect(dissolveNameMatches('  Nhà 12A ', 'Nhà 12A')).toBe(true);
+  });
+
+  it('phân biệt hoa thường để xác nhận có chủ đích', () => {
+    expect(dissolveNameMatches('nhà 12a', 'Nhà 12A')).toBe(false);
+  });
+
+  it('để trống hoặc sai tên thì chưa khớp', () => {
+    expect(dissolveNameMatches('', 'Nhà 12A')).toBe(false);
+    expect(dissolveNameMatches('Nhà 12', 'Nhà 12A')).toBe(false);
   });
 });

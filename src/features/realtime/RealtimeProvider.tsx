@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { houseKeys } from '@/features/houses/hooks.ts';
 import type { HouseSummary } from '@/features/houses/types.ts';
-import { useInvalidateAfterMemberChange } from '@/features/membership/hooks.ts';
+import { useDropHouse, useInvalidateAfterMemberChange } from '@/features/membership/hooks.ts';
 import { getSocket } from '@/lib/socket.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 import { useHouseStore } from '@/stores/house-store.ts';
@@ -28,6 +28,7 @@ export function RealtimeProvider({ houseId, children }: { houseId: string | unde
   const me = useAuthStore((s) => s.user?.id);
   const selectHouse = useHouseStore((s) => s.selectHouse);
   const invalidateAfterMemberChange = useInvalidateAfterMemberChange();
+  const dropHouse = useDropHouse();
   const [disconnectedAt, setDisconnectedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [onlineUserIds, setOnline] = useState<string[]>([]);
@@ -81,6 +82,18 @@ export function RealtimeProvider({ houseId, children }: { houseId: string | unde
         void navigate('/dashboard', { replace: true });
       }),
     [subscribe, me, queryClient, navigate, invalidateAfterMemberChange, selectHouse],
+  );
+  // Nhà bị giải tán (tới từng người qua room cá nhân): bỏ nhà khỏi cache rồi về Tổng quan. Cùng `id` toast với hộp thoại
+  // của trưởng phòng nên người bấm giải tán chỉ thấy một thông báo.
+  useEffect(
+    () =>
+      subscribe('house:dissolved', (env) => {
+        const p = env.payload as { houseId: string; name: string };
+        toast(`${p.name} đã được giải tán.`, { id: `dissolved-${p.houseId}` });
+        void dropHouse(p.houseId);
+        void navigate('/dashboard', { replace: true });
+      }),
+    [subscribe, dropHouse, navigate],
   );
   // Đổi trưởng phòng: vai trò của mình (myRole) có thể đã đổi.
   useEffect(

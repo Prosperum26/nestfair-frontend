@@ -1,9 +1,10 @@
-import { Crown, LogOut } from 'lucide-react';
+import { Crown, LogOut, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import type { HouseDetail } from '@/features/houses/types.ts';
 import { ProfileSection } from '@/features/profile/components/ProfileSection.tsx';
+import { DissolveHouseDialog } from './DissolveHouseDialog.tsx';
 import { LeaveHouseDialog } from './LeaveHouseDialog.tsx';
 import { OptionCard } from './OptionCard.tsx';
 import { TransferAdminDialog } from './TransferAdminDialog.tsx';
@@ -47,7 +48,7 @@ export function TransferAdminSection({ house, meId }: { house: HouseDetail; meId
   );
 }
 
-/** Vùng nguy hiểm: rời nhà. Giải tán nhà chưa có (spec, để sau). */
+/** Vùng nguy hiểm: rời nhà. */
 export function LeaveHouseSection({ house, meId }: { house: HouseDetail; meId: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -65,6 +66,28 @@ export function LeaveHouseSection({ house, meId }: { house: HouseDetail; meId: s
         </Button>
       </div>
       {open && <LeaveHouseDialog houseId={house.id} houseName={house.name} meId={meId} onClose={() => setOpen(false)} />}
+    </section>
+  );
+}
+
+/** Vùng nguy hiểm: giải tán nhà (chỉ trưởng phòng). Phải gõ lại tên nhà và cả nhà hết nợ. */
+export function DissolveHouseSection({ house }: { house: HouseDetail }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section aria-labelledby="dissolve-house-title" className="rounded-card border border-tom-border bg-surface p-5 sm:p-6">
+      <p className="font-mono text-over uppercase text-tom">Vùng nguy hiểm</p>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h2 id="dissolve-house-title" className="font-display text-ct text-ink">
+            Giải tán nhà
+          </h2>
+          <p className="mt-1 text-sm text-ink-2">Đóng nhà cho mọi người và xóa ảnh. Cần cả nhà thanh toán hết nợ, không hoàn tác được.</p>
+        </div>
+        <Button variant="danger" leftIcon={<Trash2 />} onClick={() => setOpen(true)}>
+          Giải tán nhà
+        </Button>
+      </div>
+      {open && <DissolveHouseDialog houseId={house.id} houseName={house.name} onClose={() => setOpen(false)} />}
     </section>
   );
 }

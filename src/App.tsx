@@ -11,7 +11,6 @@ import { ContactPage } from '@/pages/ContactPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
 import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
 import { HouseManagePage } from '@/pages/HouseManagePage.tsx';
-import { HouseSettingsPage } from '@/pages/HouseSettingsPage.tsx';
 import { ListingPage } from '@/pages/ListingPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
@@ -64,7 +63,8 @@ const router = createBrowserRouter([
               // Module chưa làm: thay ComingSoonPage bằng trang thật khi bắt đầu module.
               { path: '/chores', element: <ChoresPage /> },
               { path: '/house', element: <HouseManagePage /> },
-              { path: '/settings', element: <HouseSettingsPage /> },
+              // Cài đặt việc nhà đã gộp vào tab của /house; giữ đường cũ để link và dấu trang không chết.
+              { path: '/settings', element: <Navigate to="/house?tab=chores" replace /> },
               { path: '/expenses', element: <ExpensesPage /> },
               { path: '/expenses/scan', element: <ScanReceiptPage /> },
               { path: '/payments', element: <PaymentsPage /> },

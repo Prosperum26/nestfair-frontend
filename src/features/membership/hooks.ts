@@ -43,18 +43,34 @@ export function useKickMember(houseId: string) {
   });
 }
 
-/** Rời nhà: bỏ chọn nhà này; danh sách nhà tải lại sẽ chọn nhà còn lại, hết nhà thì về /onboarding (RequireHouse). */
-export function useLeaveHouse(houseId: string) {
+/** Mình không còn trong nhà này (rời, bị xóa, nhà giải tán): bỏ chọn, bỏ khỏi cache rồi tải lại danh sách nhà. */
+export function useDropHouse() {
   const queryClient = useQueryClient();
   const selectHouse = useHouseStore((s) => s.selectHouse);
+  return async (houseId: string) => {
+    selectHouse(null);
+    // Bỏ khỏi cache trước: nếu không, trang chọn lại nhà đó và tải chi tiết bị 403.
+    queryClient.setQueryData<HouseSummary[]>(houseKeys.all, (list) => list?.filter((h) => h.id !== houseId));
+    queryClient.removeQueries({ queryKey: houseKeys.detail(houseId) });
+    await queryClient.invalidateQueries({ queryKey: houseKeys.all });
+  };
+}
+
+/** Rời nhà: danh sách nhà tải lại sẽ chọn nhà còn lại, hết nhà thì về /onboarding (RequireHouse). */
+export function useLeaveHouse(houseId: string) {
+  const dropHouse = useDropHouse();
   return useMutation({
     mutationFn: (newAdminUserId?: string) => membershipApi.leave(houseId, newAdminUserId),
-    onSuccess: async () => {
-      selectHouse(null);
-      queryClient.setQueryData<HouseSummary[]>(houseKeys.all, (list) => list?.filter((h) => h.id !== houseId));
-      queryClient.removeQueries({ queryKey: houseKeys.detail(houseId) });
-      await queryClient.invalidateQueries({ queryKey: houseKeys.all });
-    },
+    onSuccess: () => dropHouse(houseId),
+  });
+}
+
+/** Trưởng phòng giải tán nhà: ai cũng rời, nhà biến khỏi danh sách. */
+export function useDissolveHouse(houseId: string) {
+  const dropHouse = useDropHouse();
+  return useMutation({
+    mutationFn: (confirmName: string) => membershipApi.dissolve(houseId, confirmName),
+    onSuccess: () => dropHouse(houseId),
   });
 }
 
