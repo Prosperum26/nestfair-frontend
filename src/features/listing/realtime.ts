@@ -4,11 +4,11 @@ import { bindHouseEvents, type SocketLike } from '@/lib/realtime.ts';
 import { getSocket } from '@/lib/socket.ts';
 import { listingKeys } from './keys.ts';
 
-/** Event tin đăng do backend phát vào room nhà: tin tự đóng khi nhà đủ người (AGENTS.md mục 5). */
-export const LISTING_EVENTS = ['listing:closed'] as const;
+/** Event tin đăng do backend phát vào room nhà: tin tự đóng khi nhà đủ người (AGENTS.md mục 5) và tự mở lại khi nhà hết đủ người. */
+export const LISTING_EVENTS = ['listing:closed', 'listing:reopened'] as const;
 
 /**
- * Gắn `listing:closed` (và nối lại sau mất mạng) vào việc tải lại tin của nhà. Tách khỏi hook để test bằng
+ * Gắn `listing:closed` / `listing:reopened` (và nối lại sau mất mạng) vào việc tải lại tin của nhà. Tách khỏi hook để test bằng
  * socket giả mà không cần dựng React. Socket chỉ báo "có thay đổi": dữ liệu luôn tải lại qua REST.
  * Trả về hàm gỡ; `houseId` rỗng thì không làm gì.
  */

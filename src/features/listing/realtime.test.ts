@@ -33,8 +33,8 @@ function fakeSocket(connected: boolean) {
 const fakeClient = () => ({ invalidateQueries: vi.fn(() => Promise.resolve()) });
 
 describe('LISTING_EVENTS', () => {
-  it('chỉ có đúng một event: listing:closed', () => {
-    expect([...LISTING_EVENTS]).toEqual(['listing:closed']);
+  it('có đúng hai event: listing:closed và listing:reopened', () => {
+    expect([...LISTING_EVENTS]).toEqual(['listing:closed', 'listing:reopened']);
   });
 });
 
@@ -44,6 +44,17 @@ describe('bindListingRealtime', () => {
     bindListingRealtime(socket, 'h1', fakeClient());
     expect(socket.emit).toHaveBeenCalledWith('house:join_room', { houseId: 'h1' });
     expect(socket.listenerCount('listing:closed')).toBe(1);
+  });
+
+  it('nhận listing:reopened (nhà hết đủ người) cũng làm tươi tin đúng một lần', () => {
+    const socket = fakeSocket(true);
+    const client = fakeClient();
+    bindListingRealtime(socket, 'h1', client);
+
+    socket.fire('listing:reopened');
+
+    expect(client.invalidateQueries).toHaveBeenCalledTimes(1);
+    expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: listingKeys.detail('h1') });
   });
 
   it('nhận listing:closed thì làm tươi listingKeys.detail(houseId) đúng một lần', () => {
