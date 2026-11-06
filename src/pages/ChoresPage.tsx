@@ -215,7 +215,7 @@ export function ChoresPage() {
               <Button variant="secondary" leftIcon={<Dice5 />} onClick={openWheel}>
                 Vòng quay
               </Button>
-              <Button variant={shuffle.kind === 'CREATE' ? 'secondary' : 'accent'} leftIcon={<Settings />} onClick={() => navigate('/settings')}>
+              <Button variant={shuffle.kind === 'CREATE' ? 'secondary' : 'accent'} leftIcon={<Settings />} onClick={() => navigate('/house?tab=chores')}>
                 Cài đặt việc nhà
               </Button>
             </>
@@ -286,7 +286,7 @@ export function ChoresPage() {
               description={isAdmin ? 'Thêm các việc định kỳ của nhà, rồi tạo lịch xoay vòng cho cả nhà.' : 'Trưởng phòng chưa thêm việc nào cho nhà.'}
               action={
                 isAdmin && (
-                  <Button variant="accent" leftIcon={<Plus />} onClick={() => navigate('/settings')}>
+                  <Button variant="accent" leftIcon={<Plus />} onClick={() => navigate('/house?tab=chores')}>
                     Thêm việc đầu tiên
                   </Button>
                 )

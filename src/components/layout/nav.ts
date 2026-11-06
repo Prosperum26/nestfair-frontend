@@ -34,5 +34,4 @@ export const PAGE_TITLES: Record<string, string> = {
   ...Object.fromEntries(NAV_ITEMS.map((i) => [i.to, i.label])),
   '/profile': 'Hồ sơ',
   '/house': 'Cài đặt nhà',
-  '/settings': 'Cài đặt việc nhà',
 };
