@@ -146,7 +146,7 @@ export function ChatThread({
                       return message.role === 'USER' ? (
                         <Fragment key={message.id}>{bubble}</Fragment>
                       ) : (
-                        <AnimatedItem key={message.id} layout={false}>
+                        <AnimatedItem key={message.id}>
                           {bubble}
                         </AnimatedItem>
                       );

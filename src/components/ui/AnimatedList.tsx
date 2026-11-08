@@ -1,7 +1,6 @@
 import { AnimatePresence, m } from 'motion/react';
 import type { ReactNode } from 'react';
 import { variants } from '@/lib/motion.ts';
-import { shouldUseLayout } from './list-layout.ts';
 
 type ItemTag = 'li' | 'div' | 'tr';
 
@@ -12,13 +11,11 @@ type ItemTag = 'li' | 'div' | 'tr';
  */
 export function AnimatedItem({
   as = 'div',
-  layout = true,
   className,
   onClick,
   children,
 }: {
   as?: ItemTag;
-  layout?: boolean;
   className?: string;
   onClick?: () => void;
   children: ReactNode;
@@ -26,7 +23,6 @@ export function AnimatedItem({
   const props = {
     className,
     onClick,
-    layout: as === 'tr' ? false : layout,
     variants: as === 'tr' ? variants.rowItem : variants.listItem,
     initial: 'hidden',
     animate: 'visible',
@@ -53,11 +49,10 @@ export function AnimatedList<T>({
   className?: string;
   itemClassName?: string;
 }) {
-  const layout = shouldUseLayout(items.length);
   const content = (
     <AnimatePresence initial={false}>
       {items.map((item) => (
-        <AnimatedItem key={getKey(item)} as={as === 'ul' ? 'li' : 'div'} layout={layout} className={itemClassName}>
+        <AnimatedItem key={getKey(item)} as={as === 'ul' ? 'li' : 'div'} className={itemClassName}>
           {render(item)}
         </AnimatedItem>
       ))}
