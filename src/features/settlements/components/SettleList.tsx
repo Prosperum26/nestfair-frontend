@@ -16,8 +16,8 @@ import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
 import { formatVnd } from '@/lib/format.ts';
 import { duration, ease } from '@/lib/motion.ts';
+import { type Pin, withPinned } from '@/lib/pinned.ts';
 import { transferRole } from '../plan-view.ts';
-import { type Pin, withPinned } from '../pinned.ts';
 import type { PlanMember, PlanTransfer } from '../types.ts';
 
 const pad = (n: number) => n.toString().padStart(2, '0');
