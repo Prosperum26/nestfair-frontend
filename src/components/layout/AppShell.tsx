@@ -1,4 +1,5 @@
 import { Bell, Plus } from 'lucide-react';
+import { m } from 'motion/react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { IconButton } from '@/components/ui/IconButton.tsx';
@@ -10,6 +11,7 @@ import { useWheelRealtime } from '@/features/wheel/hooks.ts';
 import { Logo } from '@/components/ui/Logo.tsx';
 import { useReminderRealtime } from '@/features/reminders/realtime.ts';
 import { cn } from '@/lib/cn.ts';
+import { variants } from '@/lib/motion.ts';
 import { HouseSwitcher } from './HouseSwitcher.tsx';
 import { NAV_ITEMS, PAGE_TITLES, TAB_ITEMS } from './nav.ts';
 import { UserMenu } from './UserMenu.tsx';
@@ -122,6 +124,7 @@ function WheelSync({ houseId }: { houseId: string | undefined }) {
 
 export function AppShell() {
   const { house } = useCurrentHouse();
+  const { pathname } = useLocation();
   // Chỉ được mount khi đã đăng nhập (ProtectedRoute → RequireHouse): nghe nhắc việc đến hạn một lần cho cả app.
   useReminderRealtime();
   return (
@@ -131,7 +134,10 @@ export function AppShell() {
         <MobileTopBar />
         <ReconnectBanner />
         <main className="mx-auto max-w-page px-4 pt-6 pb-32 lg:px-6 lg:pt-10 lg:pb-24 xl:px-0">
-          <Outlet />
+          {/* Chuyển trang: chỉ hiện dần trang mới, không chờ trang cũ ra để điều hướng không chậm. */}
+          <m.div key={pathname} variants={variants.pageEnter} initial="hidden" animate="visible">
+            <Outlet />
+          </m.div>
         </main>
         <TabBar />
       </div>
