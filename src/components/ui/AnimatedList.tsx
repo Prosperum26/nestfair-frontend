@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { variants } from '@/lib/motion.ts';
 import { shouldUseLayout } from './list-layout.ts';
 
-
 type ItemTag = 'li' | 'div' | 'tr';
 
 /**
@@ -15,15 +14,18 @@ export function AnimatedItem({
   as = 'div',
   layout = true,
   className,
+  onClick,
   children,
 }: {
   as?: ItemTag;
   layout?: boolean;
   className?: string;
+  onClick?: () => void;
   children: ReactNode;
 }) {
   const props = {
     className,
+    onClick,
     layout: as === 'tr' ? false : layout,
     variants: as === 'tr' ? variants.rowItem : variants.listItem,
     initial: 'hidden',
