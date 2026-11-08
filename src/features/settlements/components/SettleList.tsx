@@ -1,5 +1,6 @@
 import { ArrowRight, Check, Clock, ImageIcon, QrCode, X } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, m, useReducedMotion } from 'motion/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Avatar } from '@/components/ui/Avatar.tsx';
@@ -9,9 +10,11 @@ import { avatarToneFor } from '@/components/ui/tones.ts';
 import { ledgerErrorMessage } from '@/features/expenses/errors.ts';
 import { dayMonth } from '@/features/expenses/grouping.ts';
 import { useCancelSettlement, useConfirmSettlement } from '@/features/expenses/hooks.ts';
+import { holdFor } from '@/lib/celebrate.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
 import { formatVnd } from '@/lib/format.ts';
+import { duration, ease } from '@/lib/motion.ts';
 import { transferRole } from '../plan-view.ts';
 import type { PlanMember, PlanTransfer } from '../types.ts';
 
@@ -34,7 +37,10 @@ function TransferRow({
   houseId: string;
   onPay: (t: PlanTransfer) => void;
 }) {
-  const confirm = useConfirmSettlement(houseId);
+  const reduceMotion = useReducedMotion();
+  const confirm = useConfirmSettlement(houseId, holdFor('settled', reduceMotion));
+  // Vừa xác nhận đã nhận tiền: gạch bút dạ quang dưới số tiền, đổi nút thành dấu "Đã nhận" cho tới khi dòng rời danh sách.
+  const [settled, setSettled] = useState(false);
   const cancel = useCancelSettlement(houseId);
   const role = transferRole(transfer, meId);
   const from = members.find((m) => m.id === transfer.fromUserId);
@@ -49,7 +55,10 @@ function TransferRow({
   // mà TanStack Query không gọi callback của mutate() cho component đã gỡ (toast sẽ mất).
   const doConfirm = () =>
     confirm.mutateAsync(p!.id).then(
-      () => toast(`Đã ghi nhận ${formatVnd(p!.amount)} từ ${fromFirst}.`),
+      () => {
+        setSettled(true);
+        toast(`Đã ghi nhận ${formatVnd(p!.amount)} từ ${fromFirst}.`);
+      },
       (e: unknown) => toast(ledgerErrorMessage(e)),
     );
   const doCancel = (msg: string) =>
@@ -72,7 +81,18 @@ function TransferRow({
           </p>
           <p className="text-cap text-ink-2">{p ? `Đã báo chuyển ${stamp(p.createdAt)}` : role === 'receiver' ? `Chờ ${fromFirst} chuyển` : 'Chưa trả'}</p>
         </div>
-        <span className="shrink-0 font-mono text-mm text-ink">{formatVnd(transfer.amount)}</span>
+        <span className="relative shrink-0 font-mono text-mm text-ink">
+          {settled && (
+            <m.span
+              aria-hidden
+              className="absolute inset-x-[-4px] bottom-0.5 h-2.5 origin-left rounded-sm bg-hl"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: duration.slow, ease: ease.out }}
+            />
+          )}
+          <span className="relative">{formatVnd(transfer.amount)}</span>
+        </span>
       </div>
 
       {(p || mine) && (
@@ -97,7 +117,12 @@ function TransferRow({
               Trả bằng VietQR
             </Button>
           )}
-          {p && role === 'receiver' && (
+          {p && role === 'receiver' && settled && (
+            <Chip tone="mint" icon={<Check />}>
+              Đã nhận
+            </Chip>
+          )}
+          {p && role === 'receiver' && !settled && (
             <div className="mt-1 flex w-full gap-2">
               <Button size="sm" leftIcon={<Check />} loading={confirm.isPending} disabled={cancel.isPending} onClick={doConfirm} className="flex-1">
                 Xác nhận đã nhận tiền
