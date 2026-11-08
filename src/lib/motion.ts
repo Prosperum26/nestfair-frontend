@@ -40,11 +40,11 @@ export const variants = {
     visible: { opacity: 1, y: 0, height: 'auto', transition: enter },
     exit: { opacity: 0, height: 0, transition: leave },
   },
-  /** Khung bên trong <dialog>. */
-  modalPanel: {
-    hidden: { opacity: 0, y: distance.md, scale: 0.98 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: enter },
-    exit: { opacity: 0, y: distance.sm, scale: 0.98, transition: leave },
+  /** Dòng bảng (`<tr>` không co chiều cao được): chỉ mờ dần. */
+  rowItem: {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: enter },
+    exit: { opacity: 0, transition: leave },
   },
   /** Nội dung trang mới (chỉ vào, không chờ trang cũ ra). */
   pageEnter: {
