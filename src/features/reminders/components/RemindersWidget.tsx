@@ -1,4 +1,5 @@
 import { ArrowRight, Bell, TriangleAlert } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/Button.tsx';
 import { CardEmpty, DashCard } from '@/features/dashboard/DashCard.tsx';
@@ -45,9 +46,11 @@ export function RemindersWidget({ className }: { className?: string }) {
         <CardEmpty icon={<Bell />}>Nhờ Trợ lý tạo nhắc nhở, 3 nhắc gần nhất sẽ hiện ở đây.</CardEmpty>
       ) : (
         <ul className="divide-y divide-line">
-          {rows.map((reminder) => (
-            <ReminderRow key={reminder.id} reminder={reminder} className="py-3" />
-          ))}
+          <AnimatePresence initial={false}>
+            {rows.map((reminder) => (
+              <ReminderRow key={reminder.id} reminder={reminder} className="py-3" />
+            ))}
+          </AnimatePresence>
         </ul>
       )}
     </DashCard>
