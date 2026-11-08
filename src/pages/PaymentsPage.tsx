@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
+import { Reveal } from '@/components/ui/Reveal.tsx';
 import { SegmentedControl } from '@/components/ui/SegmentedControl.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
@@ -114,7 +115,7 @@ export function PaymentsPage() {
             }
           />
         ) : (
-          <>
+          <Reveal className="flex flex-col gap-6">
             <MyBalanceCard plan={plan.data} meId={me?.id} onPay={setPaying} />
             <div className="grid gap-6 lg:grid-cols-12">
               <div className="lg:col-span-7">
@@ -131,7 +132,7 @@ export function PaymentsPage() {
                 <MyAccountCard me={me} />
               </div>
             </div>
-          </>
+          </Reveal>
         )}
 
         <HistoryCard
