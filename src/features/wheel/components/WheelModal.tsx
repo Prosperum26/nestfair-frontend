@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import confetti from 'canvas-confetti';
 import { Ban, CircleCheck, Dice5, Radio, ShieldCheck, TriangleAlert, Volume2, VolumeX } from 'lucide-react';
+import { m } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { markAdhocDone } from '@/features/assistant/adhoc-done.ts';
 import { useNavigate } from 'react-router';
@@ -11,6 +12,7 @@ import { Field } from '@/components/ui/Field.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { Input } from '@/components/ui/Input.tsx';
 import { Modal } from '@/components/ui/Modal.tsx';
+import { Reveal } from '@/components/ui/Reveal.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { Stamp } from '@/components/ui/Stamp.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
@@ -18,6 +20,7 @@ import { useSocket } from '@/features/realtime/context.ts';
 import { ApiError } from '@/lib/api.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
+import { variants } from '@/lib/motion.ts';
 import { houseClock } from '@/lib/house-time.ts';
 import { useReducedMotion } from '@/lib/use-reduced-motion.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
@@ -287,12 +290,9 @@ function SpinView({ active, onDone }: { active: ActiveSpin; onDone: () => void }
           label={`Vòng quay ${spin.taskTitle}, ${spin.slices.length} lát`}
         />
         {showResult && (
-          <Stamp
-            label="TRÚNG"
-            date={houseClock(new Date()).ddmm}
-            tone={STAMP_TONE[avatarToneFor(winner.id)]}
-            className="absolute right-2 bottom-2 size-24 sm:size-28"
-          />
+          <m.div className="absolute right-2 bottom-2" variants={variants.stampIn} initial="hidden" animate="visible">
+            <Stamp label="TRÚNG" date={houseClock(new Date()).ddmm} tone={STAMP_TONE[avatarToneFor(winner.id)]} rotate={-4} className="size-24 sm:size-28" />
+          </m.div>
         )}
       </div>
       <p className="sr-only" aria-live="polite">
@@ -305,7 +305,7 @@ function SpinView({ active, onDone }: { active: ActiveSpin; onDone: () => void }
           Vòng quay này đã bị trưởng phòng hủy, ca đột xuất cũng được hủy theo.
         </div>
       ) : showResult ? (
-        <div className="flex items-center gap-3 rounded-card bg-sky-bg p-4">
+        <Reveal className="flex items-center gap-3 rounded-card bg-sky-bg p-4">
           <Avatar name={winner.name} tone={avatarToneFor(winner.id)} src={winner.avatarUrl} size={40} />
           <div className="min-w-0">
             <p className="font-display text-ct text-ink">{resultHeadline(winner, me)}</p>
@@ -319,7 +319,7 @@ function SpinView({ active, onDone }: { active: ActiveSpin; onDone: () => void }
               </p>
             )}
           </div>
-        </div>
+        </Reveal>
       ) : (
         <div className="flex items-center gap-3 rounded-card bg-ink px-4 py-3">
           <span className="flex shrink-0 -space-x-1.5">
