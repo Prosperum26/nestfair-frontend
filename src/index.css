@@ -142,6 +142,46 @@
   }
 }
 
+/* Modal (<dialog>): vào/ra bằng CSS gốc. `allow-discrete` + `overlay` giữ dialog trong top layer tới khi
+   animation ra chạy xong; focus trap và Esc vẫn do trình duyệt lo. Trình duyệt chưa hỗ trợ thì đóng/mở tức thì. */
+.nf-modal,
+.nf-modal::backdrop {
+  transition-property: opacity, translate, scale, display, overlay;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-in);
+  transition-behavior: allow-discrete;
+}
+.nf-modal {
+  opacity: 0;
+  translate: 0 4px;
+  scale: 0.98;
+}
+.nf-modal::backdrop {
+  opacity: 0;
+}
+.nf-modal[open] {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+  transition-duration: var(--dur-base);
+  transition-timing-function: var(--ease-out);
+}
+.nf-modal[open]::backdrop {
+  opacity: 1;
+  transition-duration: var(--dur-base);
+}
+@starting-style {
+  .nf-modal[open] {
+    opacity: 0;
+    translate: 0 8px;
+    scale: 0.98;
+  }
+  .nf-modal[open]::backdrop {
+    opacity: 0;
+  }
+}
+/* Hết modal */
+
 /* Người dùng bật "giảm chuyển động": tắt hiệu ứng lặp và chuyển cảnh (Skeleton, spinner, transition). */
 @media (prefers-reduced-motion: reduce) {
   *,
