@@ -1,6 +1,7 @@
 import { ArrowUpRight, Receipt, Scale, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/Button.tsx';
+import { CountUpVnd } from '@/components/ui/CountUpVnd.tsx';
 import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
@@ -25,7 +26,7 @@ export function CategoryBar({ summary, className }: { summary: ExpenseSummary; c
 }
 
 /** Stat card (Design.md mục 3): overline + icon tile 32 → số ml → caption. */
-function StatCard({ overline, icon, tone, value, caption }: { overline: string; icon: ReactNode; tone: Tone; value: string; caption: ReactNode }) {
+function StatCard({ overline, icon, tone, value, caption }: { overline: string; icon: ReactNode; tone: Tone; value: ReactNode; caption: ReactNode }) {
   return (
     <section className="flex flex-col gap-2.5 rounded-card border border-line bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
@@ -83,17 +84,17 @@ export function ExpenseStatsDesktop({ summary }: { summary: ExpenseSummary }) {
         overline="Tổng chi tháng"
         icon={<Receipt />}
         tone="yellow"
-        value={formatVnd(summary.totalAmount)}
+        value={<CountUpVnd value={summary.totalAmount} />}
         caption={`${summary.expenseCount} hóa đơn · ${summary.participantCount} người`}
       />
       <StatCard
         overline="Bạn đã trả"
         icon={<ArrowUpRight />}
         tone="lil"
-        value={formatVnd(summary.paidByMe)}
+        value={<CountUpVnd value={summary.paidByMe} />}
         caption={`${summary.paidByMeCount} hóa đơn`}
       />
-      <StatCard overline="Phần của bạn" icon={<Scale />} tone="tom" value={formatVnd(summary.myShare)} caption={diffCaption(summary.diff)} />
+      <StatCard overline="Phần của bạn" icon={<Scale />} tone="tom" value={<CountUpVnd value={summary.myShare} />} caption={diffCaption(summary.diff)} />
       <CategoryCard summary={summary} />
     </div>
   );
@@ -109,7 +110,7 @@ export function ExpenseStatsMobile({ summary }: { summary: ExpenseSummary }) {
           <p className="font-mono text-over uppercase text-ink-on2">Tổng chi tháng {monthNumber(summary.month)}</p>
           <span className="rounded-full bg-hl px-2.5 py-0.5 text-cap font-semibold text-ink">{summary.expenseCount} hóa đơn</span>
         </div>
-        <p className="mt-4 font-mono text-[40px] leading-[48px] font-bold tracking-[-1.5px] text-hl">{formatVnd(summary.totalAmount)}</p>
+        <p className="mt-4 font-mono text-[40px] leading-[48px] font-bold tracking-[-1.5px] text-hl"><CountUpVnd value={summary.totalAmount} /></p>
         <CategoryBar summary={summary} className="mt-4" />
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div>
