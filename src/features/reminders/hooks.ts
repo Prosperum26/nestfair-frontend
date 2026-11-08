@@ -1,7 +1,8 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { assistantKeys } from '@/features/assistant/hooks.ts';
+import { optimisticList, patchById, removeById } from '@/lib/optimistic.ts';
 import { remindersApi } from './api.ts';
-import type { ReminderInput, ReminderPatch, ReminderState } from './types.ts';
+import type { ReminderDto, ReminderInput, ReminderPatch, ReminderState } from './types.ts';
 
 /** GET /reminders là nhắc của chính người gọi (không theo nhà) nên key chỉ cần state. */
 export const reminderKeys = {
@@ -34,7 +35,12 @@ export function useUpdateReminder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: ReminderPatch }) => remindersApi.update(id, body),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: reminderKeys.all }),
+    // Lạc quan: danh sách đổi ngay, lỗi thì trả đúng nhắc này về bản cũ.
+    ...optimisticList<{ id: string; body: ReminderPatch }, ReminderDto>(queryClient, {
+      queryKey: reminderKeys.all,
+      apply: (list, { id, body }) => patchById(list, id, body) ?? list,
+      ids: ({ id }) => [id],
+    }),
   });
 }
 
@@ -42,6 +48,11 @@ export function useDeleteReminder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => remindersApi.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: reminderKeys.all }),
+    // Lạc quan: dòng biến mất ngay, lỗi thì hiện lại đúng chỗ cũ.
+    ...optimisticList<string, ReminderDto>(queryClient, {
+      queryKey: reminderKeys.all,
+      apply: (list, id) => removeById(list, id) ?? list,
+      ids: (id) => [id],
+    }),
   });
 }
