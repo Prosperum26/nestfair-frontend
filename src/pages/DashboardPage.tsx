@@ -13,6 +13,7 @@ import { Link, useNavigate } from 'react-router';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
+import { CountUpVnd } from '@/components/ui/CountUpVnd.tsx';
 import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
@@ -66,7 +67,7 @@ function BalanceCard({ month, plan, meId }: { month: string; plan: SettlementPla
         <p className="font-mono text-over uppercase text-ink-on2">Số dư của bạn · {month}</p>
         <p className="mt-5 text-sm text-ink-on2">{label}</p>
         {pos ? (
-          <p className="mt-1 font-mono text-[44px] leading-[52px] font-bold tracking-[-1.5px] text-hl">{formatVnd(Math.abs(pos.net))}</p>
+          <p className="mt-1 font-mono text-[44px] leading-[52px] font-bold tracking-[-1.5px] text-hl"><CountUpVnd value={Math.abs(pos.net)} /></p>
         ) : (
           <Skeleton className="mt-2 h-12 w-48 bg-ink-soft" />
         )}
