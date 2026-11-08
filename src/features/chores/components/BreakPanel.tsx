@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plane, Trash2 } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Field } from '@/components/ui/Field.tsx';
@@ -89,19 +91,21 @@ export function BreakPanel({ houseId, isAdmin }: { houseId: string; isAdmin: boo
           <EmptyState icon={<Plane />} tone="neutral" title="Chưa có khoảng nghỉ nào" className="py-6" />
         ) : (
           <ul className="divide-y divide-line">
-            {breaks.data.map((b) => (
-              <li key={b.id} className="flex items-center gap-3 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="font-mono text-sm font-semibold text-ink">
-                    {fullDate(b.startDate)} → {fullDate(b.endDate)}
-                  </p>
-                  {b.reason && <p className="text-cap text-ink-2">{b.reason}</p>}
-                </div>
-                {isAdmin && (
-                  <IconButton icon={<Trash2 />} label="Xóa khoảng nghỉ" disabled={remove.isPending} onClick={() => remove.mutate(b.id, { onError: (e) => toast(messageForError(e)) })} />
-                )}
-              </li>
-            ))}
+            <AnimatePresence initial={false}>
+              {breaks.data.map((b) => (
+                <AnimatedItem as="li" key={b.id} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-mono text-sm font-semibold text-ink">
+                      {fullDate(b.startDate)} → {fullDate(b.endDate)}
+                    </p>
+                    {b.reason && <p className="text-cap text-ink-2">{b.reason}</p>}
+                  </div>
+                  {isAdmin && (
+                    <IconButton icon={<Trash2 />} label="Xóa khoảng nghỉ" disabled={remove.isPending} onClick={() => remove.mutate(b.id, { onError: (e) => toast(messageForError(e)) })} />
+                  )}
+                </AnimatedItem>
+              ))}
+            </AnimatePresence>
           </ul>
         )}
       </div>
