@@ -1,5 +1,5 @@
 import { ArrowLeftRight, Check, Clock, Gift, Inbox, Repeat, RotateCw, TriangleAlert } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
@@ -9,6 +9,7 @@ import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
+import { holdFor } from '@/lib/celebrate.ts';
 import { useNow } from '@/lib/use-now.ts';
 import { messageForSwapError } from '../copy.ts';
 import { useAcceptSwap, useRejectSwap, useSwapList } from '../hooks.ts';
@@ -17,7 +18,22 @@ import { acceptFailure, compensationLine, swapHeadline } from '../swap-lists.ts'
 import type { Swap } from '../types.ts';
 
 /** Một yêu cầu đích danh gửi tới bạn (preview 15 "Chờ bạn phản hồi"): Đồng ý hoặc Từ chối ngay trên thẻ. */
-export function IncomingCard({ swap, now, busy, onAccept, onReject }: { swap: Swap; now: Date; busy: boolean; onAccept: () => void; onReject: () => void }) {
+export function IncomingCard({
+  swap,
+  now,
+  busy,
+  accepted = false,
+  onAccept,
+  onReject,
+}: {
+  swap: Swap;
+  now: Date;
+  busy: boolean;
+  /** Vừa đồng ý thành công: thay nút bằng dấu "Đã đổi" trong lúc thẻ rời danh sách. */
+  accepted?: boolean;
+  onAccept: () => void;
+  onReject: () => void;
+}) {
   const line = compensationLine(swap);
   const from = swap.fromAssignment;
   const to = swap.toAssignment;
@@ -60,14 +76,22 @@ export function IncomingCard({ swap, now, busy, onAccept, onReject }: { swap: Sw
         </p>
       )}
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Button variant="primary" leftIcon={<Check />} disabled={busy} onClick={onAccept}>
-          Đồng ý
-        </Button>
-        <Button variant="secondary" disabled={busy} onClick={onReject}>
-          Từ chối
-        </Button>
-      </div>
+      {accepted ? (
+        <div className="mt-4">
+          <Chip tone="mint" icon={<Check />}>
+            Đã đổi ca
+          </Chip>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button variant="primary" leftIcon={<Check />} disabled={busy} onClick={onAccept}>
+            Đồng ý
+          </Button>
+          <Button variant="secondary" disabled={busy} onClick={onReject}>
+            Từ chối
+          </Button>
+        </div>
+      )}
     </article>
   );
 }
@@ -80,6 +104,8 @@ export function IncomingList({ houseId }: { houseId: string }) {
   const now = useNow();
   const [gone, setGone] = useState<ReadonlySet<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState<ReadonlySet<string>>(new Set());
+  const reduceMotion = useReducedMotion();
 
   if (list.isPending) return <Skeleton className="h-[200px] rounded-card" aria-busy="true" />;
   if (list.isError) {
@@ -106,7 +132,10 @@ export function IncomingList({ houseId }: { houseId: string }) {
     accept.mutate(
       { swapId: id },
       {
-        onSuccess: () => toast.success('Bạn đã đồng ý. Ca đã được đổi.'),
+        onSuccess: () => {
+          setAccepted((cur) => new Set(cur).add(id));
+          toast.success('Bạn đã đồng ý. Ca đã được đổi.');
+        },
         onError: (e) => {
           const failure = acceptFailure(e);
           toast.error(failure.message);
@@ -132,8 +161,8 @@ export function IncomingList({ houseId }: { houseId: string }) {
     <ul className="flex flex-col gap-3" aria-label="Yêu cầu gửi tới bạn">
       <AnimatePresence initial={false}>
         {swaps.map((s) => (
-          <AnimatedItem as="li" key={s.id}>
-            <IncomingCard swap={s} now={now} busy={busyId === s.id} onAccept={() => onAccept(s.id)} onReject={() => onReject(s.id)} />
+          <AnimatedItem as="li" key={s.id} exitDelay={accepted.has(s.id) ? holdFor('swapAccepted', reduceMotion) / 1000 : 0}>
+            <IncomingCard swap={s} now={now} busy={busyId === s.id} accepted={accepted.has(s.id)} onAccept={() => onAccept(s.id)} onReject={() => onReject(s.id)} />
           </AnimatedItem>
         ))}
       </AnimatePresence>

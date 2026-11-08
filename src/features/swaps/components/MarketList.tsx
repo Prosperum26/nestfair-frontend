@@ -1,11 +1,12 @@
 import { RotateCw, Store, TriangleAlert } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
+import { holdFor } from '@/lib/celebrate.ts';
 import { useNow } from '@/lib/use-now.ts';
 import { messageForSwapError } from '../copy.ts';
 import { useAcceptSwap, useSwapList } from '../hooks.ts';
@@ -24,6 +25,8 @@ export function MarketList({ houseId }: { houseId: string }) {
   // Thẻ vừa bị báo "đã có người nhận": ẩn ngay, danh sách thật tải lại ngay sau đó.
   const [gone, setGone] = useState<ReadonlySet<string>>(new Set());
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState<ReadonlySet<string>>(new Set());
+  const reduceMotion = useReducedMotion();
 
   if (list.isPending) {
     return (
@@ -61,6 +64,7 @@ export function MarketList({ houseId }: { houseId: string }) {
       { swapId: id },
       {
         onSuccess: (res) => {
+          setAccepted((cur) => new Set(cur).add(id));
           const slot = res.swap.fromAssignment;
           toast.success(slot ? `Bạn đã nhận ca ${slot.choreTitle}.` : 'Bạn đã nhận ca.');
         },
@@ -78,8 +82,8 @@ export function MarketList({ houseId }: { houseId: string }) {
     <ul className="flex flex-col gap-3" aria-label="Ca đang cần người nhận">
       <AnimatePresence initial={false}>
         {swaps.map((s) => (
-          <AnimatedItem as="li" key={s.id}>
-            <MarketCard swap={s} now={now} accepting={pendingId === s.id} onAccept={() => onAccept(s.id)} />
+          <AnimatedItem as="li" key={s.id} exitDelay={accepted.has(s.id) ? holdFor('swapAccepted', reduceMotion) / 1000 : 0}>
+            <MarketCard swap={s} now={now} accepting={pendingId === s.id} accepted={accepted.has(s.id)} onAccept={() => onAccept(s.id)} />
           </AnimatedItem>
         ))}
       </AnimatePresence>
