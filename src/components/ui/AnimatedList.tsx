@@ -15,24 +15,19 @@ export function AnimatedItem({
   layout = true,
   className,
   onClick,
-  exitDelay = 0,
   children,
 }: {
   as?: ItemTag;
   layout?: boolean;
   className?: string;
   onClick?: () => void;
-  /** Giây giữ nguyên trước khi rời danh sách (vd. thẻ vừa "Đã nhận" còn hiện một nhịp). */
-  exitDelay?: number;
   children: ReactNode;
 }) {
-  const base = as === 'tr' ? variants.rowItem : variants.listItem;
-  const itemVariants = exitDelay > 0 ? { ...base, exit: { ...base.exit, transition: { ...base.exit.transition, delay: exitDelay } } } : base;
   const props = {
     className,
     onClick,
     layout: as === 'tr' ? false : layout,
-    variants: itemVariants,
+    variants: as === 'tr' ? variants.rowItem : variants.listItem,
     initial: 'hidden',
     animate: 'visible',
     exit: 'exit',
