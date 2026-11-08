@@ -1,12 +1,17 @@
 import { Check, X } from 'lucide-react';
+import { m, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { Modal } from '@/components/ui/Modal.tsx';
+import { Stamp } from '@/components/ui/Stamp.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
+import { holdFor } from '@/lib/celebrate.ts';
 import { cn } from '@/lib/cn.ts';
+import { formatDate } from '@/lib/date.ts';
+import { variants } from '@/lib/motion.ts';
 import { isStateChanged, messageForError } from '../errors.ts';
 import { useVerify } from '../hooks.ts';
 import { canVerify } from '../permissions.ts';
@@ -30,7 +35,11 @@ function VerifyBody({
   const [reason, setReason] = useState('');
   const [imageFailed, setImageFailed] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  // Kết quả vừa gửi thành công: đóng con dấu lên ảnh, giữ một nhịp rồi mới đóng modal.
+  const [stamped, setStamped] = useState<'APPROVED' | 'REJECTED' | null>(null);
+  const reduceMotion = useReducedMotion();
   const verify = useVerify(houseId);
+  const busy = verify.isPending || stamped !== null;
 
   const allowed = canVerify(assignment, meUserId);
   const trimmed = reason.trim();
@@ -43,7 +52,8 @@ function VerifyBody({
       {
         onSuccess: () => {
           toast(decision === 'APPROVED' ? 'Đã duyệt ca này.' : 'Đã yêu cầu làm lại.');
-          onClose();
+          setStamped(decision);
+          setTimeout(onClose, holdFor('verifyStamp', reduceMotion));
         },
         onError: (e) => {
           // Người khác duyệt trước: báo ngắn gọn rồi đóng để thấy trạng thái mới.
@@ -75,19 +85,31 @@ function VerifyBody({
         </p>
       )}
 
-      {assignment.proofImageUrl && !imageFailed ? (
-        <img
-          src={assignment.proofImageUrl}
-          alt={`Ảnh minh chứng: ${assignment.choreTitle}`}
-          referrerPolicy="no-referrer"
-          onError={() => setImageFailed(true)}
-          className="mt-3 max-h-[320px] w-full rounded-card border border-line bg-paper-2 object-contain"
-        />
-      ) : (
-        <p className="mt-3 rounded-card bg-paper-2 px-3 py-6 text-center text-sm text-ink-2">
-          {assignment.proofImageUrl ? 'Không tải được ảnh minh chứng.' : 'Chưa có ảnh minh chứng.'}
-        </p>
-      )}
+      <div className="relative">
+        {assignment.proofImageUrl && !imageFailed ? (
+          <img
+            src={assignment.proofImageUrl}
+            alt={`Ảnh minh chứng: ${assignment.choreTitle}`}
+            referrerPolicy="no-referrer"
+            onError={() => setImageFailed(true)}
+            className="mt-3 max-h-[320px] w-full rounded-card border border-line bg-paper-2 object-contain"
+          />
+        ) : (
+          <p className="mt-3 rounded-card bg-paper-2 px-3 py-6 text-center text-sm text-ink-2">
+            {assignment.proofImageUrl ? 'Không tải được ảnh minh chứng.' : 'Chưa có ảnh minh chứng.'}
+          </p>
+        )}
+        {stamped && (
+          <m.div className="pointer-events-none absolute inset-0 flex items-center justify-center" variants={variants.stampIn} initial="hidden" animate="visible">
+            <Stamp
+              label={stamped === 'APPROVED' ? 'ĐÃ DUYỆT' : 'LÀM LẠI'}
+              date={formatDate(new Date())}
+              tone={stamped === 'APPROVED' ? 'mint' : 'tom'}
+              rotate={0}
+            />
+          </m.div>
+        )}
+      </div>
 
       {serverError && (
         <p role="alert" className="mt-4 rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">
@@ -120,20 +142,20 @@ function VerifyBody({
             {trimmed.length}/{MAX_REASON} · tối thiểu {MIN_REASON} ký tự
           </p>
           <div className="mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <Button variant="secondary" onClick={() => setRejecting(false)} disabled={verify.isPending}>
+            <Button variant="secondary" onClick={() => setRejecting(false)} disabled={busy}>
               Quay lại
             </Button>
-            <Button leftIcon={<X />} disabled={!reasonOk} loading={verify.isPending} onClick={() => send('REJECTED')}>
+            <Button leftIcon={<X />} disabled={!reasonOk || stamped !== null} loading={verify.isPending} onClick={() => send('REJECTED')}>
               Gửi yêu cầu làm lại
             </Button>
           </div>
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <Button leftIcon={<Check />} loading={verify.isPending} onClick={() => send('APPROVED')}>
+          <Button leftIcon={<Check />} loading={verify.isPending} disabled={stamped !== null} onClick={() => send('APPROVED')}>
             Duyệt
           </Button>
-          <Button variant="secondary" disabled={verify.isPending} onClick={() => setRejecting(true)}>
+          <Button variant="secondary" disabled={busy} onClick={() => setRejecting(true)}>
             Làm lại
           </Button>
         </div>
