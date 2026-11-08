@@ -1,7 +1,9 @@
 import { MoreHorizontal, Pencil, Plus, ScrollText, Settings, Trash2, Undo2 } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { Menu, MenuItem } from '@/components/ui/Menu.tsx';
@@ -97,40 +99,42 @@ export function RulesCard({ house, meId }: { house: HouseDetail; meId: string | 
         <div className="mt-5 border-t border-line pt-4">
           <p className="font-mono text-over uppercase text-ink-2">Đề xuất của bạn</p>
           <ul className="mt-3 flex flex-col gap-3">
-            {mine.map((p) => {
-              const chip = proposalStatusChip(p.status);
-              return (
-                <li key={p.id} className="rounded-btn border border-line p-3.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-ink">{proposalTitle(p)}</p>
-                    <Chip tone={chip.tone} size="sm">{chip.label}</Chip>
-                  </div>
-                  <div className="mt-2">
-                    <ProposalBody proposal={p} />
-                  </div>
-                  {p.status === 'REJECTED' && p.rejectReason && (
-                    <p className="mt-2 break-words text-cap text-tom">Trưởng phòng: {p.rejectReason}</p>
-                  )}
-                  {p.status === 'PENDING' && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="mt-2"
-                      leftIcon={<Undo2 />}
-                      loading={withdraw.isPending && withdraw.variables === p.id}
-                      onClick={() =>
-                        withdraw.mutate(p.id, {
-                          onSuccess: () => toast('Đã rút lại đề xuất.'),
-                          onError: (e) => toast.error(proposalErrorMessage(e)),
-                        })
-                      }
-                    >
-                      Rút lại
-                    </Button>
-                  )}
-                </li>
-              );
-            })}
+            <AnimatePresence initial={false}>
+              {mine.map((p) => {
+                const chip = proposalStatusChip(p.status);
+                return (
+                  <AnimatedItem as="li" key={p.id} className="rounded-btn border border-line p-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-ink">{proposalTitle(p)}</p>
+                      <Chip tone={chip.tone} size="sm">{chip.label}</Chip>
+                    </div>
+                    <div className="mt-2">
+                      <ProposalBody proposal={p} />
+                    </div>
+                    {p.status === 'REJECTED' && p.rejectReason && (
+                      <p className="mt-2 break-words text-cap text-tom">Trưởng phòng: {p.rejectReason}</p>
+                    )}
+                    {p.status === 'PENDING' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="mt-2"
+                        leftIcon={<Undo2 />}
+                        loading={withdraw.isPending && withdraw.variables === p.id}
+                        onClick={() =>
+                          withdraw.mutate(p.id, {
+                            onSuccess: () => toast('Đã rút lại đề xuất.'),
+                            onError: (e) => toast.error(proposalErrorMessage(e)),
+                          })
+                        }
+                      >
+                        Rút lại
+                      </Button>
+                    )}
+                  </AnimatedItem>
+                );
+              })}
+            </AnimatePresence>
           </ul>
         </div>
       )}

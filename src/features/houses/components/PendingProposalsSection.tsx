@@ -1,6 +1,8 @@
 import { Check, Inbox, RotateCw, X } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
@@ -57,39 +59,41 @@ export function PendingProposalsSection({ houseId }: { houseId: string }) {
   } else {
     body = (
       <ul className="flex flex-col gap-3">
-        {pending.map((p) => (
-          <li key={p.id} className="rounded-btn border border-line p-4">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Avatar name={p.proposer.fullName} tone={avatarToneFor(p.proposer.userId)} src={p.proposer.avatarUrl} size={32} />
-              <p className="min-w-0 flex-1 text-sm text-ink">
-                <span className="font-semibold">{p.proposer.fullName}</span>
-                <span className="text-ink-2"> · {formatDate(new Date(p.createdAt))}</span>
-              </p>
-              <Chip tone="yellow" size="sm">{proposalTitle(p)}</Chip>
-            </div>
-            <div className="mt-3">
-              <ProposalBody proposal={p} />
-            </div>
-            <div className="mt-4 flex flex-wrap justify-end gap-2.5">
-              <Button size="sm" variant="secondary" leftIcon={<X />} onClick={() => setRejecting(p)}>
-                Từ chối
-              </Button>
-              <Button
-                size="sm"
-                leftIcon={<Check />}
-                loading={approve.isPending && approve.variables === p.id}
-                onClick={() =>
-                  approve.mutate(p.id, {
-                    onSuccess: () => toast('Đã duyệt. Nội quy đã cập nhật.'),
-                    onError: (e) => toast.error(proposalErrorMessage(e)),
-                  })
-                }
-              >
-                Duyệt
-              </Button>
-            </div>
-          </li>
-        ))}
+        <AnimatePresence initial={false}>
+          {pending.map((p) => (
+            <AnimatedItem as="li" key={p.id} className="rounded-btn border border-line p-4">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Avatar name={p.proposer.fullName} tone={avatarToneFor(p.proposer.userId)} src={p.proposer.avatarUrl} size={32} />
+                <p className="min-w-0 flex-1 text-sm text-ink">
+                  <span className="font-semibold">{p.proposer.fullName}</span>
+                  <span className="text-ink-2"> · {formatDate(new Date(p.createdAt))}</span>
+                </p>
+                <Chip tone="yellow" size="sm">{proposalTitle(p)}</Chip>
+              </div>
+              <div className="mt-3">
+                <ProposalBody proposal={p} />
+              </div>
+              <div className="mt-4 flex flex-wrap justify-end gap-2.5">
+                <Button size="sm" variant="secondary" leftIcon={<X />} onClick={() => setRejecting(p)}>
+                  Từ chối
+                </Button>
+                <Button
+                  size="sm"
+                  leftIcon={<Check />}
+                  loading={approve.isPending && approve.variables === p.id}
+                  onClick={() =>
+                    approve.mutate(p.id, {
+                      onSuccess: () => toast('Đã duyệt. Nội quy đã cập nhật.'),
+                      onError: (e) => toast.error(proposalErrorMessage(e)),
+                    })
+                  }
+                >
+                  Duyệt
+                </Button>
+              </div>
+            </AnimatedItem>
+          ))}
+        </AnimatePresence>
       </ul>
     );
   }
