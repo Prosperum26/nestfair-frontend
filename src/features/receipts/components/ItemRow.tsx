@@ -1,4 +1,5 @@
 import { Trash2, TriangleAlert } from 'lucide-react';
+import { m } from 'motion/react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
@@ -6,6 +7,7 @@ import { AmountInput } from '@/features/expenses/components/AmountInput.tsx';
 import type { UserBrief } from '@/features/expenses/types.ts';
 import { firstName } from '@/lib/date.ts';
 import { cn } from '@/lib/cn.ts';
+import { variants } from '@/lib/motion.ts';
 import type { ReviewItem } from '../draft-form.ts';
 
 const initialOf = (name: string) => (name.trim().split(/\s+/).at(-1) ?? name).charAt(0).toUpperCase();
@@ -21,6 +23,7 @@ export function ItemRow({
   error,
   onChange,
   onRemove,
+  appearDelay = 0,
 }: {
   item: ReviewItem;
   members: UserBrief[];
@@ -28,12 +31,18 @@ export function ItemRow({
   error?: { name?: string; lineTotal?: string; userIds?: string };
   onChange: (next: ReviewItem) => void;
   onRemove: () => void;
+  /** Giây trễ khi dòng xuất hiện (các món hiện lần lượt như máy in hóa đơn). */
+  appearDelay?: number;
 }) {
   const toggle = (id: string) =>
     onChange({ ...item, uncertain: false, userIds: item.userIds.includes(id) ? item.userIds.filter((u) => u !== id) : [...item.userIds, id] });
 
   return (
-    <li
+    <m.li
+      variants={variants.fadeUp}
+      initial="hidden"
+      animate="visible"
+      transition={{ delay: appearDelay }}
       className={cn(
         'grid gap-x-3 gap-y-2 rounded-btn px-3 py-3 md:grid-cols-[minmax(0,1fr)_44px_132px_auto_40px] md:items-center',
         flagged ? 'bg-hl-soft ring-2 ring-hl' : 'border-b border-line last:border-b-0',
@@ -103,6 +112,6 @@ export function ItemRow({
       </div>
 
       <IconButton icon={<Trash2 />} label="Xóa món" onClick={onRemove} className="justify-self-end md:justify-self-auto" />
-    </li>
+    </m.li>
   );
 }

@@ -18,6 +18,7 @@ import type { Expense, UserBrief } from '@/features/expenses/types.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
 import { formatSignedVnd, formatVnd } from '@/lib/format.ts';
+import { staggerDelay } from '@/lib/stagger.ts';
 import { draftToReviewValues, prefillItemsFromReview, receiptFlags, receiptReviewSchema, type ReviewFormValues, type ReviewItem, toItemizedInput } from '../draft-form.ts';
 import { previewItemized } from '../itemized.ts';
 import type { ReceiptDraft } from '../types.ts';
@@ -78,6 +79,8 @@ export function ReviewForm({ houseId, members, meId, draft, previewUrl, fileName
   });
   const values = useWatch({ control }) as ReviewFormValues;
   const items = values.items ?? [];
+  // Chỉ các món đọc được lúc mở bản nháp mới hiện lần lượt; món thêm tay sau đó hiện ngay.
+  const [initialItemCount] = useState(() => items.length);
   const preview = previewItemized({ total: values.totalAmount ?? null, items, memberIds });
   const parsed = schema.safeParse(values);
   const blocker = parsed.success ? null : (parsed.error.issues[0]?.message ?? null);
@@ -234,6 +237,7 @@ export function ReviewForm({ houseId, members, meId, draft, previewUrl, fileName
                   }}
                   onChange={(next) => setItems(items.map((x, j) => (j === i ? next : x)))}
                   onRemove={() => setItems(items.filter((_, j) => j !== i))}
+                  appearDelay={i < initialItemCount ? staggerDelay(i) : 0}
                 />
               ))}
             </ul>
