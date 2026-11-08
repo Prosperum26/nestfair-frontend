@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
 import { holdFor } from '@/lib/celebrate.ts';
+import { type Pin, withPinned } from '@/lib/pinned.ts';
 import { useNow } from '@/lib/use-now.ts';
 import { messageForSwapError } from '../copy.ts';
 import { useAcceptSwap, useRejectSwap, useSwapList } from '../hooks.ts';
@@ -106,6 +107,14 @@ export function IncomingList({ houseId }: { houseId: string }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<ReadonlySet<string>>(new Set());
   const reduceMotion = useReducedMotion();
+  // Thẻ đang nhận: ghim từ lúc bấm để socket tải lại danh sách không gỡ nó trước khi hiện "Đã nhận".
+  const [pinned, setPinned] = useState<ReadonlyMap<string, Pin<Swap>>>(new Map());
+  const unpin = (id: string) =>
+    setPinned((cur) => {
+      const next = new Map(cur);
+      next.delete(id);
+      return next;
+    });
 
   if (list.isPending) return <Skeleton className="h-[200px] rounded-card" aria-busy="true" />;
   if (list.isError) {
@@ -124,19 +133,26 @@ export function IncomingList({ houseId }: { houseId: string }) {
       />
     );
   }
-  const swaps = list.data.filter((s) => !gone.has(s.id));
+  const swaps = withPinned(
+    list.data.filter((s) => !gone.has(s.id)),
+    pinned,
+    (s) => s.id,
+  );
   if (swaps.length === 0) return <EmptyState icon={<Inbox />} tone="neutral" title="Chưa có yêu cầu nào gửi tới bạn" className="py-6" />;
 
   const onAccept = (id: string) => {
     setBusyId(id);
+    setPinned((cur) => new Map(cur).set(id, { item: swaps.find((s) => s.id === id)!, index: swaps.findIndex((s) => s.id === id) }));
     accept.mutate(
       { swapId: id },
       {
         onSuccess: () => {
           setAccepted((cur) => new Set(cur).add(id));
+          setTimeout(() => unpin(id), holdFor('swapAccepted', reduceMotion));
           toast.success('Bạn đã đồng ý. Ca đã được đổi.');
         },
         onError: (e) => {
+          unpin(id);
           const failure = acceptFailure(e);
           toast.error(failure.message);
           if (failure.dropCard) setGone((cur) => new Set(cur).add(id));
@@ -161,7 +177,7 @@ export function IncomingList({ houseId }: { houseId: string }) {
     <ul className="flex flex-col gap-3" aria-label="Yêu cầu gửi tới bạn">
       <AnimatePresence initial={false}>
         {swaps.map((s) => (
-          <AnimatedItem as="li" key={s.id} exitDelay={accepted.has(s.id) ? holdFor('swapAccepted', reduceMotion) / 1000 : 0}>
+          <AnimatedItem as="li" key={s.id}>
             <IncomingCard swap={s} now={now} busy={busyId === s.id} accepted={accepted.has(s.id)} onAccept={() => onAccept(s.id)} onReject={() => onReject(s.id)} />
           </AnimatedItem>
         ))}
