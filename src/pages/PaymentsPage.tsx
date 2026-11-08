@@ -1,4 +1,4 @@
-import { CircleCheck, QrCode, TriangleAlert } from 'lucide-react';
+import { QrCode, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
@@ -122,13 +122,8 @@ export function PaymentsPage() {
                 <DebtSimplifyCard plan={plan.data} />
               </div>
               <div className="flex flex-col gap-6 lg:col-span-5">
-                {house && plan.data.optimized.length > 0 ? (
-                  <SettleList transfers={plan.data.optimized} members={plan.data.members} meId={me?.id} houseId={house.id} onPay={setPaying} />
-                ) : (
-                  <section className="rounded-card border border-line bg-surface p-6">
-                    <EmptyState icon={<CircleCheck />} tone="mint" title="Không còn ai nợ ai" description="Mọi giao dịch đã được xác nhận." className="py-4" />
-                  </section>
-                )}
+                {/* SettleList tự hiện thẻ "Không còn ai nợ ai" khi hết giao dịch (sau khi dòng cuối chạy xong hiệu ứng). */}
+                {house && <SettleList transfers={plan.data.optimized} members={plan.data.members} meId={me?.id} houseId={house.id} onPay={setPaying} />}
                 <MyAccountCard me={me} />
               </div>
             </div>

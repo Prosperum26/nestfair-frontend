@@ -90,20 +90,9 @@ export function useReportTransfer(houseId: string) {
   return useMutation({ mutationFn: (body: SettlementInput) => settlementsApi.create(houseId, body), onSuccess: invalidate });
 }
 
-/**
- * `holdMs`: xác nhận xong thì giữ dữ liệu cũ thêm một nhịp (dòng vừa tất toán còn trên màn để chạy hiệu ứng),
- * rồi mới tải lại. Lỗi (vd. bấm đúp, 409) thì tải lại ngay.
- */
-export function useConfirmSettlement(houseId: string, holdMs = 0) {
+export function useConfirmSettlement(houseId: string) {
   const invalidate = useInvalidateLedger(houseId);
-  return useMutation({
-    mutationFn: (id: string) => settlementsApi.confirm(houseId, id),
-    onSuccess: () => {
-      if (holdMs > 0) setTimeout(() => void invalidate(), holdMs);
-      else return invalidate();
-    },
-    onError: () => invalidate(),
-  });
+  return useMutation({ mutationFn: (id: string) => settlementsApi.confirm(houseId, id), onSettled: invalidate });
 }
 
 export function useCancelSettlement(houseId: string) {
