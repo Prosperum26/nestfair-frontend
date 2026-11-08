@@ -1,4 +1,6 @@
 import { CircleCheck, Clock, History, ImageIcon, TriangleAlert, X } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
@@ -122,48 +124,52 @@ export function HistoryCard({
                 </tr>
               </thead>
               <tbody>
-                {items.map((s) => (
-                  <tr key={s.id} className="h-[60px] [&>td]:border-b [&>td]:border-line">
-                    <td className="px-3 font-mono text-ms text-ink">{dayMonth(s.createdAt)}</td>
-                    <td className="px-3 text-ink">
-                      <span className="flex items-center gap-2">
-                        <Who user={s.from} meId={meId} />
-                        <span className="text-ink-2" aria-label="trả cho">
-                          →
+                <AnimatePresence initial={false}>
+                  {items.map((s) => (
+                    <AnimatedItem as="tr" key={s.id} className="h-[60px] [&>td]:border-b [&>td]:border-line">
+                      <td className="px-3 font-mono text-ms text-ink">{dayMonth(s.createdAt)}</td>
+                      <td className="px-3 text-ink">
+                        <span className="flex items-center gap-2">
+                          <Who user={s.from} meId={meId} />
+                          <span className="text-ink-2" aria-label="trả cho">
+                            →
+                          </span>
+                          <Who user={s.to} meId={meId} />
                         </span>
-                        <Who user={s.to} meId={meId} />
-                      </span>
-                    </td>
-                    <td className="px-3 text-right font-mono text-mm text-ink">{formatVnd(s.amount)}</td>
-                    <td className="px-3">
-                      <Evidence s={s} />
-                    </td>
-                    <td className="px-3">
-                      <StatusChip status={s.status} />
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-3 text-right font-mono text-mm text-ink">{formatVnd(s.amount)}</td>
+                      <td className="px-3">
+                        <Evidence s={s} />
+                      </td>
+                      <td className="px-3">
+                        <StatusChip status={s.status} />
+                      </td>
+                    </AnimatedItem>
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
 
             <ul className="divide-y divide-line lg:hidden">
-              {items.map((s) => (
-                <li key={s.id} className="flex items-center gap-3 py-3">
-                  <Avatar name={s.from.fullName} tone={avatarToneFor(s.from.id)} src={s.from.avatarUrl} size={32} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-ink">
-                      {s.from.id === meId ? 'Bạn' : firstName(s.from.fullName)} → {s.to.id === meId ? 'Bạn' : firstName(s.to.fullName)}
-                    </p>
-                    <p className="text-cap text-ink-2">
-                      {dayMonth(s.createdAt)} · {s.proofUrl ? 'Có bill' : 'Chuyển khoản'}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span className="font-mono text-mm text-ink">{formatVnd(s.amount)}</span>
-                    <StatusChip status={s.status} />
-                  </div>
-                </li>
-              ))}
+              <AnimatePresence initial={false}>
+                {items.map((s) => (
+                  <AnimatedItem as="li" key={s.id} className="flex items-center gap-3 py-3">
+                    <Avatar name={s.from.fullName} tone={avatarToneFor(s.from.id)} src={s.from.avatarUrl} size={32} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-ink">
+                        {s.from.id === meId ? 'Bạn' : firstName(s.from.fullName)} → {s.to.id === meId ? 'Bạn' : firstName(s.to.fullName)}
+                      </p>
+                      <p className="text-cap text-ink-2">
+                        {dayMonth(s.createdAt)} · {s.proofUrl ? 'Có bill' : 'Chuyển khoản'}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="font-mono text-mm text-ink">{formatVnd(s.amount)}</span>
+                      <StatusChip status={s.status} />
+                    </div>
+                  </AnimatedItem>
+                ))}
+              </AnimatePresence>
             </ul>
           </>
         )}

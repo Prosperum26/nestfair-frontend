@@ -1,5 +1,7 @@
 import { ArrowRight, Check, Clock, ImageIcon, QrCode, X } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
@@ -57,7 +59,7 @@ function TransferRow({
     );
 
   return (
-    <li className={cn('rounded-card border p-4', mine ? 'border-[1.5px] border-ink bg-hl-soft shadow-hard' : 'border-line bg-surface')}>
+    <AnimatedItem as="li" className={cn('rounded-card border p-4', mine ? 'border-[1.5px] border-ink bg-hl-soft shadow-hard' : 'border-line bg-surface')}>
       <div className="flex items-center gap-3">
         <span className="flex shrink-0 items-center gap-1.5" aria-hidden>
           {from && <Avatar name={from.fullName} tone={avatarToneFor(from.id)} src={from.avatarUrl} size={32} />}
@@ -119,7 +121,7 @@ function TransferRow({
           )}
         </div>
       )}
-    </li>
+    </AnimatedItem>
   );
 }
 
@@ -149,9 +151,11 @@ export function SettleList({
         <p className="mt-4 text-sm text-ink-2">Không còn giao dịch nào cần tất toán.</p>
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
-          {sorted.map((t) => (
-            <TransferRow key={`${t.fromUserId}-${t.toUserId}`} transfer={t} members={members} meId={meId} houseId={houseId} onPay={onPay} />
-          ))}
+          <AnimatePresence initial={false}>
+            {sorted.map((t) => (
+              <TransferRow key={`${t.fromUserId}-${t.toUserId}`} transfer={t} members={members} meId={meId} houseId={houseId} onPay={onPay} />
+            ))}
+          </AnimatePresence>
         </ul>
       )}
     </section>
