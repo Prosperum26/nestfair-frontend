@@ -6,7 +6,7 @@ export function removeById<T extends WithId>(list: T[] | undefined, id: string):
   return list?.filter((item) => item.id !== id);
 }
 
-export function patchById<T extends WithId>(list: T[] | undefined, id: string, patch: Partial<T>): T[] | undefined {
+export function patchById<T extends WithId>(list: T[] | undefined, id: string, patch: Partial<NoInfer<T>>): T[] | undefined {
   return list?.map((item) => (item.id === id ? { ...item, ...patch } : item));
 }
 

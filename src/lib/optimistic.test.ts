@@ -21,7 +21,7 @@ describe('removeById / patchById', () => {
   it('patchById chỉ đổi phần tử khớp', () => {
     const next = patchById(rows(), 'a', { title: 'Đổ rác tối' });
     expect(next?.map((r) => r.title)).toEqual(['Đổ rác tối', 'Đóng tiền điện', 'Mua nước']);
-    expect(patchById(undefined, 'a', { title: 'x' })).toBeUndefined();
+    expect(patchById<Row>(undefined, 'a', { title: 'x' })).toBeUndefined();
   });
 });
 
