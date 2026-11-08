@@ -1,6 +1,8 @@
 import { RotateCw, Store, TriangleAlert } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
@@ -74,11 +76,13 @@ export function MarketList({ houseId }: { houseId: string }) {
 
   return (
     <ul className="flex flex-col gap-3" aria-label="Ca đang cần người nhận">
-      {swaps.map((s) => (
-        <li key={s.id}>
-          <MarketCard swap={s} now={now} accepting={pendingId === s.id} onAccept={() => onAccept(s.id)} />
-        </li>
-      ))}
+      <AnimatePresence initial={false}>
+        {swaps.map((s) => (
+          <AnimatedItem as="li" key={s.id}>
+            <MarketCard swap={s} now={now} accepting={pendingId === s.id} onAccept={() => onAccept(s.id)} />
+          </AnimatedItem>
+        ))}
+      </AnimatePresence>
     </ul>
   );
 }

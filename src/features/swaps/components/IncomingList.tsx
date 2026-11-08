@@ -1,6 +1,8 @@
 import { ArrowLeftRight, Check, Clock, Gift, Inbox, Repeat, RotateCw, TriangleAlert } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
@@ -128,11 +130,13 @@ export function IncomingList({ houseId }: { houseId: string }) {
 
   return (
     <ul className="flex flex-col gap-3" aria-label="Yêu cầu gửi tới bạn">
-      {swaps.map((s) => (
-        <li key={s.id}>
-          <IncomingCard swap={s} now={now} busy={busyId === s.id} onAccept={() => onAccept(s.id)} onReject={() => onReject(s.id)} />
-        </li>
-      ))}
+      <AnimatePresence initial={false}>
+        {swaps.map((s) => (
+          <AnimatedItem as="li" key={s.id}>
+            <IncomingCard swap={s} now={now} busy={busyId === s.id} onAccept={() => onAccept(s.id)} onReject={() => onReject(s.id)} />
+          </AnimatedItem>
+        ))}
+      </AnimatePresence>
     </ul>
   );
 }
