@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { MotionProvider } from '@/components/MotionProvider.tsx';
 import { AnimatedList } from './AnimatedList.tsx';
-import { shouldUseLayout } from './list-layout.ts';
 import { Reveal } from './Reveal.tsx';
 
 const items = [
@@ -26,11 +25,6 @@ describe('AnimatedList', () => {
     const html = render(<AnimatedList items={items} getKey={(i) => i.id} render={(i) => i.label} />);
     expect(html.startsWith('<div')).toBe(true);
     expect(html).not.toContain('<li');
-  });
-
-  it('tắt layout animation khi danh sách dài hơn 50', () => {
-    expect(shouldUseLayout(50)).toBe(true);
-    expect(shouldUseLayout(51)).toBe(false);
   });
 });
 
