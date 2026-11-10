@@ -1,6 +1,6 @@
 import { ArrowRight, KeyRound, ScanLine, ShoppingCart, Sparkles } from 'lucide-react';
 import { AnimatePresence, m, useInView, useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { CountUpVnd } from '@/components/ui/CountUpVnd.tsx';
@@ -28,6 +28,12 @@ const RECEIPT_TOTAL = RECEIPT_ROWS.reduce((sum, r) => sum + r.amount, 0);
 /** Nhịp mở màn (giây): marker, ba thẻ rơi vào chỗ, hóa đơn in từng dòng, cuối cùng đóng dấu. */
 const T = { marker: 0.35, debt: 0.1, receipt: 0.25, rows: 0.55, rowStep: 0.08, stamp: 1.1, toast: 0.45 } as const;
 
+/**
+ * Nhịp lơ lửng của từng thẻ (`.nf-float` trong index.css): bắt đầu khi thẻ đã rơi vào chỗ (hóa đơn chờ đóng dấu
+ * xong), mỗi thẻ một chu kỳ để không nhấp nhô đồng loạt.
+ */
+const float = (dur: number, delay: number) => ({ '--float-dur': `${dur}s`, '--float-delay': `${delay}s` }) as CSSProperties;
+
 function Person({ k, size = 24 }: { k: keyof typeof PEOPLE; size?: number }) {
   return <Avatar name={PEOPLE[k].name} tone={PERSON_TONE[k]} size={size} />;
 }
@@ -39,7 +45,8 @@ function DebtSummaryCard() {
       variants={delayed(variants.dropIn, T.debt)}
       initial="hidden"
       animate="visible"
-      className="w-full max-w-[320px] rounded-card bg-ink p-5 text-white lg:absolute lg:top-0 lg:right-0 lg:w-[300px] lg:rotate-[3deg]"
+      style={float(6, 1)}
+      className="nf-float w-full max-w-[320px] rounded-card bg-ink p-5 text-white lg:absolute lg:top-0 lg:right-0 lg:w-[300px] lg:rotate-[3deg]"
     >
       <p className="font-mono text-over uppercase text-ink-on2">Rút gọn nợ · tháng 10</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -73,7 +80,8 @@ function ReceiptCard() {
       variants={delayed(variants.dropIn, T.receipt)}
       initial="hidden"
       animate="visible"
-      className="relative max-lg:mb-12 lg:absolute lg:top-[210px] lg:left-0 lg:-rotate-[2deg]"
+      style={float(7.5, 2)}
+      className="nf-float relative max-lg:mb-12 lg:absolute lg:top-[210px] lg:left-0 lg:-rotate-[2deg]"
     >
       <Receipt>
         <div className="flex items-center gap-3">
@@ -164,7 +172,8 @@ function ActivityToast() {
       animate="visible"
       onPointerEnter={() => setPaused(true)}
       onPointerLeave={() => setPaused(false)}
-      className="nf-lift w-full max-w-[320px] overflow-hidden rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]"
+      style={float(5, 1.3)}
+      className="nf-float nf-lift w-full max-w-[320px] overflow-hidden rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]"
     >
       <AnimatePresence mode="wait" initial={false}>
         <m.div key={state.index} variants={variants.tickerSwap} initial="hidden" animate="visible" exit="exit" className="flex items-center gap-3">

@@ -182,6 +182,28 @@
 }
 /* Hết modal */
 
+/* Thẻ minh họa ở hero lơ lửng nhẹ. Dùng `transform` và chỉ bắt đầu sau `--float-delay` (khi màn mở đầu của
+   motion đã xong), nên không đè hiệu ứng rơi vào chỗ; `translate` của hover vẫn cộng thêm được. Mỗi thẻ một
+   nhịp (`--float-dur`) để không nhấp nhô đồng loạt. */
+@keyframes nf-float {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+.nf-float {
+  animation: nf-float var(--float-dur, 6s) ease-in-out var(--float-delay, 1.6s) infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-float {
+    animation: none;
+  }
+}
+
 /* Thẻ nhích lên khi trỏ chuột (landing): bóng đặc lệch dày lên, không blur. Chỉ thiết bị có chuột, tắt khi
    giảm chuyển động. Dùng `translate` riêng nên không đè `transform` mà motion đặt khi thẻ hiện ra. */
 .nf-lift {

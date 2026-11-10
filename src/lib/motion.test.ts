@@ -26,6 +26,17 @@ describe('token chuyển động', () => {
     expect(css.match(/\.nf-lift[^{]*\{[^}]*\}/g)?.join('')).not.toMatch(/blur|gradient/);
   });
 
+  it('thẻ lơ lửng: nhấp nhô không quá 8px, không blur, tắt hẳn khi giảm chuyển động', () => {
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
+    const keyframes = css.match(/@keyframes nf-float \{[\s\S]*?\n\}/)?.[0] ?? '';
+    const shifts = [...keyframes.matchAll(/translateY\((-?\d+)px\)/g)].map((m) => Math.abs(Number(m[1])));
+    expect(shifts.length).toBeGreaterThan(0);
+    expect(Math.max(...shifts)).toBeLessThanOrEqual(distance.md);
+    expect(css).toMatch(/\.nf-float \{[^}]*animation: nf-float [^}]*infinite[^}]*\}/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{\s*\.nf-float \{\s*animation: none;/);
+    expect(keyframes).not.toMatch(/blur|shadow/);
+  });
+
   it('hiệu ứng theo cuộn chỉ chạy một lần, khi khối đã vào khung nhìn một phần', () => {
     expect(viewport).toEqual({ once: true, amount: 0.25 });
   });
