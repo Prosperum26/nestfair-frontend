@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.tsx';
+import { MotionProvider } from './components/MotionProvider.tsx';
 import { refreshSession } from './lib/api.ts';
 import './index.css';
 
@@ -10,6 +11,8 @@ void refreshSession();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <MotionProvider>
+      <App />
+    </MotionProvider>
   </StrictMode>,
 );

@@ -76,11 +76,12 @@ export function AssistantPage() {
 
   const doSend = (text: string) => {
     setSystemNote(null);
+    // Ô nhập trống ngay, tin hiện thành bong bóng tạm; lỗi thì trả lại nội dung để gửi lại.
+    setDraft('');
     send.mutate(
       { content: text, threadId },
       {
         onSuccess: (result) => {
-          setDraft('');
           setThreadId(result.threadId);
           setSkipHistory(false);
           if (result.remaining <= 0) {
@@ -89,7 +90,8 @@ export function AssistantPage() {
           }
         },
         onError: (error) => {
-          // Giữ nguyên bản nháp (draft không bị xóa) để người dùng gửi lại.
+          // Trả lại bản nháp để người dùng gửi lại (nếu họ chưa gõ gì mới).
+          setDraft((current) => current || text);
           if (error instanceof AssistantQuotaError) {
             setQuotaLocked(true);
             setSystemNote(assistantErrorMessage(error));
@@ -165,6 +167,7 @@ export function AssistantPage() {
               threadId={threadId}
               skipHistory={skipHistory}
               sending={send.isPending}
+              pendingText={send.isPending ? (send.variables?.content ?? null) : null}
               systemNote={systemNote}
               onDraftExpense={(prefill, key) => setExpenseDraft({ prefill, key })}
             />

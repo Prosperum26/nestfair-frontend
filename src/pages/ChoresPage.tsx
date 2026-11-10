@@ -6,6 +6,7 @@ import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { IconButton } from '@/components/ui/IconButton.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
+import { Reveal } from '@/components/ui/Reveal.tsx';
 import { SegmentedControl } from '@/components/ui/SegmentedControl.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { AppealButton } from '@/features/chores/components/AppealButton.tsx';
@@ -302,7 +303,7 @@ export function ChoresPage() {
           )}
         </div>
       ) : (
-        <div className="mt-6">
+        <Reveal className="mt-6">
           {view === 'calendar' ? (
             <div className="flex flex-col gap-6">
               <WeeklyCalendar assignments={assignments} weekKey={weekKey} meUserId={me?.id} onSelect={selectAssignment} renderActions={renderActions} />
@@ -316,7 +317,7 @@ export function ChoresPage() {
           ) : (
             <KanbanBoard assignments={assignments} meUserId={me?.id} renderActions={renderActions} />
           )}
-        </div>
+        </Reveal>
       )}
 
       {view !== 'market' && !showToday && waitingSection && <div className="mt-8">{waitingSection}</div>}

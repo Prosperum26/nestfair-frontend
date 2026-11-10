@@ -1,4 +1,5 @@
 import { Bell, Plus, TriangleAlert, Trash2 } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button.tsx';
@@ -103,9 +104,11 @@ export function RemindersPanel({ className }: { className?: string }) {
           />
         ) : (
           <ul className="divide-y divide-line">
-            {reminders.data.map((reminder) => (
-              <ReminderRow key={reminder.id} reminder={reminder} className="py-4" onEdit={openEdit} onDelete={setDeleting} />
-            ))}
+            <AnimatePresence initial={false}>
+              {reminders.data.map((reminder) => (
+                <ReminderRow key={reminder.id} reminder={reminder} className="py-4" onEdit={openEdit} onDelete={setDeleting} />
+              ))}
+            </AnimatePresence>
           </ul>
         )}
       </div>

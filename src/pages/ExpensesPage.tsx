@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input.tsx';
 import { Menu, MenuItem, MenuSeparator } from '@/components/ui/Menu.tsx';
 import { Modal } from '@/components/ui/Modal.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
+import { Reveal } from '@/components/ui/Reveal.tsx';
 import { InfoNote, MonthSwitcher } from '@/features/expenses/components/bits.tsx';
 import { ExpenseDetail } from '@/features/expenses/components/ExpenseDetail.tsx';
 import { ExpenseFormModal } from '@/features/expenses/components/ExpenseFormModal.tsx';
@@ -148,10 +149,10 @@ export function ExpensesPage() {
         ) : summary.isError ? (
           <ExpenseStatsError onRetry={() => void summary.refetch()} />
         ) : (
-          <>
+          <Reveal>
             <ExpenseStatsDesktop summary={summary.data} />
             <ExpenseStatsMobile summary={summary.data} />
-          </>
+          </Reveal>
         )}
       </div>
 
@@ -206,7 +207,7 @@ export function ExpensesPage() {
             ) : expenses.length === 0 ? (
               <ExpenseListEmpty filtered={filtered} onAdd={openNew} />
             ) : (
-              <>
+              <Reveal>
                 <div className="hidden lg:block">
                   <ExpenseTable expenses={expenses} meId={me?.id} selectedId={selected?.id ?? null} onSelect={(e) => setSelectedId(e.id)} />
                 </div>
@@ -228,7 +229,7 @@ export function ExpensesPage() {
                     Tổng phần của bạn <span className="font-mono text-mm text-ink">{formatVnd(totalMyShare)}</span>
                   </span>
                 </div>
-              </>
+              </Reveal>
             )}
           </div>
         </section>

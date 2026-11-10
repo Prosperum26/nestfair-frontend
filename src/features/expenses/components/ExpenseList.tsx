@@ -1,4 +1,6 @@
 import { Plus, Receipt, TriangleAlert } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
@@ -34,47 +36,50 @@ export function ExpenseTable({ expenses, meId, selectedId, onSelect }: ListProps
         </tr>
       </thead>
       <tbody>
-        {expenses.map((e) => {
-          const selected = e.id === selectedId;
-          const split = SPLIT_META[e.splitType];
-          return (
-            <tr
-              key={e.id}
-              onClick={() => onSelect(e)}
-              className={cn('h-[60px] cursor-pointer [&>td]:border-b [&>td]:border-line', selected ? 'bg-hl-soft' : 'hover:bg-paper')}
-            >
-              <td className="px-3 font-mono text-ms text-ink">{dayMonth(e.spentAt)}</td>
-              <td className="px-3">
-                {/* Nút thật cho bàn phím / trình đọc màn hình; cả hàng vẫn bấm được bằng chuột. */}
-                <button
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    onSelect(e);
-                  }}
-                  className="flex w-full min-w-0 items-center gap-3 rounded-btn-sm text-left focus-visible:outline-none focus-visible:shadow-focus"
-                >
-                  <CategoryTile category={e.category} />
-                  <span className="min-w-0">
-                    <span className="block truncate font-medium text-ink">{e.title}</span>
-                    <span className="block text-cap text-ink-2">{CATEGORY_META[e.category].label}</span>
-                  </span>
-                </button>
-              </td>
-              <td className="px-3 text-ink">
-                <Person user={e.payer} meId={meId} />
-              </td>
-              <td className="px-3">
-                <Chip tone={split.tone} size="sm">
-                  {split.label}
-                </Chip>
-              </td>
-              <td className="px-3 text-right font-mono text-mm text-ink">{formatVnd(e.totalAmount)}</td>
-              <td className="px-3 text-right font-mono text-ms text-ink-2">{e.myShare ? formatVnd(e.myShare) : '–'}</td>
-            </tr>
-          );
-        })}
+        <AnimatePresence initial={false}>
+          {expenses.map((e) => {
+            const selected = e.id === selectedId;
+            const split = SPLIT_META[e.splitType];
+            return (
+              <AnimatedItem
+                as="tr"
+                key={e.id}
+                onClick={() => onSelect(e)}
+                className={cn('h-[60px] cursor-pointer [&>td]:border-b [&>td]:border-line', selected ? 'bg-hl-soft' : 'hover:bg-paper')}
+              >
+                <td className="px-3 font-mono text-ms text-ink">{dayMonth(e.spentAt)}</td>
+                <td className="px-3">
+                  {/* Nút thật cho bàn phím / trình đọc màn hình; cả hàng vẫn bấm được bằng chuột. */}
+                  <button
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      onSelect(e);
+                    }}
+                    className="flex w-full min-w-0 items-center gap-3 rounded-btn-sm text-left focus-visible:outline-none focus-visible:shadow-focus"
+                  >
+                    <CategoryTile category={e.category} />
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium text-ink">{e.title}</span>
+                      <span className="block text-cap text-ink-2">{CATEGORY_META[e.category].label}</span>
+                    </span>
+                  </button>
+                </td>
+                <td className="px-3 text-ink">
+                  <Person user={e.payer} meId={meId} />
+                </td>
+                <td className="px-3">
+                  <Chip tone={split.tone} size="sm">
+                    {split.label}
+                  </Chip>
+                </td>
+                <td className="px-3 text-right font-mono text-mm text-ink">{formatVnd(e.totalAmount)}</td>
+                <td className="px-3 text-right font-mono text-ms text-ink-2">{e.myShare ? formatVnd(e.myShare) : '–'}</td>
+              </AnimatedItem>
+            );
+          })}
+        </AnimatePresence>
       </tbody>
     </table>
   );
@@ -88,29 +93,31 @@ export function ExpenseDayList({ expenses, meId, onSelect }: Omit<ListProps, 'se
         <section key={g.key} aria-label={g.label}>
           <h3 className="mb-2 font-mono text-over uppercase text-ink-2">{g.label}</h3>
           <ul className="divide-y divide-line rounded-card border border-line bg-surface px-4">
-            {g.items.map((e) => (
-              <li key={e.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(e)}
-                  className="flex w-full items-center gap-3 py-3.5 text-left focus-visible:outline-none focus-visible:shadow-focus"
-                >
-                  <CategoryTile category={e.category} size={40} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium text-ink">{e.title}</span>
-                    <span className="block text-cap text-ink-2">
-                      {e.payer.id === meId ? 'Bạn' : firstName(e.payer.fullName)} trả · {SPLIT_META[e.splitType].label}
+            <AnimatePresence initial={false}>
+              {g.items.map((e) => (
+                <AnimatedItem as="li" key={e.id}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(e)}
+                    className="flex w-full items-center gap-3 py-3.5 text-left focus-visible:outline-none focus-visible:shadow-focus"
+                  >
+                    <CategoryTile category={e.category} size={40} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium text-ink">{e.title}</span>
+                      <span className="block text-cap text-ink-2">
+                        {e.payer.id === meId ? 'Bạn' : firstName(e.payer.fullName)} trả · {SPLIT_META[e.splitType].label}
+                      </span>
                     </span>
-                  </span>
-                  <span className="shrink-0 text-right">
-                    <span className="block font-mono text-mm text-ink">{formatVnd(e.totalAmount)}</span>
-                    <span className="block text-cap text-ink-2">
-                      Bạn <span className="font-mono">{formatVnd(e.myShare)}</span>
+                    <span className="shrink-0 text-right">
+                      <span className="block font-mono text-mm text-ink">{formatVnd(e.totalAmount)}</span>
+                      <span className="block text-cap text-ink-2">
+                        Bạn <span className="font-mono">{formatVnd(e.myShare)}</span>
+                      </span>
                     </span>
-                  </span>
-                </button>
-              </li>
-            ))}
+                  </button>
+                </AnimatedItem>
+              ))}
+            </AnimatePresence>
           </ul>
         </section>
       ))}

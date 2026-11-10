@@ -4,14 +4,14 @@ export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'onIn
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-ink text-white',
+  primary: 'bg-ink text-white active:translate-y-px',
   // CTA chính của màn: vàng, viền ink, bóng đặc 3/3.
   accent:
-    'bg-hl text-ink border-[1.5px] border-ink shadow-hard active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
+    'bg-hl text-ink border-[1.5px] border-ink shadow-hard active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_var(--color-ink)]',
   secondary: 'bg-surface text-ink border border-line-2 hover:bg-paper',
   ghost: 'bg-transparent text-ink hover:bg-paper-2',
   onInk: 'bg-ink-soft text-white border border-ink-line',
-  danger: 'bg-tom text-white',
+  danger: 'bg-tom text-white active:translate-y-px',
   dangerSoft: 'bg-surface text-tom border border-tom-border hover:bg-tom-bg',
 };
 
@@ -24,7 +24,9 @@ const sizes: Record<ButtonSize, string> = {
 /** Lớp CSS của nút, dùng chung cho <button> và các thẻ liên kết trông như nút (LinkButton). */
 export function buttonClass({ variant = 'primary', size = 'md', fullWidth }: { variant?: ButtonVariant; size?: ButtonSize; fullWidth?: boolean } = {}): string {
   return cn(
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap',
+    // Nhấn: lún như ấn lên giấy; thời lượng / easing lấy từ token (src/lib/motion.ts).
+    'transition-[color,background-color,border-color,box-shadow,translate] duration-[var(--dur-fast)] ease-[var(--ease-out)]',
     'focus-visible:outline-none focus-visible:shadow-focus',
     'disabled:pointer-events-none disabled:opacity-[0.38] disabled:shadow-none',
     variants[variant],

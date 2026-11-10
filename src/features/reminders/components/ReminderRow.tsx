@@ -1,4 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { reminderWhen, sourceLabel } from '../format.ts';
@@ -41,7 +42,7 @@ export function ReminderRow({
   const canEdit = reminder.sentAt === null && !!onEdit;
   const canDelete = reminder.sentAt === null && reminder.source !== 'SYSTEM' && !!onDelete;
   return (
-    <li className={cn('flex items-center gap-3', className)}>
+    <AnimatedItem as="li" className={cn('flex items-center gap-3', className)}>
       <span
         className={cn(
           'flex h-[52px] w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-btn-sm',
@@ -75,6 +76,6 @@ export function ReminderRow({
           )}
         </div>
       )}
-    </li>
+    </AnimatedItem>
   );
 }

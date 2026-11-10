@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Field } from '@/components/ui/Field.tsx';
@@ -114,27 +116,29 @@ export function AbsencePanel({ houseId, isAdmin, meUserId }: { houseId: string; 
           <EmptyState icon={<Trash2 />} tone="neutral" title="Chưa ai khai vắng" className="py-6" />
         ) : (
           <ul className="divide-y divide-line">
-            {absences.data.map((a) => (
-              <li key={a.id} className="flex items-center gap-3 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-ink">{a.userName}</p>
-                  <p className="text-cap text-ink-2">
-                    <span className="font-mono">
-                      {fullDate(a.startDate)} → {fullDate(a.endDate)}
-                    </span>
-                    {a.reason ? ` · ${a.reason}` : ''}
-                  </p>
-                </div>
-                {(isAdmin || a.userId === meUserId || a.createdById === meUserId) && (
-                  <IconButton
-                    icon={<Trash2 />}
-                    label={`Xóa khai vắng của ${a.userName}`}
-                    disabled={remove.isPending}
-                    onClick={() => remove.mutate(a.id, { onError: (e) => toast(messageForError(e)) })}
-                  />
-                )}
-              </li>
-            ))}
+            <AnimatePresence initial={false}>
+              {absences.data.map((a) => (
+                <AnimatedItem as="li" key={a.id} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink">{a.userName}</p>
+                    <p className="text-cap text-ink-2">
+                      <span className="font-mono">
+                        {fullDate(a.startDate)} → {fullDate(a.endDate)}
+                      </span>
+                      {a.reason ? ` · ${a.reason}` : ''}
+                    </p>
+                  </div>
+                  {(isAdmin || a.userId === meUserId || a.createdById === meUserId) && (
+                    <IconButton
+                      icon={<Trash2 />}
+                      label={`Xóa khai vắng của ${a.userName}`}
+                      disabled={remove.isPending}
+                      onClick={() => remove.mutate(a.id, { onError: (e) => toast(messageForError(e)) })}
+                    />
+                  )}
+                </AnimatedItem>
+              ))}
+            </AnimatePresence>
           </ul>
         )}
       </div>

@@ -68,7 +68,7 @@ export function Composer({
           disabled={!canSend}
           aria-busy={sending || undefined}
           aria-label={sending ? 'Đang gửi' : 'Gửi'}
-          className="flex size-10 max-sm:size-11 shrink-0 items-center justify-center rounded-btn border-[1.5px] border-ink bg-hl text-ink transition-colors hover:bg-hl-soft focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-[0.38]"
+          className="flex size-10 max-sm:size-11 shrink-0 items-center justify-center rounded-btn border-[1.5px] border-ink bg-hl text-ink transition-[background-color,translate] duration-[var(--dur-fast)] ease-[var(--ease-out)] hover:bg-hl-soft active:translate-y-px focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-[0.38]"
         >
           {sending ? <LoaderCircle className="size-[18px] animate-spin" aria-hidden /> : <Send className="size-[18px]" aria-hidden />}
         </button>

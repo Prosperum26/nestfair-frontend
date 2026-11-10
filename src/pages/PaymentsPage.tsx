@@ -1,10 +1,12 @@
-import { CircleCheck, QrCode, TriangleAlert } from 'lucide-react';
+import { QrCode, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
+import { CountUpVnd } from '@/components/ui/CountUpVnd.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
+import { Reveal } from '@/components/ui/Reveal.tsx';
 import { SegmentedControl } from '@/components/ui/SegmentedControl.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
@@ -20,7 +22,6 @@ import { myPosition } from '@/features/settlements/plan-view.ts';
 import type { PlanTransfer, SettlementPlan } from '@/features/settlements/types.ts';
 import { useCurrentHouse } from '@/features/houses/hooks.ts';
 import { firstName } from '@/lib/date.ts';
-import { formatVnd } from '@/lib/format.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 /** Thẻ tối đầu trang mobile (ảnh 09 mobile): bạn cần trả / được nhận bao nhiêu, nút trả nhanh. */
@@ -34,7 +35,7 @@ function MyBalanceCard({ plan, meId, onPay }: { plan: SettlementPlan; meId: stri
       <GridPaper />
       <div className="relative">
         <p className="font-mono text-over uppercase text-ink-on2">{pos.net === 0 ? 'Số dư của bạn' : owe ? 'Bạn cần trả' : 'Bạn được nhận'}</p>
-        <p className="mt-3 font-mono text-[40px] leading-[48px] font-bold tracking-[-1.5px] text-hl">{formatVnd(Math.abs(pos.net))}</p>
+        <p className="mt-3 font-mono text-[40px] leading-[48px] font-bold tracking-[-1.5px] text-hl"><CountUpVnd value={Math.abs(pos.net)} /></p>
         {owe && pos.toPay.length > 0 && (
           <p className="mt-2 flex items-center gap-2 text-sm text-ink-on2">
             {pos.toPay.length === 1 && (
@@ -114,24 +115,19 @@ export function PaymentsPage() {
             }
           />
         ) : (
-          <>
+          <Reveal className="flex flex-col gap-6">
             <MyBalanceCard plan={plan.data} meId={me?.id} onPay={setPaying} />
             <div className="grid gap-6 lg:grid-cols-12">
               <div className="lg:col-span-7">
                 <DebtSimplifyCard plan={plan.data} />
               </div>
               <div className="flex flex-col gap-6 lg:col-span-5">
-                {house && plan.data.optimized.length > 0 ? (
-                  <SettleList transfers={plan.data.optimized} members={plan.data.members} meId={me?.id} houseId={house.id} onPay={setPaying} />
-                ) : (
-                  <section className="rounded-card border border-line bg-surface p-6">
-                    <EmptyState icon={<CircleCheck />} tone="mint" title="Không còn ai nợ ai" description="Mọi giao dịch đã được xác nhận." className="py-4" />
-                  </section>
-                )}
+                {/* SettleList tự hiện thẻ "Không còn ai nợ ai" khi hết giao dịch (sau khi dòng cuối chạy xong hiệu ứng). */}
+                {house && <SettleList transfers={plan.data.optimized} members={plan.data.members} meId={me?.id} houseId={house.id} onPay={setPaying} />}
                 <MyAccountCard me={me} />
               </div>
             </div>
-          </>
+          </Reveal>
         )}
 
         <HistoryCard

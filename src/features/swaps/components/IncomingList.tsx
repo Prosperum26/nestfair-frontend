@@ -1,12 +1,16 @@
 import { ArrowLeftRight, Check, Clock, Gift, Inbox, Repeat, RotateCw, TriangleAlert } from 'lucide-react';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
+import { holdFor } from '@/lib/celebrate.ts';
+import { type Pin, withPinned } from '@/lib/pinned.ts';
 import { useNow } from '@/lib/use-now.ts';
 import { messageForSwapError } from '../copy.ts';
 import { useAcceptSwap, useRejectSwap, useSwapList } from '../hooks.ts';
@@ -15,7 +19,22 @@ import { acceptFailure, compensationLine, swapHeadline } from '../swap-lists.ts'
 import type { Swap } from '../types.ts';
 
 /** Một yêu cầu đích danh gửi tới bạn (preview 15 "Chờ bạn phản hồi"): Đồng ý hoặc Từ chối ngay trên thẻ. */
-export function IncomingCard({ swap, now, busy, onAccept, onReject }: { swap: Swap; now: Date; busy: boolean; onAccept: () => void; onReject: () => void }) {
+export function IncomingCard({
+  swap,
+  now,
+  busy,
+  accepted = false,
+  onAccept,
+  onReject,
+}: {
+  swap: Swap;
+  now: Date;
+  busy: boolean;
+  /** Vừa đồng ý thành công: thay nút bằng dấu "Đã đổi" trong lúc thẻ rời danh sách. */
+  accepted?: boolean;
+  onAccept: () => void;
+  onReject: () => void;
+}) {
   const line = compensationLine(swap);
   const from = swap.fromAssignment;
   const to = swap.toAssignment;
@@ -58,14 +77,22 @@ export function IncomingCard({ swap, now, busy, onAccept, onReject }: { swap: Sw
         </p>
       )}
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Button variant="primary" leftIcon={<Check />} disabled={busy} onClick={onAccept}>
-          Đồng ý
-        </Button>
-        <Button variant="secondary" disabled={busy} onClick={onReject}>
-          Từ chối
-        </Button>
-      </div>
+      {accepted ? (
+        <div className="mt-4">
+          <Chip tone="mint" icon={<Check />}>
+            Đã đổi ca
+          </Chip>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button variant="primary" leftIcon={<Check />} disabled={busy} onClick={onAccept}>
+            Đồng ý
+          </Button>
+          <Button variant="secondary" disabled={busy} onClick={onReject}>
+            Từ chối
+          </Button>
+        </div>
+      )}
     </article>
   );
 }
@@ -78,6 +105,16 @@ export function IncomingList({ houseId }: { houseId: string }) {
   const now = useNow();
   const [gone, setGone] = useState<ReadonlySet<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState<ReadonlySet<string>>(new Set());
+  const reduceMotion = useReducedMotion();
+  // Thẻ đang nhận: ghim từ lúc bấm để socket tải lại danh sách không gỡ nó trước khi hiện "Đã nhận".
+  const [pinned, setPinned] = useState<ReadonlyMap<string, Pin<Swap>>>(new Map());
+  const unpin = (id: string) =>
+    setPinned((cur) => {
+      const next = new Map(cur);
+      next.delete(id);
+      return next;
+    });
 
   if (list.isPending) return <Skeleton className="h-[200px] rounded-card" aria-busy="true" />;
   if (list.isError) {
@@ -96,16 +133,26 @@ export function IncomingList({ houseId }: { houseId: string }) {
       />
     );
   }
-  const swaps = list.data.filter((s) => !gone.has(s.id));
+  const swaps = withPinned(
+    list.data.filter((s) => !gone.has(s.id)),
+    pinned,
+    (s) => s.id,
+  );
   if (swaps.length === 0) return <EmptyState icon={<Inbox />} tone="neutral" title="Chưa có yêu cầu nào gửi tới bạn" className="py-6" />;
 
   const onAccept = (id: string) => {
     setBusyId(id);
+    setPinned((cur) => new Map(cur).set(id, { item: swaps.find((s) => s.id === id)!, index: swaps.findIndex((s) => s.id === id) }));
     accept.mutate(
       { swapId: id },
       {
-        onSuccess: () => toast.success('Bạn đã đồng ý. Ca đã được đổi.'),
+        onSuccess: () => {
+          setAccepted((cur) => new Set(cur).add(id));
+          setTimeout(() => unpin(id), holdFor('swapAccepted', reduceMotion));
+          toast.success('Bạn đã đồng ý. Ca đã được đổi.');
+        },
         onError: (e) => {
+          unpin(id);
           const failure = acceptFailure(e);
           toast.error(failure.message);
           if (failure.dropCard) setGone((cur) => new Set(cur).add(id));
@@ -128,11 +175,13 @@ export function IncomingList({ houseId }: { houseId: string }) {
 
   return (
     <ul className="flex flex-col gap-3" aria-label="Yêu cầu gửi tới bạn">
-      {swaps.map((s) => (
-        <li key={s.id}>
-          <IncomingCard swap={s} now={now} busy={busyId === s.id} onAccept={() => onAccept(s.id)} onReject={() => onReject(s.id)} />
-        </li>
-      ))}
+      <AnimatePresence initial={false}>
+        {swaps.map((s) => (
+          <AnimatedItem as="li" key={s.id}>
+            <IncomingCard swap={s} now={now} busy={busyId === s.id} accepted={accepted.has(s.id)} onAccept={() => onAccept(s.id)} onReject={() => onReject(s.id)} />
+          </AnimatedItem>
+        ))}
+      </AnimatePresence>
     </ul>
   );
 }

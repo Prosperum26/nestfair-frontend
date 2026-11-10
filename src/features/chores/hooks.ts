@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { optimisticList, removeById } from '@/lib/optimistic.ts';
 import { type ChoreInput, choresApi, type DateRangeInput } from './api.ts';
 import { mergeAssignments } from './grouping.ts';
-import type { ChoreSettings, OverrideAction, VerifyDecision } from './types.ts';
+import type { Absence, ChoreSettings, HouseBreak, OverrideAction, VerifyDecision } from './types.ts';
 import { shiftWeek, weekKeyOf } from './week.ts';
 
 export const choreKeys = {
@@ -159,7 +160,7 @@ export function useDeleteAbsence(houseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => choresApi.deleteAbsence(houseId, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: choreKeys.absences(houseId) }),
+    ...optimisticList<string, Absence>(queryClient, { queryKey: choreKeys.absences(houseId), apply: (list, id) => removeById(list, id) ?? list, ids: (id) => [id] }),
   });
 }
 
@@ -179,7 +180,7 @@ export function useDeleteBreak(houseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => choresApi.deleteBreak(houseId, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: choreKeys.breaks(houseId) }),
+    ...optimisticList<string, HouseBreak>(queryClient, { queryKey: choreKeys.breaks(houseId), apply: (list, id) => removeById(list, id) ?? list, ids: (id) => [id] }),
   });
 }
 

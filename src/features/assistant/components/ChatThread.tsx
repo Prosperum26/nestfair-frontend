@@ -1,7 +1,10 @@
 import { ChevronUp, Sparkles, TriangleAlert } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { AnimatePresence } from 'motion/react';
+import { Fragment, useEffect, useRef } from 'react';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
+import { Reveal } from '@/components/ui/Reveal.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import type { ExpensePrefill } from '@/features/expenses/components/ExpenseFormModal.tsx';
 import { useAssistantMessages } from '../hooks.ts';
@@ -56,6 +59,7 @@ export function ChatThread({
   threadId,
   skipHistory,
   sending,
+  pendingText = null,
   systemNote,
   onDraftExpense,
 }: {
@@ -65,6 +69,8 @@ export function ChatThread({
   skipHistory?: boolean;
   /** Đang chờ POST /assistant/messages → hiện trạng thái trợ lý đang suy nghĩ. */
   sending: boolean;
+  /** Tin bạn vừa gửi, hiện ngay (lạc quan) trong lúc chờ; lỗi thì nơi gọi truyền null và nó biến mất. */
+  pendingText?: string | null;
   /** Ghi chú hệ thống cuối thread (vd. "Hôm nay bạn đã hỏi đủ 30 câu rồi…"). */
   systemNote: string | null;
   onDraftExpense: (prefill: ExpensePrefill, key: string) => void;
@@ -75,7 +81,7 @@ export function ChatThread({
   const groups = groupMessagesByDay(messages, new Date());
 
   // Tin mới / trạng thái chờ xuất hiện thì cuộn xuống đáy cho người dùng thấy ngay.
-  const bottomKey = `${messages.length}-${sending}-${systemNote ? 1 : 0}`;
+  const bottomKey = `${messages.length}-${sending}-${pendingText ? 1 : 0}-${systemNote ? 1 : 0}`;
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [bottomKey]);
@@ -124,21 +130,37 @@ export function ChatThread({
               groups.map((group) => (
                 <div key={group.label} className="flex flex-col gap-5">
                   <DayDivider label={group.label} />
-                  {group.messages.map((message) => (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      actions={
-                        message.role === 'ASSISTANT' && message.actions.length > 0 ? (
-                          <ActionButtons message={message} houseId={houseId} onDraftExpense={onDraftExpense} />
-                        ) : undefined
-                      }
-                    />
-                  ))}
+                  <AnimatePresence initial={false}>
+                    {group.messages.map((message) => {
+                      const bubble = (
+                        <MessageBubble
+                          message={message}
+                          actions={
+                            message.role === 'ASSISTANT' && message.actions.length > 0 ? (
+                              <ActionButtons message={message} houseId={houseId} onDraftExpense={onDraftExpense} />
+                            ) : undefined
+                          }
+                        />
+                      );
+                      // Tin của bạn đã hiện sẵn bằng bong bóng tạm, nên thay chỗ không chạy hiệu ứng; câu trả lời mới trượt vào.
+                      return message.role === 'USER' ? (
+                        <Fragment key={message.id}>{bubble}</Fragment>
+                      ) : (
+                        <AnimatedItem key={message.id}>
+                          {bubble}
+                        </AnimatedItem>
+                      );
+                    })}
+                  </AnimatePresence>
                 </div>
               ))
             )}
 
+            {pendingText !== null && (
+              <Reveal>
+                <MessageBubble message={{ ...PENDING_STUB, content: pendingText, createdAt: new Date().toISOString() }} />
+              </Reveal>
+            )}
             {sending && <ThinkingRow />}
             {systemNote && (
               <p role="status" className="mx-auto max-w-[92%] rounded-full bg-paper-2 px-4 py-2 text-center text-cap text-ink-2">
@@ -151,6 +173,16 @@ export function ChatThread({
     </div>
   );
 }
+
+const PENDING_STUB: AssistantMessageDto = {
+  id: 'pending-user-message',
+  threadId: '',
+  role: 'USER',
+  content: '',
+  category: null,
+  actions: [],
+  createdAt: '',
+};
 
 const AssistantMessageStub: AssistantMessageDto = {
   id: 'today-stub',

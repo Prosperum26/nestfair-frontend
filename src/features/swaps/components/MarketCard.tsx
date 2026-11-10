@@ -1,4 +1,4 @@
-import { Gift, Heart, Hourglass, Repeat, Sparkles } from 'lucide-react';
+import { Check, Gift, Heart, Hourglass, Repeat, Sparkles } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
@@ -13,7 +13,20 @@ import type { Swap } from '../types.ts';
  * Một thẻ trong Chợ ca (preview 15): ca cần người nhận, đồng hồ đếm ngược, quà hoặc làm bù, nút "Nhận giúp".
  * Nút khóa kèm lý do khi bạn không đủ điều kiện (vắng, đã có ca cùng việc, là người nhờ).
  */
-export function MarketCard({ swap, now, accepting, onAccept }: { swap: Swap; now: Date; accepting: boolean; onAccept: () => void }) {
+export function MarketCard({
+  swap,
+  now,
+  accepting,
+  accepted = false,
+  onAccept,
+}: {
+  swap: Swap;
+  now: Date;
+  accepting: boolean;
+  /** Vừa nhận thành công: thay nút bằng dấu "Đã nhận" trong lúc thẻ rời danh sách. */
+  accepted?: boolean;
+  onAccept: () => void;
+}) {
   const slot = swap.fromAssignment;
   const line = compensationLine(swap);
   const state = marketAcceptState(swap);
@@ -51,9 +64,15 @@ export function MarketCard({ swap, now, accepting, onAccept }: { swap: Swap; now
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <p className="min-w-0 flex-1 text-cap text-ink-2">{state.reason ?? 'Nhận rồi thì ca chuyển sang bạn ngay, không cần chờ duyệt.'}</p>
-        <Button variant="accent" size="sm" leftIcon={<Heart />} disabled={state.disabled || expired} loading={accepting} onClick={onAccept}>
-          Nhận giúp
-        </Button>
+        {accepted ? (
+          <Chip tone="mint" icon={<Check />}>
+            Đã nhận ca
+          </Chip>
+        ) : (
+          <Button variant="accent" size="sm" leftIcon={<Heart />} disabled={state.disabled || expired} loading={accepting} onClick={onAccept}>
+            Nhận giúp
+          </Button>
+        )}
       </div>
     </article>
   );

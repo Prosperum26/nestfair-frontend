@@ -2,6 +2,7 @@ import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/Button.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
+import { Reveal } from '@/components/ui/Reveal.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { messageForListingError } from '@/features/listing/errors.ts';
 import { useListing } from '@/features/listing/hooks.ts';
@@ -66,7 +67,7 @@ export function ListingPage() {
           />
         </div>
       ) : (
-        <div className="mt-6">
+        <Reveal className="mt-6">
           <ListingForm
             key={listing.data.listing?.id ?? 'new'}
             houseId={house.id}
@@ -80,7 +81,7 @@ export function ListingPage() {
               )
             }
           />
-        </div>
+        </Reveal>
       )}
     </>
   );

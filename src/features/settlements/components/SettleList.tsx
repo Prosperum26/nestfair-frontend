@@ -1,15 +1,22 @@
-import { ArrowRight, Check, Clock, ImageIcon, QrCode, X } from 'lucide-react';
+import { ArrowRight, Check, CircleCheck, Clock, ImageIcon, QrCode, X } from 'lucide-react';
+import { AnimatePresence, m, useReducedMotion } from 'motion/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { AnimatedItem } from '@/components/ui/AnimatedList.tsx';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
+import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
 import { ledgerErrorMessage } from '@/features/expenses/errors.ts';
 import { dayMonth } from '@/features/expenses/grouping.ts';
 import { useCancelSettlement, useConfirmSettlement } from '@/features/expenses/hooks.ts';
+import { holdFor } from '@/lib/celebrate.ts';
 import { cn } from '@/lib/cn.ts';
 import { firstName } from '@/lib/date.ts';
 import { formatVnd } from '@/lib/format.ts';
+import { duration, ease } from '@/lib/motion.ts';
+import { type Pin, withPinned } from '@/lib/pinned.ts';
 import { transferRole } from '../plan-view.ts';
 import type { PlanMember, PlanTransfer } from '../types.ts';
 
@@ -25,14 +32,21 @@ function TransferRow({
   meId,
   houseId,
   onPay,
+  onConfirmStart,
+  onConfirmEnd,
 }: {
   transfer: PlanTransfer;
   members: PlanMember[];
   meId: string | undefined;
   houseId: string;
   onPay: (t: PlanTransfer) => void;
+  /** Ghim dòng khi bắt đầu xác nhận để dữ liệu mới (kể cả qua socket) không gỡ nó giữa chừng hiệu ứng. */
+  onConfirmStart: () => void;
+  onConfirmEnd: (ok: boolean) => void;
 }) {
   const confirm = useConfirmSettlement(houseId);
+  // Vừa xác nhận đã nhận tiền: gạch bút dạ quang dưới số tiền, đổi nút thành dấu "Đã nhận" cho tới khi dòng rời danh sách.
+  const [settled, setSettled] = useState(false);
   const cancel = useCancelSettlement(houseId);
   const role = transferRole(transfer, meId);
   const from = members.find((m) => m.id === transfer.fromUserId);
@@ -45,11 +59,20 @@ function TransferRow({
 
   // mutateAsync thay vì callback của mutate(): xác nhận xong giao dịch biến khỏi kế hoạch nên hàng này bị gỡ,
   // mà TanStack Query không gọi callback của mutate() cho component đã gỡ (toast sẽ mất).
-  const doConfirm = () =>
-    confirm.mutateAsync(p!.id).then(
-      () => toast(`Đã ghi nhận ${formatVnd(p!.amount)} từ ${fromFirst}.`),
-      (e: unknown) => toast(ledgerErrorMessage(e)),
+  const doConfirm = () => {
+    onConfirmStart();
+    return confirm.mutateAsync(p!.id).then(
+      () => {
+        setSettled(true);
+        onConfirmEnd(true);
+        toast(`Đã ghi nhận ${formatVnd(p!.amount)} từ ${fromFirst}.`);
+      },
+      (e: unknown) => {
+        onConfirmEnd(false);
+        toast(ledgerErrorMessage(e));
+      },
     );
+  };
   const doCancel = (msg: string) =>
     cancel.mutateAsync(p!.id).then(
       () => toast(msg),
@@ -57,7 +80,7 @@ function TransferRow({
     );
 
   return (
-    <li className={cn('rounded-card border p-4', mine ? 'border-[1.5px] border-ink bg-hl-soft shadow-hard' : 'border-line bg-surface')}>
+    <AnimatedItem as="li" className={cn('rounded-card border p-4', mine ? 'border-[1.5px] border-ink bg-hl-soft shadow-hard' : 'border-line bg-surface')}>
       <div className="flex items-center gap-3">
         <span className="flex shrink-0 items-center gap-1.5" aria-hidden>
           {from && <Avatar name={from.fullName} tone={avatarToneFor(from.id)} src={from.avatarUrl} size={32} />}
@@ -70,16 +93,29 @@ function TransferRow({
           </p>
           <p className="text-cap text-ink-2">{p ? `Đã báo chuyển ${stamp(p.createdAt)}` : role === 'receiver' ? `Chờ ${fromFirst} chuyển` : 'Chưa trả'}</p>
         </div>
-        <span className="shrink-0 font-mono text-mm text-ink">{formatVnd(transfer.amount)}</span>
+        <span className="relative shrink-0 font-mono text-mm text-ink">
+          {settled && (
+            <m.span
+              aria-hidden
+              className="absolute inset-x-[-4px] bottom-0.5 h-2.5 origin-left rounded-sm bg-hl"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: duration.slow, ease: ease.out }}
+            />
+          )}
+          <span className="relative">{formatVnd(transfer.amount)}</span>
+        </span>
       </div>
 
       {(p || mine) && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {p && (
             <>
-              <Chip tone="yellow" icon={<Clock />}>
-                {role === 'receiver' ? 'Chờ bạn xác nhận' : `Chờ ${toFirst} xác nhận`}
-              </Chip>
+              {!settled && (
+                <Chip tone="yellow" icon={<Clock />}>
+                  {role === 'receiver' ? 'Chờ bạn xác nhận' : `Chờ ${toFirst} xác nhận`}
+                </Chip>
+              )}
               {p.amount !== transfer.amount && <Chip tone="outline">Báo {formatVnd(p.amount)}</Chip>}
               {p.proofUrl && (
                 <a href={p.proofUrl} target="_blank" rel="noreferrer" className="focus-visible:outline-none focus-visible:shadow-focus rounded-full">
@@ -95,7 +131,12 @@ function TransferRow({
               Trả bằng VietQR
             </Button>
           )}
-          {p && role === 'receiver' && (
+          {p && role === 'receiver' && settled && (
+            <Chip tone="mint" icon={<Check />}>
+              Đã nhận
+            </Chip>
+          )}
+          {p && role === 'receiver' && !settled && (
             <div className="mt-1 flex w-full gap-2">
               <Button size="sm" leftIcon={<Check />} loading={confirm.isPending} disabled={cancel.isPending} onClick={doConfirm} className="flex-1">
                 Xác nhận đã nhận tiền
@@ -119,11 +160,13 @@ function TransferRow({
           )}
         </div>
       )}
-    </li>
+    </AnimatedItem>
   );
 }
 
 /** "Cần tất toán" (ảnh 09): mọi giao dịch sau rút gọn; giao dịch của bạn nổi bật kèm nút trả. */
+const keyOf = (t: PlanTransfer) => `${t.fromUserId}-${t.toUserId}`;
+
 export function SettleList({
   transfers,
   members,
@@ -139,21 +182,46 @@ export function SettleList({
 }) {
   // Giao dịch liên quan tới mình lên trước.
   const sorted = [...transfers].sort((a, b) => Number(transferRole(b, meId) !== 'other') - Number(transferRole(a, meId) !== 'other'));
+  const reduceMotion = useReducedMotion();
+  // Dòng đang xác nhận / vừa xác nhận: giữ trên màn tới khi hiệu ứng chạy xong.
+  const [pinned, setPinned] = useState<ReadonlyMap<string, Pin<PlanTransfer>>>(new Map());
+  const unpin = (key: string) =>
+    setPinned((cur) => {
+      const next = new Map(cur);
+      next.delete(key);
+      return next;
+    });
+  const shown = withPinned(sorted, pinned, keyOf);
+  // Hết giao dịch (và không còn dòng nào đang chạy hiệu ứng): thẻ "không còn ai nợ ai".
+  if (shown.length === 0) {
+    return (
+      <section className="rounded-card border border-line bg-surface p-6">
+        <EmptyState icon={<CircleCheck />} tone="mint" title="Không còn ai nợ ai" description="Mọi giao dịch đã được xác nhận." className="py-4" />
+      </section>
+    );
+  }
   return (
     <section className="rounded-card border border-line bg-surface p-4 sm:p-6">
       <header className="flex items-center justify-between gap-3">
         <h2 className="font-display text-ct text-ink">Cần tất toán</h2>
         <span className="flex size-7 items-center justify-center rounded-full border border-line-2 font-mono text-cap text-ink">{transfers.length}</span>
       </header>
-      {transfers.length === 0 ? (
-        <p className="mt-4 text-sm text-ink-2">Không còn giao dịch nào cần tất toán.</p>
-      ) : (
-        <ul className="mt-4 flex flex-col gap-3">
-          {sorted.map((t) => (
-            <TransferRow key={`${t.fromUserId}-${t.toUserId}`} transfer={t} members={members} meId={meId} houseId={houseId} onPay={onPay} />
+      <ul className="mt-4 flex flex-col gap-3">
+        <AnimatePresence initial={false}>
+          {shown.map((t, index) => (
+            <TransferRow
+              key={keyOf(t)}
+              transfer={t}
+              members={members}
+              meId={meId}
+              houseId={houseId}
+              onPay={onPay}
+              onConfirmStart={() => setPinned((cur) => new Map(cur).set(keyOf(t), { item: t, index }))}
+              onConfirmEnd={(ok) => (ok ? setTimeout(() => unpin(keyOf(t)), holdFor('settled', reduceMotion)) : unpin(keyOf(t)))}
+            />
           ))}
-        </ul>
-      )}
+        </AnimatePresence>
+      </ul>
     </section>
   );
 }

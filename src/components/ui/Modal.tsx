@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn.ts';
 /**
  * Modal desktop (r20, viền 1.5 ink, bóng 8/8) và bottom sheet trên mobile (Design.md mục 5).
  * Dùng <dialog> gốc: có focus trap, Esc để đóng và scrim ::backdrop (ink 0.55).
+ * Chuyển động vào/ra nằm ở lớp `nf-modal` trong index.css (CSS gốc, không cần JS hẹn giờ).
  */
 export function Modal({
   open,
@@ -43,7 +44,7 @@ export function Modal({
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        'm-auto w-[calc(100%-32px)] max-w-[520px] overflow-visible rounded-modal border-[1.5px] border-ink bg-surface p-0 text-ink shadow-hard-lg',
+        'nf-modal m-auto w-[calc(100%-32px)] max-w-[520px] overflow-visible rounded-modal border-[1.5px] border-ink bg-surface p-0 text-ink shadow-hard-lg',
         'backdrop:bg-ink/55',
         'max-sm:mt-auto max-sm:mb-0 max-sm:w-full max-sm:max-w-none max-sm:rounded-b-none max-sm:border-x-0 max-sm:border-b-0',
         className,
