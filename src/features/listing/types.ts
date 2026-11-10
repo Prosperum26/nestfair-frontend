@@ -128,9 +128,3 @@ export interface PublicListingClosed {
 }
 
 export type PublicListing = PublicListingOpen | PublicListingClosed;
-
-/** Sự kiện socket `listing:closed`. */
-export interface ListingClosedPayload {
-  listingId: string;
-  reason: ListingCloseReason;
-}
