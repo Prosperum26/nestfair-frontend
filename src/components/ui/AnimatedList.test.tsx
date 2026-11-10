@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { MotionProvider } from '@/components/MotionProvider.tsx';
 import { AnimatedList } from './AnimatedList.tsx';
-import { Reveal } from './Reveal.tsx';
+import { InView, InViewItem, Reveal } from './Reveal.tsx';
 
 const items = [
   { id: 'a', label: 'Tiền điện' },
@@ -25,6 +25,24 @@ describe('AnimatedList', () => {
     const html = render(<AnimatedList items={items} getKey={(i) => i.id} render={(i) => i.label} />);
     expect(html.startsWith('<div')).toBe(true);
     expect(html).not.toContain('<li');
+  });
+});
+
+describe('InView', () => {
+  it('nhóm <ul> hiện lần lượt từng <li>, giữ nguyên nội dung', () => {
+    const html = render(
+      <InView as="ul" stagger className="grid">
+        <InViewItem as="li">Chia tiền</InViewItem>
+        <InViewItem as="li">Việc nhà</InViewItem>
+      </InView>,
+    );
+    expect(html.startsWith('<ul class="grid"')).toBe(true);
+    expect(html.match(/<li/g)).toHaveLength(2);
+    expect(html).toContain('Việc nhà');
+  });
+
+  it('chưa cuộn tới thì khối đang ẩn (chờ vào khung nhìn)', () => {
+    expect(render(<InView>Hỏi đáp</InView>)).toContain('opacity:0');
   });
 });
 

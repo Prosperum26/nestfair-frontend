@@ -1,11 +1,14 @@
 import { ArrowRight, CircleCheck, Zap } from 'lucide-react';
+import { m, useReducedMotion } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { ReactNode } from 'react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
 import { LinkButton } from '@/components/ui/LinkButton.tsx';
+import { InView, InViewItem } from '@/components/ui/Reveal.tsx';
 import { formatVnd } from '@/lib/format.ts';
+import { delayed, variants } from '@/lib/motion.ts';
 import { SectionHeading } from './SectionHeading.tsx';
 
 const INVITE_CODE = 'K7M2QX';
@@ -44,10 +47,17 @@ function LedgerSample() {
   );
 }
 
+/** Vạch quét chạy dọc mã QR một lần khi bước 3 hiện ra (nhận trạng thái từ khối cha). */
+const SCAN_DELAY = 0.5;
+
 function PaySample() {
+  const reduceMotion = useReducedMotion();
   return (
     <div className="flex items-center gap-4 rounded-btn border border-line bg-surface p-3">
-      <div className="shrink-0 rounded-[8px] border border-line bg-white p-1.5">
+      <div className="relative shrink-0 overflow-hidden rounded-[8px] border border-line bg-white p-1.5">
+        {!reduceMotion && (
+          <m.span aria-hidden variants={delayed(variants.scanSweep, SCAN_DELAY)} className="absolute inset-x-0 h-[2px] bg-ink" />
+        )}
         <QRCodeSVG value="https://img.vietqr.io/image/MB-0123456789-compact2.png?amount=170000&addInfo=NestFair%20Hung%20Quan" size={56} marginSize={0} title="Mã VietQR mẫu" />
       </div>
       <div className="min-w-0">
@@ -65,7 +75,7 @@ function PaySample() {
 
 function Step({ n, title, text, last, children }: { n: number; title: string; text: string; last?: boolean; children: ReactNode }) {
   return (
-    <li className="flex flex-col">
+    <InViewItem as="li" className="flex flex-col">
       <div className="flex items-center gap-3">
         <span
           aria-hidden
@@ -73,7 +83,14 @@ function Step({ n, title, text, last, children }: { n: number; title: string; te
         >
           {n}
         </span>
-        {!last && <span aria-hidden className="hidden h-0 flex-1 border-t-[1.5px] border-dashed border-line-2 lg:block" />}
+        {!last && (
+          <m.span
+            aria-hidden
+            variants={delayed(variants.markerSweep, n * 0.15)}
+            style={{ originX: 0 }}
+            className="hidden h-0 flex-1 border-t-[1.5px] border-dashed border-line-2 lg:block"
+          />
+        )}
       </div>
       <h3 className="mt-5 text-h4 text-ink">
         <span className="sr-only">Bước {n}: </span>
@@ -81,7 +98,7 @@ function Step({ n, title, text, last, children }: { n: number; title: string; te
       </h3>
       <p className="mt-1.5 text-sm text-ink-2">{text}</p>
       <div className="mt-4">{children}</div>
-    </li>
+    </InViewItem>
   );
 }
 
@@ -95,7 +112,7 @@ export function HowItWorks() {
           Tạo nhà miễn phí
         </LinkButton>
       </div>
-      <ol className="mt-12 grid gap-10 lg:grid-cols-3 lg:gap-8">
+      <InView as="ol" stagger className="mt-12 grid gap-10 lg:grid-cols-3 lg:gap-8">
         <Step n={1} title="Tạo nhà và mời bạn" text="Đặt tên nhà, gửi mã mời 6 ký tự cho bạn cùng phòng.">
           <InviteCode />
         </Step>
@@ -105,7 +122,7 @@ export function HowItWorks() {
         <Step n={3} last title="Rút gọn và trả bằng VietQR" text="Quét mã, chủ nợ bấm xác nhận, số dư về 0.">
           <PaySample />
         </Step>
-      </ol>
+      </InView>
     </section>
   );
 }

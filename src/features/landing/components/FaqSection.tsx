@@ -1,6 +1,7 @@
 import { Minus, Plus } from 'lucide-react';
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
+import { InView, InViewItem } from '@/components/ui/Reveal.tsx';
 import { cn } from '@/lib/cn.ts';
 import { FAQ_ITEMS, nextOpenIndex } from '../faq.ts';
 import { SectionHeading } from './SectionHeading.tsx';
@@ -27,12 +28,13 @@ export function FaqSection() {
             </>
           }
         />
-        <ul className="flex flex-col gap-3">
+        <InView as="ul" stagger className="flex flex-col gap-3">
           {FAQ_ITEMS.map((item, i) => {
             const isOpen = open === i;
             const panelId = `${baseId}-panel-${i}`;
             return (
-              <li
+              <InViewItem
+                as="li"
                 key={item.question}
                 className={cn('rounded-card bg-surface', isOpen ? 'border-[1.5px] border-ink' : 'border border-line')}
               >
@@ -61,10 +63,10 @@ export function FaqSection() {
                     {item.answer}
                   </div>
                 )}
-              </li>
+              </InViewItem>
             );
           })}
-        </ul>
+        </InView>
       </div>
     </section>
   );

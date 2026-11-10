@@ -1,14 +1,20 @@
 import { ArrowRight, KeyRound, ScanLine, ShoppingCart, Sparkles } from 'lucide-react';
+import { AnimatePresence, m, useInView, useReducedMotion } from 'motion/react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
+import { CountUpVnd } from '@/components/ui/CountUpVnd.tsx';
 import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
 import { LinkButton } from '@/components/ui/LinkButton.tsx';
 import { LedgerRow, Receipt } from '@/components/ui/Receipt.tsx';
 import { Stamp } from '@/components/ui/Stamp.tsx';
+import { cn } from '@/lib/cn.ts';
 import { formatVnd } from '@/lib/format.ts';
+import { delayed, variants } from '@/lib/motion.ts';
 import { AFTER_TRANSFERS, PEOPLE } from '../debt-demo.ts';
 import { PERSON_TONE } from '../people.ts';
+import { advanceTicker, shouldRunTicker, TICKER_EVENTS, TICKER_INTERVAL_MS, type TickerState } from '../ticker.ts';
 
 const RECEIPT_ROWS = [
   { key: 'H', amount: 110_000 },
@@ -19,6 +25,15 @@ const RECEIPT_ROWS = [
 
 const RECEIPT_TOTAL = RECEIPT_ROWS.reduce((sum, r) => sum + r.amount, 0);
 
+/** Nhịp mở màn (giây): marker, ba thẻ rơi vào chỗ, hóa đơn in từng dòng, cuối cùng đóng dấu. */
+const T = { marker: 0.35, debt: 0.1, receipt: 0.25, rows: 0.55, rowStep: 0.08, stamp: 1.1, toast: 0.45 } as const;
+
+/**
+ * Nhịp lơ lửng của từng thẻ (`.nf-float` trong index.css): bắt đầu khi thẻ đã rơi vào chỗ (hóa đơn chờ đóng dấu
+ * xong), mỗi thẻ một chu kỳ để không nhấp nhô đồng loạt.
+ */
+const float = (dur: number, delay: number) => ({ '--float-dur': `${dur}s`, '--float-delay': `${delay}s` }) as CSSProperties;
+
 function Person({ k, size = 24 }: { k: keyof typeof PEOPLE; size?: number }) {
   return <Avatar name={PEOPLE[k].name} tone={PERSON_TONE[k]} size={size} />;
 }
@@ -26,7 +41,13 @@ function Person({ k, size = 24 }: { k: keyof typeof PEOPLE; size?: number }) {
 /** Thẻ tối "Rút gọn nợ · tháng 10" (góc trên phải của hero). */
 function DebtSummaryCard() {
   return (
-    <div className="w-full max-w-[320px] rounded-card bg-ink p-5 text-white lg:absolute lg:top-0 lg:right-0 lg:w-[300px] lg:rotate-[3deg]">
+    <m.div
+      variants={delayed(variants.dropIn, T.debt)}
+      initial="hidden"
+      animate="visible"
+      style={float(6, 1)}
+      className="nf-float w-full max-w-[320px] rounded-card bg-ink p-5 text-white lg:absolute lg:top-0 lg:right-0 lg:w-[300px] lg:rotate-[3deg]"
+    >
       <p className="font-mono text-over uppercase text-ink-on2">Rút gọn nợ · tháng 10</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="inline-flex h-[26px] items-center rounded-full border border-ink-line bg-ink-soft px-2.5 text-cap font-semibold whitespace-nowrap text-white">
@@ -48,14 +69,20 @@ function DebtSummaryCard() {
         ))}
       </ul>
       <p className="mt-4 text-cap text-ink-on2">Mỗi giao dịch có VietQR điền sẵn.</p>
-    </div>
+    </m.div>
   );
 }
 
 /** Hóa đơn răng cưa "Đi chợ cuối tuần" kèm con dấu ĐÃ NHẬN. */
 function ReceiptCard() {
   return (
-    <div className="relative max-lg:mb-12 lg:absolute lg:top-[210px] lg:left-0 lg:-rotate-[2deg]">
+    <m.div
+      variants={delayed(variants.dropIn, T.receipt)}
+      initial="hidden"
+      animate="visible"
+      style={float(7.5, 2)}
+      className="nf-float relative max-lg:mb-12 lg:absolute lg:top-[210px] lg:left-0 lg:-rotate-[2deg]"
+    >
       <Receipt>
         <div className="flex items-center gap-3">
           <IconTile icon={<ShoppingCart />} tone="mint" size={36} />
@@ -66,7 +93,9 @@ function ReceiptCard() {
         </div>
         <div className="mt-4 flex items-end justify-between gap-3">
           <span className="text-sm text-ink-2">Tổng hóa đơn</span>
-          <span className="font-mono text-ml text-ink">{formatVnd(RECEIPT_TOTAL)}</span>
+          <span className="font-mono text-ml text-ink">
+            <CountUpVnd value={RECEIPT_TOTAL} delay={T.rows} />
+          </span>
         </div>
         <div className="mt-2">
           <Chip tone="lil" size="sm" icon={<ScanLine />}>
@@ -74,37 +103,96 @@ function ReceiptCard() {
           </Chip>
         </div>
         <div className="mt-4 flex flex-col gap-2.5 border-t border-dashed border-line-2 pt-4">
-          {RECEIPT_ROWS.map((r) => (
-            <LedgerRow
-              key={r.key}
-              left={
-                <>
-                  <Person k={r.key} size={22} />
-                  {PEOPLE[r.key].name}
-                </>
-              }
-              amount={formatVnd(r.amount)}
-            />
+          {RECEIPT_ROWS.map((r, i) => (
+            <m.div key={r.key} variants={delayed(variants.fadeUp, T.rows + i * T.rowStep)} initial="hidden" animate="visible">
+              <LedgerRow
+                left={
+                  <>
+                    <Person k={r.key} size={22} />
+                    {PEOPLE[r.key].name}
+                  </>
+                }
+                amount={formatVnd(r.amount)}
+              />
+            </m.div>
           ))}
         </div>
         {/* Dải trống ở cuối hóa đơn dành cho con dấu, để dấu không che số tiền. */}
         <p className="mt-4 flex h-14 items-end text-cap text-ink-2">4/4 người đã xác nhận</p>
       </Receipt>
-      <Stamp label="ĐÃ NHẬN" date="06.10.2026" tone="mint" className="absolute -right-3 -bottom-12 max-sm:-right-1" />
-    </div>
+      {/* stampIn tự xoay −8°, nên con dấu chỉ xoay thêm −4° để giữ góc −12° như ảnh thiết kế. */}
+      <m.div
+        variants={delayed(variants.stampIn, T.stamp)}
+        initial="hidden"
+        animate="visible"
+        className="absolute -right-3 -bottom-12 max-sm:-right-1"
+      >
+        <Stamp label="ĐÃ NHẬN" date="06.10.2026" tone="mint" rotate={-4} />
+      </m.div>
+    </m.div>
   );
 }
 
-/** Toast "Mai đã duyệt Rửa chén" (minh họa việc nhà được duyệt). */
-function ApprovedToast() {
+function usePageVisible(): boolean {
+  const [visible, setVisible] = useState(() => document.visibilityState === 'visible');
+  useEffect(() => {
+    const onChange = () => setVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onChange);
+    return () => document.removeEventListener('visibilitychange', onChange);
+  }, []);
+  return visible;
+}
+
+/**
+ * Toast hoạt động của Nhà 12A: bắt đầu bằng "Mai đã duyệt Rửa chén" như ảnh thiết kế, đổi sự kiện mỗi 4 giây
+ * trong một vòng rồi dừng. Tạm dừng khi trỏ chuột vào, khi cuộn khỏi màn hình hoặc tab bị ẩn.
+ */
+function ActivityToast() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.5 });
+  const reduceMotion = useReducedMotion();
+  const pageVisible = usePageVisible();
+  const [paused, setPaused] = useState(false);
+  const [state, setState] = useState<TickerState>({ index: 0, steps: 0 });
+  const run = shouldRunTicker({ reduceMotion, inView, pageVisible, paused });
+
+  useEffect(() => {
+    const next = run ? advanceTicker(state, TICKER_EVENTS.length) : null;
+    if (!next) return;
+    const timer = setTimeout(() => setState(next), TICKER_INTERVAL_MS);
+    return () => clearTimeout(timer);
+  }, [run, state]);
+
+  const e = TICKER_EVENTS[state.index];
   return (
-    <div className="flex w-full max-w-[320px] items-center gap-3 rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]">
-      <Person k="M" size={32} />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-ink">Mai đã duyệt “Rửa chén”</p>
-        <p className="text-cap text-mint">+10 điểm chăm chỉ cho Hùng</p>
-      </div>
-    </div>
+    <m.div
+      ref={ref}
+      variants={delayed(variants.dropIn, T.toast)}
+      initial="hidden"
+      animate="visible"
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      style={float(5, 1.3)}
+      className="nf-float nf-lift w-full max-w-[320px] overflow-hidden rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <m.div key={state.index} variants={variants.tickerSwap} initial="hidden" animate="visible" exit="exit" className="flex items-center gap-3">
+          <Person k={e.who} size={32} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">{e.title}</p>
+            <p className={cn('truncate text-cap', e.tone === 'mint' ? 'text-mint' : 'text-ink-2')}>
+              {e.note}
+              {e.amount !== undefined && (
+                <>
+                  {' · '}
+                  <span className="font-mono">{formatVnd(e.amount)}</span>
+                </>
+              )}
+            </p>
+          </div>
+        </m.div>
+      </AnimatePresence>
+    </m.div>
   );
 }
 
@@ -124,7 +212,14 @@ export function Hero() {
           >
             Ở chung vui hơn khi mọi thứ đều{' '}
             <span className="relative inline-block isolate">
-              <span aria-hidden className="absolute inset-x-[-4px] bottom-[0.06em] -z-10 h-[0.42em] rounded-[3px] bg-hl" />
+              <m.span
+                aria-hidden
+                variants={delayed(variants.markerSweep, T.marker)}
+                initial="hidden"
+                animate="visible"
+                style={{ originX: 0 }}
+                className="absolute inset-x-[-4px] bottom-[0.06em] -z-10 h-[0.42em] rounded-[3px] bg-hl"
+              />
               công bằng.
             </span>
           </h1>
@@ -155,7 +250,7 @@ export function Hero() {
         <div className="relative flex flex-col items-start gap-5 max-lg:items-center lg:block lg:h-[620px]">
           <DebtSummaryCard />
           <ReceiptCard />
-          <ApprovedToast />
+          <ActivityToast />
         </div>
       </div>
     </section>
