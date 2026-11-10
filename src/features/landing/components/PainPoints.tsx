@@ -27,7 +27,7 @@ function PainCard({
 }) {
   return (
     <InViewItem className="flex">
-      <article className="flex flex-1 flex-col rounded-card border border-line bg-surface p-6">
+      <article className="nf-lift flex flex-1 flex-col rounded-card border border-line bg-surface p-6">
         <blockquote className="font-display text-ct text-ink">“{quote}”</blockquote>
         <div className="my-4 border-t border-dashed border-line-2" />
         <div className="flex items-center gap-3">

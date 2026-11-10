@@ -182,6 +182,26 @@
 }
 /* Hết modal */
 
+/* Thẻ nhích lên khi trỏ chuột (landing): bóng đặc lệch dày lên, không blur. Chỉ thiết bị có chuột, tắt khi
+   giảm chuyển động. Dùng `translate` riêng nên không đè `transform` mà motion đặt khi thẻ hiện ra. */
+.nf-lift {
+  transition-property: translate, box-shadow, border-color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease-out);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .nf-lift:hover {
+    translate: -2px -2px;
+    box-shadow: var(--shadow-hard);
+    border-color: var(--color-ink);
+  }
+
+  .nf-lift.shadow-hard:hover {
+    box-shadow: 5px 5px 0 var(--color-ink);
+  }
+}
+
 /* Người dùng bật "giảm chuyển động": tắt hiệu ứng lặp và chuyển cảnh (Skeleton, spinner, transition). */
 @media (prefers-reduced-motion: reduce) {
   *,

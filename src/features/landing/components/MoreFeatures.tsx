@@ -49,7 +49,7 @@ export function MoreFeatures() {
       <SectionHeading id="more-title" overline="Còn nhiều hơn thế" title="Mọi thứ nhà trọ cần, gói gọn trong một sổ." />
       <InView as="ul" stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((f) => (
-          <InViewItem as="li" key={f.title} className="flex flex-col rounded-card border border-line bg-surface p-5">
+          <InViewItem as="li" key={f.title} className="nf-lift flex flex-col rounded-card border border-line bg-surface p-5">
             <div className="flex items-start justify-between gap-2">
               <IconTile icon={f.icon} tone={f.tone} size={40} />
               {f.soon && <Chip size="sm">Sắp ra mắt</Chip>}

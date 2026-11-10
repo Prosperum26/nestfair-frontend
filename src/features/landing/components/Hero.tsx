@@ -164,7 +164,7 @@ function ActivityToast() {
       animate="visible"
       onPointerEnter={() => setPaused(true)}
       onPointerLeave={() => setPaused(false)}
-      className="w-full max-w-[320px] overflow-hidden rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]"
+      className="nf-lift w-full max-w-[320px] overflow-hidden rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]"
     >
       <AnimatePresence mode="wait" initial={false}>
         <m.div key={state.index} variants={variants.tickerSwap} initial="hidden" animate="visible" exit="exit" className="flex items-center gap-3">

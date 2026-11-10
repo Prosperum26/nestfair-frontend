@@ -18,6 +18,14 @@ describe('token chuyển động', () => {
     for (const [name, value] of Object.entries(cssMotionVars)) expect(css).toContain(`${name}: ${value};`);
   });
 
+  it('thẻ nhích lên khi hover chỉ trên thiết bị có chuột và không bật giảm chuyển động, dùng bóng đặc lệch', () => {
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
+    const block = css.split('@media (hover: hover) and (prefers-reduced-motion: no-preference) {')[1] ?? '';
+    expect(block).toMatch(/\.nf-lift:hover \{[^}]*translate: -2px -2px;[^}]*box-shadow: var\(--shadow-hard\);/);
+    expect(block).toMatch(/\.nf-lift\.shadow-hard:hover \{[^}]*box-shadow: 5px 5px 0 var\(--color-ink\);/);
+    expect(css.match(/\.nf-lift[^{]*\{[^}]*\}/g)?.join('')).not.toMatch(/blur|gradient/);
+  });
+
   it('hiệu ứng theo cuộn chỉ chạy một lần, khi khối đã vào khung nhìn một phần', () => {
     expect(viewport).toEqual({ once: true, amount: 0.25 });
   });
