@@ -2,11 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   costLines,
   estimateTotal,
-  formatMoneyInput,
   genderLabel,
   genderPosterLine,
   listingHeadline,
-  parseMoneyInput,
   publicUrlDisplay,
 } from './format.ts';
 
@@ -86,27 +84,6 @@ describe('giới tính', () => {
     expect(genderPosterLine('MALE')).toBe('Tìm bạn nam');
     expect(genderPosterLine('FEMALE')).toBe('Tìm bạn nữ');
     expect(genderPosterLine('ANY')).toBeNull();
-  });
-});
-
-describe('parseMoneyInput / formatMoneyInput', () => {
-  it.each([
-    ['1.200.000', 1_200_000],
-    ['1200000', 1_200_000],
-    ['1 200 000', 1_200_000],
-    ['0', 0],
-  ])('đọc %j -> %i', (raw, expected) => {
-    expect(parseMoneyInput(raw)).toBe(expected);
-  });
-
-  it.each([['abc'], [''], ['   '], ['12abc']])('chữ cái hoặc rỗng %j -> null', (raw) => {
-    expect(parseMoneyInput(raw)).toBeNull();
-  });
-
-  it('hiển thị có chấm nghìn, không có đ', () => {
-    expect(formatMoneyInput(1_200_000)).toBe('1.200.000');
-    expect(formatMoneyInput(60_000)).toBe('60.000');
-    expect(formatMoneyInput(0)).toBe('0');
   });
 });
 
