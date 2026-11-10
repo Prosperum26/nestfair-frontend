@@ -1,12 +1,15 @@
 import { ArrowRight, KeyRound, ScanLine, ShoppingCart, Sparkles } from 'lucide-react';
+import { m } from 'motion/react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
+import { CountUpVnd } from '@/components/ui/CountUpVnd.tsx';
 import { GridPaper } from '@/components/ui/GridPaper.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
 import { LinkButton } from '@/components/ui/LinkButton.tsx';
 import { LedgerRow, Receipt } from '@/components/ui/Receipt.tsx';
 import { Stamp } from '@/components/ui/Stamp.tsx';
 import { formatVnd } from '@/lib/format.ts';
+import { delayed, variants } from '@/lib/motion.ts';
 import { AFTER_TRANSFERS, PEOPLE } from '../debt-demo.ts';
 import { PERSON_TONE } from '../people.ts';
 
@@ -19,6 +22,9 @@ const RECEIPT_ROWS = [
 
 const RECEIPT_TOTAL = RECEIPT_ROWS.reduce((sum, r) => sum + r.amount, 0);
 
+/** Nhịp mở màn (giây): marker, ba thẻ rơi vào chỗ, hóa đơn in từng dòng, cuối cùng đóng dấu. */
+const T = { marker: 0.35, debt: 0.1, receipt: 0.25, rows: 0.55, rowStep: 0.08, stamp: 1.1, toast: 0.45 } as const;
+
 function Person({ k, size = 24 }: { k: keyof typeof PEOPLE; size?: number }) {
   return <Avatar name={PEOPLE[k].name} tone={PERSON_TONE[k]} size={size} />;
 }
@@ -26,7 +32,12 @@ function Person({ k, size = 24 }: { k: keyof typeof PEOPLE; size?: number }) {
 /** Thẻ tối "Rút gọn nợ · tháng 10" (góc trên phải của hero). */
 function DebtSummaryCard() {
   return (
-    <div className="w-full max-w-[320px] rounded-card bg-ink p-5 text-white lg:absolute lg:top-0 lg:right-0 lg:w-[300px] lg:rotate-[3deg]">
+    <m.div
+      variants={delayed(variants.dropIn, T.debt)}
+      initial="hidden"
+      animate="visible"
+      className="w-full max-w-[320px] rounded-card bg-ink p-5 text-white lg:absolute lg:top-0 lg:right-0 lg:w-[300px] lg:rotate-[3deg]"
+    >
       <p className="font-mono text-over uppercase text-ink-on2">Rút gọn nợ · tháng 10</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="inline-flex h-[26px] items-center rounded-full border border-ink-line bg-ink-soft px-2.5 text-cap font-semibold whitespace-nowrap text-white">
@@ -48,14 +59,19 @@ function DebtSummaryCard() {
         ))}
       </ul>
       <p className="mt-4 text-cap text-ink-on2">Mỗi giao dịch có VietQR điền sẵn.</p>
-    </div>
+    </m.div>
   );
 }
 
 /** Hóa đơn răng cưa "Đi chợ cuối tuần" kèm con dấu ĐÃ NHẬN. */
 function ReceiptCard() {
   return (
-    <div className="relative max-lg:mb-12 lg:absolute lg:top-[210px] lg:left-0 lg:-rotate-[2deg]">
+    <m.div
+      variants={delayed(variants.dropIn, T.receipt)}
+      initial="hidden"
+      animate="visible"
+      className="relative max-lg:mb-12 lg:absolute lg:top-[210px] lg:left-0 lg:-rotate-[2deg]"
+    >
       <Receipt>
         <div className="flex items-center gap-3">
           <IconTile icon={<ShoppingCart />} tone="mint" size={36} />
@@ -66,7 +82,9 @@ function ReceiptCard() {
         </div>
         <div className="mt-4 flex items-end justify-between gap-3">
           <span className="text-sm text-ink-2">Tổng hóa đơn</span>
-          <span className="font-mono text-ml text-ink">{formatVnd(RECEIPT_TOTAL)}</span>
+          <span className="font-mono text-ml text-ink">
+            <CountUpVnd value={RECEIPT_TOTAL} delay={T.rows} />
+          </span>
         </div>
         <div className="mt-2">
           <Chip tone="lil" size="sm" icon={<ScanLine />}>
@@ -74,24 +92,33 @@ function ReceiptCard() {
           </Chip>
         </div>
         <div className="mt-4 flex flex-col gap-2.5 border-t border-dashed border-line-2 pt-4">
-          {RECEIPT_ROWS.map((r) => (
-            <LedgerRow
-              key={r.key}
-              left={
-                <>
-                  <Person k={r.key} size={22} />
-                  {PEOPLE[r.key].name}
-                </>
-              }
-              amount={formatVnd(r.amount)}
-            />
+          {RECEIPT_ROWS.map((r, i) => (
+            <m.div key={r.key} variants={delayed(variants.fadeUp, T.rows + i * T.rowStep)} initial="hidden" animate="visible">
+              <LedgerRow
+                left={
+                  <>
+                    <Person k={r.key} size={22} />
+                    {PEOPLE[r.key].name}
+                  </>
+                }
+                amount={formatVnd(r.amount)}
+              />
+            </m.div>
           ))}
         </div>
         {/* Dải trống ở cuối hóa đơn dành cho con dấu, để dấu không che số tiền. */}
         <p className="mt-4 flex h-14 items-end text-cap text-ink-2">4/4 người đã xác nhận</p>
       </Receipt>
-      <Stamp label="ĐÃ NHẬN" date="06.10.2026" tone="mint" className="absolute -right-3 -bottom-12 max-sm:-right-1" />
-    </div>
+      {/* stampIn tự xoay −8°, nên con dấu chỉ xoay thêm −4° để giữ góc −12° như ảnh thiết kế. */}
+      <m.div
+        variants={delayed(variants.stampIn, T.stamp)}
+        initial="hidden"
+        animate="visible"
+        className="absolute -right-3 -bottom-12 max-sm:-right-1"
+      >
+        <Stamp label="ĐÃ NHẬN" date="06.10.2026" tone="mint" rotate={-4} />
+      </m.div>
+    </m.div>
   );
 }
 
@@ -124,7 +151,14 @@ export function Hero() {
           >
             Ở chung vui hơn khi mọi thứ đều{' '}
             <span className="relative inline-block isolate">
-              <span aria-hidden className="absolute inset-x-[-4px] bottom-[0.06em] -z-10 h-[0.42em] rounded-[3px] bg-hl" />
+              <m.span
+                aria-hidden
+                variants={delayed(variants.markerSweep, T.marker)}
+                initial="hidden"
+                animate="visible"
+                style={{ originX: 0 }}
+                className="absolute inset-x-[-4px] bottom-[0.06em] -z-10 h-[0.42em] rounded-[3px] bg-hl"
+              />
               công bằng.
             </span>
           </h1>
