@@ -77,6 +77,12 @@ export const variants = {
     hidden: { pathLength: 0, opacity: 0 },
     visible: { pathLength: 1, opacity: 1, transition: { duration: duration.slow, ease: ease.out } },
   },
+  /** Nội dung đổi tại chỗ (toast hoạt động ở landing): cũ trượt lên mờ đi, mới trượt lên hiện ra. */
+  tickerSwap: {
+    hidden: { opacity: 0, y: distance.sm },
+    visible: { opacity: 1, y: 0, transition: enter },
+    exit: { opacity: 0, y: -distance.sm, transition: leave },
+  },
   /** Khối cha: các khối con (dùng variant hidden/visible) hiện lần lượt. */
   staggerGroup: {
     hidden: {},

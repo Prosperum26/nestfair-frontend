@@ -1,5 +1,6 @@
 import { ArrowRight, KeyRound, ScanLine, ShoppingCart, Sparkles } from 'lucide-react';
-import { m } from 'motion/react';
+import { AnimatePresence, m, useInView, useReducedMotion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { CountUpVnd } from '@/components/ui/CountUpVnd.tsx';
@@ -8,10 +9,12 @@ import { IconTile } from '@/components/ui/IconTile.tsx';
 import { LinkButton } from '@/components/ui/LinkButton.tsx';
 import { LedgerRow, Receipt } from '@/components/ui/Receipt.tsx';
 import { Stamp } from '@/components/ui/Stamp.tsx';
+import { cn } from '@/lib/cn.ts';
 import { formatVnd } from '@/lib/format.ts';
 import { delayed, variants } from '@/lib/motion.ts';
 import { AFTER_TRANSFERS, PEOPLE } from '../debt-demo.ts';
 import { PERSON_TONE } from '../people.ts';
+import { advanceTicker, shouldRunTicker, TICKER_EVENTS, TICKER_INTERVAL_MS, type TickerState } from '../ticker.ts';
 
 const RECEIPT_ROWS = [
   { key: 'H', amount: 110_000 },
@@ -122,16 +125,65 @@ function ReceiptCard() {
   );
 }
 
-/** Toast "Mai đã duyệt Rửa chén" (minh họa việc nhà được duyệt). */
-function ApprovedToast() {
+function usePageVisible(): boolean {
+  const [visible, setVisible] = useState(() => document.visibilityState === 'visible');
+  useEffect(() => {
+    const onChange = () => setVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onChange);
+    return () => document.removeEventListener('visibilitychange', onChange);
+  }, []);
+  return visible;
+}
+
+/**
+ * Toast hoạt động của Nhà 12A: bắt đầu bằng "Mai đã duyệt Rửa chén" như ảnh thiết kế, đổi sự kiện mỗi 4 giây
+ * trong một vòng rồi dừng. Tạm dừng khi trỏ chuột vào, khi cuộn khỏi màn hình hoặc tab bị ẩn.
+ */
+function ActivityToast() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.5 });
+  const reduceMotion = useReducedMotion();
+  const pageVisible = usePageVisible();
+  const [paused, setPaused] = useState(false);
+  const [state, setState] = useState<TickerState>({ index: 0, steps: 0 });
+  const run = shouldRunTicker({ reduceMotion, inView, pageVisible, paused });
+
+  useEffect(() => {
+    const next = run ? advanceTicker(state, TICKER_EVENTS.length) : null;
+    if (!next) return;
+    const timer = setTimeout(() => setState(next), TICKER_INTERVAL_MS);
+    return () => clearTimeout(timer);
+  }, [run, state]);
+
+  const e = TICKER_EVENTS[state.index];
   return (
-    <div className="flex w-full max-w-[320px] items-center gap-3 rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]">
-      <Person k="M" size={32} />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-ink">Mai đã duyệt “Rửa chén”</p>
-        <p className="text-cap text-mint">+10 điểm chăm chỉ cho Hùng</p>
-      </div>
-    </div>
+    <m.div
+      ref={ref}
+      variants={delayed(variants.dropIn, T.toast)}
+      initial="hidden"
+      animate="visible"
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      className="w-full max-w-[320px] overflow-hidden rounded-btn border-[1.5px] border-ink bg-surface p-3 shadow-hard lg:absolute lg:top-[330px] lg:right-0 lg:w-[270px]"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <m.div key={state.index} variants={variants.tickerSwap} initial="hidden" animate="visible" exit="exit" className="flex items-center gap-3">
+          <Person k={e.who} size={32} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">{e.title}</p>
+            <p className={cn('truncate text-cap', e.tone === 'mint' ? 'text-mint' : 'text-ink-2')}>
+              {e.note}
+              {e.amount !== undefined && (
+                <>
+                  {' · '}
+                  <span className="font-mono">{formatVnd(e.amount)}</span>
+                </>
+              )}
+            </p>
+          </div>
+        </m.div>
+      </AnimatePresence>
+    </m.div>
   );
 }
 
@@ -189,7 +241,7 @@ export function Hero() {
         <div className="relative flex flex-col items-start gap-5 max-lg:items-center lg:block lg:h-[620px]">
           <DebtSummaryCard />
           <ReceiptCard />
-          <ApprovedToast />
+          <ActivityToast />
         </div>
       </div>
     </section>
