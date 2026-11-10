@@ -12,6 +12,7 @@ import { holdFor } from '@/lib/celebrate.ts';
 import { cn } from '@/lib/cn.ts';
 import { formatDate } from '@/lib/date.ts';
 import { variants } from '@/lib/motion.ts';
+import { useTimers } from '@/lib/timers.ts';
 import { isStateChanged, messageForError } from '../errors.ts';
 import { useVerify } from '../hooks.ts';
 import { canVerify } from '../permissions.ts';
@@ -38,6 +39,8 @@ function VerifyBody({
   // Kết quả vừa gửi thành công: đóng con dấu lên ảnh, giữ một nhịp rồi mới đóng modal.
   const [stamped, setStamped] = useState<'APPROVED' | 'REJECTED' | null>(null);
   const reduceMotion = useReducedMotion();
+  // Đóng modal trong lúc giữ dấu thì body unmount và hủy hẹn giờ, không đóng nhầm modal mở ngay sau đó.
+  const timers = useTimers();
   const verify = useVerify(houseId);
   const busy = verify.isPending || stamped !== null;
 
@@ -53,7 +56,7 @@ function VerifyBody({
         onSuccess: () => {
           toast(decision === 'APPROVED' ? 'Đã duyệt ca này.' : 'Đã yêu cầu làm lại.');
           setStamped(decision);
-          setTimeout(onClose, holdFor('verifyStamp', reduceMotion));
+          timers.after(holdFor('verifyStamp', reduceMotion), onClose);
         },
         onError: (e) => {
           // Người khác duyệt trước: báo ngắn gọn rồi đóng để thấy trạng thái mới.
