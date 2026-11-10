@@ -117,7 +117,10 @@ export function DebtSection() {
                 className="mt-3 flex justify-center"
               >
                 <Chip tone="hl">
-                  <CollapseCount collapsed={collapsed} /> giao dịch · {shortAmount(total(AFTER_TRANSFERS))}
+                  {/* Một span duy nhất: Chip là flex có gap, tách số và chữ ra hai item sẽ dư khoảng trống. */}
+                  <span>
+                    <CollapseCount collapsed={collapsed} /> giao dịch · {shortAmount(total(AFTER_TRANSFERS))}
+                  </span>
                 </Chip>
               </m.div>
             </figure>
