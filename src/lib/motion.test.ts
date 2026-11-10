@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { cssMotionVars, distance, duration, ease, spring, variants } from './motion.ts';
+import { cssMotionVars, distance, duration, ease, spring, variants, viewport } from './motion.ts';
 
 describe('token chuyển động', () => {
   it('khai báo đúng giá trị token của spec', () => {
@@ -16,6 +16,19 @@ describe('token chuyển động', () => {
     // Vitest thay file .css bằng chuỗi rỗng khi import, nên đọc thẳng từ đĩa.
     const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
     for (const [name, value] of Object.entries(cssMotionVars)) expect(css).toContain(`${name}: ${value};`);
+  });
+
+  it('hiệu ứng theo cuộn chỉ chạy một lần, khi khối đã vào khung nhìn một phần', () => {
+    expect(viewport).toEqual({ once: true, amount: 0.25 });
+  });
+
+  it('vệt dạ quang và đường nối vẽ từ 0 tới đủ, thẻ rơi xuống từ phía trên', () => {
+    expect(variants.markerSweep.hidden).toEqual({ scaleX: 0 });
+    expect(variants.markerSweep.visible).toMatchObject({ scaleX: 1 });
+    expect(variants.drawLine.hidden).toEqual({ pathLength: 0, opacity: 0 });
+    expect(variants.drawLine.visible).toMatchObject({ pathLength: 1, opacity: 1 });
+    expect(variants.dropIn.hidden).toEqual({ opacity: 0, y: -distance.md });
+    expect(variants.staggerGroup.visible).toMatchObject({ transition: { staggerChildren: 0.08 } });
   });
 
   it('không variant nào dịch quá 8px hay scale dưới 0.96 (trừ stampIn)', () => {

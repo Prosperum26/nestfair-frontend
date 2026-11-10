@@ -15,7 +15,10 @@ export const spring = { stamp: { type: 'spring', stiffness: 520, damping: 22 } }
 /** Dịch chuyển tối đa khi xuất hiện (luật "Sổ Chung": không quá 8px). */
 export const distance = { sm: 4, md: 8 } as const;
 
-const bezier = ([a, b, c, d]: Bezier) => `cubic-bezier(${a}, ${b}, ${c}, ${d})`;
+/** Hiệu ứng theo cuộn: chạy một lần khi 1/4 khối đã vào khung nhìn. */
+export const viewport = { once: true, amount: 0.25 } as const;
+
+const bezier =([a, b, c, d]: Bezier) => `cubic-bezier(${a}, ${b}, ${c}, ${d})`;
 
 export const cssMotionVars = {
   '--dur-fast': `${duration.fast * 1000}ms`,
@@ -50,6 +53,26 @@ export const variants = {
   pageEnter: {
     hidden: { opacity: 0, y: distance.sm },
     visible: { opacity: 1, y: 0, transition: { duration: duration.slow, ease: ease.out } },
+  },
+  /** Vệt bút dạ quang kéo từ trái sang (đặt `originX: 0` ở style). */
+  markerSweep: {
+    hidden: { scaleX: 0 },
+    visible: { scaleX: 1, transition: { duration: duration.slow, ease: ease.out } },
+  },
+  /** Thẻ minh họa rơi nhẹ vào chỗ. */
+  dropIn: {
+    hidden: { opacity: 0, y: -distance.md },
+    visible: { opacity: 1, y: 0, transition: { duration: duration.slow, ease: ease.out } },
+  },
+  /** Đường nối SVG được vẽ ra. */
+  drawLine: {
+    hidden: { pathLength: 0, opacity: 0 },
+    visible: { pathLength: 1, opacity: 1, transition: { duration: duration.slow, ease: ease.out } },
+  },
+  /** Khối cha: các khối con (dùng variant hidden/visible) hiện lần lượt. */
+  staggerGroup: {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.08 } },
   },
   /** Con dấu đóng xuống (ngoại lệ duy nhất được scale > 1). */
   stampIn: {
