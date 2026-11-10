@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { cssMotionVars, distance, duration, ease, spring, variants, viewport } from './motion.ts';
+import { cssMotionVars, delayed, distance, duration, ease, spring, variants, viewport } from './motion.ts';
 
 describe('token chuyển động', () => {
   it('khai báo đúng giá trị token của spec', () => {
@@ -29,6 +29,13 @@ describe('token chuyển động', () => {
     expect(variants.drawLine.visible).toMatchObject({ pathLength: 1, opacity: 1 });
     expect(variants.dropIn.hidden).toEqual({ opacity: 0, y: -distance.md });
     expect(variants.staggerGroup.visible).toMatchObject({ transition: { staggerChildren: 0.08 } });
+  });
+
+  it('delayed gộp độ trễ vào transition của trạng thái visible, giữ nguyên thời lượng và trạng thái hidden', () => {
+    const v = delayed(variants.dropIn, 0.4);
+    expect(v.hidden).toEqual(variants.dropIn.hidden);
+    expect(v.visible).toMatchObject({ opacity: 1, y: 0, transition: { duration: duration.slow, delay: 0.4 } });
+    expect(variants.dropIn.visible).not.toHaveProperty('transition.delay');
   });
 
   it('không variant nào dịch quá 8px hay scale dưới 0.96 (trừ stampIn)', () => {

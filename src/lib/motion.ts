@@ -1,4 +1,4 @@
-import type { Transition, Variants } from 'motion/react';
+import type { Target, Transition, Variants } from 'motion/react';
 
 /**
  * Nguồn duy nhất cho thời lượng, easing và variants (spec UX 08.11, mục 4.1).
@@ -14,6 +14,14 @@ export const spring = { stamp: { type: 'spring', stiffness: 520, damping: 22 } }
 
 /** Dịch chuyển tối đa khi xuất hiện (luật "Sổ Chung": không quá 8px). */
 export const distance = { sm: 4, md: 8 } as const;
+
+/**
+ * Bản sao của variant với độ trễ gộp vào transition của `visible`. Dùng thay cho prop `transition={{ delay }}`,
+ * vì transition khai trong variant được ưu tiên hơn prop đó nên độ trễ truyền qua prop không có tác dụng.
+ */
+export function delayed<V extends { hidden: Target; visible: Target & { transition?: Transition } }>(v: V, delay: number): V {
+  return { ...v, visible: { ...v.visible, transition: { ...v.visible.transition, delay } } };
+}
 
 /** Hiệu ứng theo cuộn: chạy một lần khi 1/4 khối đã vào khung nhìn. */
 export const viewport = { once: true, amount: 0.25 } as const;

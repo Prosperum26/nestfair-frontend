@@ -1,11 +1,11 @@
 import { m } from 'motion/react';
 import type { ReactNode } from 'react';
-import { variants, viewport } from '@/lib/motion.ts';
+import { delayed, variants, viewport } from '@/lib/motion.ts';
 
 /** Nội dung vừa tải xong (thay chỗ skeleton): hiện dần, trượt lên 4px một lần khi mount. */
 export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
   return (
-    <m.div className={className} variants={variants.fadeUp} initial="hidden" animate="visible" transition={delay ? { delay } : undefined}>
+    <m.div className={className} variants={delay ? delayed(variants.fadeUp, delay) : variants.fadeUp} initial="hidden" animate="visible">
       {children}
     </m.div>
   );
