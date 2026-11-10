@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
+import { InView } from '@/components/ui/Reveal.tsx';
 import { cn } from '@/lib/cn.ts';
 
-/** Overline mono viết hoa → tiêu đề Fraunces → mô tả (pattern tiêu đề của Design.md). */
+/** Overline mono viết hoa → tiêu đề Fraunces → mô tả (pattern tiêu đề của Design.md). Hiện dần khi cuộn tới. */
 export function SectionHeading({
   overline,
   title,
@@ -20,7 +21,7 @@ export function SectionHeading({
   className?: string;
 }) {
   return (
-    <div className={cn(align === 'center' && 'mx-auto text-center', className)}>
+    <InView className={cn(align === 'center' && 'mx-auto text-center', className)}>
       <p className={cn('font-mono text-over uppercase', onInk ? 'text-hl' : 'text-ink-2')}>{overline}</p>
       <h2
         id={id}
@@ -33,6 +34,6 @@ export function SectionHeading({
         {title}
       </h2>
       {description && <p className={cn('mt-3 text-b', onInk ? 'text-ink-on2' : 'text-ink-2')}>{description}</p>}
-    </div>
+    </InView>
   );
 }

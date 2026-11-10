@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Avatar } from '@/components/ui/Avatar.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
+import { InView, InViewItem } from '@/components/ui/Reveal.tsx';
 import type { Tone } from '@/components/ui/tones.ts';
 import { cn } from '@/lib/cn.ts';
 import { PEOPLE, type PersonKey } from '../debt-demo.ts';
@@ -25,16 +26,18 @@ function PainCard({
   visual: ReactNode;
 }) {
   return (
-    <article className="flex flex-col rounded-card border border-line bg-surface p-6">
-      <blockquote className="font-display text-ct text-ink">“{quote}”</blockquote>
-      <div className="my-4 border-t border-dashed border-line-2" />
-      <div className="flex items-center gap-3">
-        <IconTile icon={icon} tone={tone} size={36} />
-        <h3 className="text-h4 text-ink">{title}</h3>
-      </div>
-      <p className="mt-3 text-sm text-ink-2">{children}</p>
-      <div className="mt-auto pt-5">{visual}</div>
-    </article>
+    <InViewItem className="flex">
+      <article className="flex flex-1 flex-col rounded-card border border-line bg-surface p-6">
+        <blockquote className="font-display text-ct text-ink">“{quote}”</blockquote>
+        <div className="my-4 border-t border-dashed border-line-2" />
+        <div className="flex items-center gap-3">
+          <IconTile icon={icon} tone={tone} size={36} />
+          <h3 className="text-h4 text-ink">{title}</h3>
+        </div>
+        <p className="mt-3 text-sm text-ink-2">{children}</p>
+        <div className="mt-auto pt-5">{visual}</div>
+      </article>
+    </InViewItem>
   );
 }
 
@@ -102,7 +105,7 @@ export function PainPoints() {
         overline="Ba chuyện hay gây cãi nhau"
         title="Ở chung không khó, khó là sòng phẳng với nhau."
       />
-      <div className="mt-12 grid gap-6 lg:grid-cols-3">
+      <InView stagger className="mt-12 grid gap-6 lg:grid-cols-3">
         <PainCard
           quote="Tiền điện tháng này ai trả, mỗi người bao nhiêu?"
           icon={<Scale />}
@@ -130,7 +133,7 @@ export function PainPoints() {
         >
           Gom mọi khoản nợ chéo thành ít giao dịch nhất. Mỗi giao dịch có mã VietQR điền sẵn số tiền và nội dung.
         </PainCard>
-      </div>
+      </InView>
     </section>
   );
 }

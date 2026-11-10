@@ -4,6 +4,7 @@ import { useEffect, useReducer, useRef } from 'react';
 import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { GridPaper } from '@/components/ui/GridPaper.tsx';
+import { InView, InViewItem } from '@/components/ui/Reveal.tsx';
 import { cn } from '@/lib/cn.ts';
 import { variants } from '@/lib/motion.ts';
 import { useTimers } from '@/lib/timers.ts';
@@ -70,16 +71,16 @@ export function DebtSection() {
             }
             description="NestFair tính số dư ròng của từng người rồi chọn đường trả ngắn nhất. Nhà 12A tháng 10 từ 6 khoản nợ chéo chỉ còn 2 lần chuyển khoản."
           />
-          <ul className="mt-8 flex flex-col gap-3.5">
+          <InView as="ul" stagger className="mt-8 flex flex-col gap-3.5">
             {POINTS.map((p) => (
-              <li key={p} className="flex items-center gap-3 text-b text-white">
+              <InViewItem as="li" key={p} className="flex items-center gap-3 text-b text-white">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-[6px] bg-hl text-ink" aria-hidden>
                   <Check className="size-4" strokeWidth={3} />
                 </span>
                 {p}
-              </li>
+              </InViewItem>
             ))}
-          </ul>
+          </InView>
         </div>
 
         <div ref={graphsRef} className="rounded-modal bg-surface p-5 sm:p-7">

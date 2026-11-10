@@ -31,6 +31,11 @@ describe('token chuyển động', () => {
     expect(variants.staggerGroup.visible).toMatchObject({ transition: { staggerChildren: 0.08 } });
   });
 
+  it('vạch quét QR chạy từ mép trên xuống mép dưới một lần rồi tắt', () => {
+    expect(variants.scanSweep.hidden).toEqual({ top: '0%', opacity: 0 });
+    expect(variants.scanSweep.visible).toMatchObject({ top: ['0%', '100%'], opacity: [0, 1, 1, 0] });
+  });
+
   it('delayed gộp độ trễ vào transition của trạng thái visible, giữ nguyên thời lượng và trạng thái hidden', () => {
     const v = delayed(variants.dropIn, 0.4);
     expect(v.hidden).toEqual(variants.dropIn.hidden);

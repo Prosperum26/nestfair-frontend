@@ -2,6 +2,7 @@ import { ArrowLeftRight, Megaphone, ScanLine, Sparkles } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
+import { InView, InViewItem } from '@/components/ui/Reveal.tsx';
 import type { Tone } from '@/components/ui/tones.ts';
 import { SectionHeading } from './SectionHeading.tsx';
 
@@ -46,18 +47,18 @@ export function MoreFeatures() {
   return (
     <section aria-labelledby="more-title" className="mx-auto max-w-page px-4 pb-20 lg:px-6 lg:pb-24 xl:px-0">
       <SectionHeading id="more-title" overline="Còn nhiều hơn thế" title="Mọi thứ nhà trọ cần, gói gọn trong một sổ." />
-      <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <InView as="ul" stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((f) => (
-          <li key={f.title} className="flex flex-col rounded-card border border-line bg-surface p-5">
+          <InViewItem as="li" key={f.title} className="flex flex-col rounded-card border border-line bg-surface p-5">
             <div className="flex items-start justify-between gap-2">
               <IconTile icon={f.icon} tone={f.tone} size={40} />
               {f.soon && <Chip size="sm">Sắp ra mắt</Chip>}
             </div>
             <h3 className="mt-4 text-h4 text-ink">{f.title}</h3>
             <p className="mt-1.5 text-sm text-ink-2">{f.text}</p>
-          </li>
+          </InViewItem>
         ))}
-      </ul>
+      </InView>
     </section>
   );
 }

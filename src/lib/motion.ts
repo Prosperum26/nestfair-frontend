@@ -83,6 +83,11 @@ export const variants = {
     visible: { opacity: 1, y: 0, transition: enter },
     exit: { opacity: 0, y: -distance.sm, transition: leave },
   },
+  /** Vạch quét chạy dọc mã QR một lần (dùng `top` trong khung `relative`, không phải dịch chuyển xuất hiện). */
+  scanSweep: {
+    hidden: { top: '0%', opacity: 0 },
+    visible: { top: ['0%', '100%'], opacity: [0, 1, 1, 0], transition: { duration: duration.slow * 3, ease: 'easeInOut' } },
+  },
   /** Khối cha: các khối con (dùng variant hidden/visible) hiện lần lượt. */
   staggerGroup: {
     hidden: {},
