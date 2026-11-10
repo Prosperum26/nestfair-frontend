@@ -60,7 +60,6 @@ const router = createBrowserRouter([
             element: <AppShell />,
             children: [
               { path: '/dashboard', element: <DashboardPage /> },
-              // Module chưa làm: thay ComingSoonPage bằng trang thật khi bắt đầu module.
               { path: '/chores', element: <ChoresPage /> },
               { path: '/house', element: <HouseManagePage /> },
               // Cài đặt việc nhà đã gộp vào tab của /house; giữ đường cũ để link và dấu trang không chết.
