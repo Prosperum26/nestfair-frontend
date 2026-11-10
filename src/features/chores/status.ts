@@ -2,9 +2,6 @@ import { Ban, CircleCheck, Clock, Image, RotateCcw, TriangleAlert, UserX, type L
 import type { Tone } from '@/components/ui/tones.ts';
 import type { AssignmentStatus } from './types.ts';
 
-/** Thứ tự hiển thị khi cần liệt kê trạng thái. */
-export const STATUS_ORDER: AssignmentStatus[] = ['TODO', 'REJECTED', 'PENDING_VERIFY', 'DONE', 'MISSED', 'UNASSIGNED', 'CANCELLED'];
-
 const CHIPS: Record<AssignmentStatus, { label: string; tone: Tone; icon: LucideIcon }> = {
   TODO: { label: 'Chờ làm', tone: 'neutral', icon: Clock },
   PENDING_VERIFY: { label: 'Chờ duyệt', tone: 'yellow', icon: Image },
