@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expiryNote, pointsLabel, slotLabel, timeLeftLabel, weightDiffLabel } from './swap-format.ts';
+import { pointsLabel, slotLabel, timeLeftLabel, weightDiffLabel } from './swap-format.ts';
 
 const NOW = new Date('2026-10-21T03:00:00Z'); // 10:00 giờ nhà
 
@@ -22,17 +22,6 @@ describe('timeLeftLabel', () => {
 
   it('nhận chuỗi ISO', () => {
     expect(timeLeftLabel('2026-10-21T05:00:00Z', NOW)).toBe('còn 2 giờ');
-  });
-});
-
-describe('expiryNote', () => {
-  it('ghi người trả lời và hạn theo giờ nhà', () => {
-    // 22:00 giờ nhà ngày 21.10 = 15:00Z.
-    expect(expiryNote('Mai', '2026-10-21T15:00:00Z', NOW)).toBe('Mai có 12 giờ để trả lời (hết hạn 21.10 22:00).');
-  });
-
-  it('dưới 1 giờ thì ghi phút', () => {
-    expect(expiryNote('Mai', '2026-10-21T03:30:00Z', NOW)).toBe('Mai có 30 phút để trả lời (hết hạn 21.10 10:30).');
   });
 });
 
