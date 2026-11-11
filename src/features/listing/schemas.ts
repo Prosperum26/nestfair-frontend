@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { formatVnd } from '@/lib/format.ts';
+import { isGoogleMapsUrl } from './map-location.ts';
 
 /** Giới hạn khớp UpsertListingDto backend (B4) và CHECK trong DB (B1). */
 export const MAX_RENT = 50_000_000;
@@ -37,6 +38,11 @@ export const listingFormSchema = z.object({
     .transform((v) => v.replace(/\s+/g, ''))
     .pipe(z.string().regex(/^0\d{9}$/, 'Số điện thoại gồm 10 chữ số, bắt đầu bằng 0.')),
   showChoreSchedule: z.boolean(),
+  /** Trống = không có link. Có nhập thì phải là link Google Maps (cùng luật backend). */
+  mapUrl: z
+    .string()
+    .trim()
+    .refine((v) => v === '' || isGoogleMapsUrl(v), 'Chỉ nhận link Google Maps (bắt đầu bằng https://).'),
 });
 
 export type ListingFormValues = z.input<typeof listingFormSchema>;

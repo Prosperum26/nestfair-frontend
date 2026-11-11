@@ -10,6 +10,7 @@ const listing: Listing = {
   status: 'DRAFT',
   closeReason: null,
   locationText: 'Hẻm 12 Linh Trung',
+  mapUrl: 'https://www.google.com/maps/search/?api=1&query=10.87,106.803',
   genderWanted: 'FEMALE',
   rentPerMonth: 1_200_000,
   otherFees: [{ name: 'Wifi', amount: 60_000 }],
@@ -27,6 +28,7 @@ describe('buildFormDefaults', () => {
   it('chưa có tin: vị trí lấy từ địa chỉ nhà, SĐT từ hồ sơ', () => {
     expect(buildFormDefaults(null, suggestions)).toEqual({
       locationText: 'Hẻm 51, Linh Trung, Thủ Đức',
+      mapUrl: '',
       genderWanted: 'ANY',
       rentPerMonth: null,
       otherFees: [],
@@ -46,6 +48,7 @@ describe('buildFormDefaults', () => {
   it('đã có tin: dùng nội dung của tin, không ghi đè bằng gợi ý', () => {
     expect(buildFormDefaults(listing, suggestions)).toEqual({
       locationText: 'Hẻm 12 Linh Trung',
+      mapUrl: 'https://www.google.com/maps/search/?api=1&query=10.87,106.803',
       genderWanted: 'FEMALE',
       rentPerMonth: 1_200_000,
       otherFees: [{ name: 'Wifi', amount: 60_000 }],
@@ -63,6 +66,11 @@ describe('buildFormDefaults', () => {
   });
 });
 
+it('tin chưa có link bản đồ hoặc chưa có tin: ô link để trống', () => {
+  expect(buildFormDefaults({ ...listing, mapUrl: null }, suggestions).mapUrl).toBe('');
+  expect(buildFormDefaults(null, suggestions).mapUrl).toBe('');
+});
+
 describe('primaryAction', () => {
   it.each([
     [null, 'SAVE_DRAFT'],
@@ -78,6 +86,7 @@ describe('toListingInput', () => {
   it('chuẩn hóa SĐT, cắt khoảng trắng và giữ đúng trường của UpsertListingDto', () => {
     const input = toListingInput({
       locationText: '  Hẻm 51  ',
+      mapUrl: '  https://www.google.com/maps/search/?api=1&query=10.87,106.803  ',
       genderWanted: 'ANY',
       rentPerMonth: 1_200_000,
       otherFees: [{ name: ' Wifi ', amount: 60_000 }],
@@ -88,6 +97,7 @@ describe('toListingInput', () => {
     });
     expect(input).toEqual({
       locationText: 'Hẻm 51',
+      mapUrl: 'https://www.google.com/maps/search/?api=1&query=10.87,106.803',
       genderWanted: 'ANY',
       rentPerMonth: 1_200_000,
       otherFees: [{ name: 'Wifi', amount: 60_000 }],
@@ -97,5 +107,13 @@ describe('toListingInput', () => {
       showChoreSchedule: true,
     });
     expect(Object.keys(input)).not.toContain('status');
+  });
+});
+
+describe('toListingInput: link bản đồ', () => {
+  it('ô trống (kể cả toàn khoảng trắng) gửi null để xóa link', () => {
+    const base = { locationText: 'Hẻm 51', genderWanted: 'ANY' as const, rentPerMonth: 1, otherFees: [], description: '', roommateExpectations: '', contactPhone: '0901234567', showChoreSchedule: true };
+    expect(toListingInput({ ...base, mapUrl: '' }).mapUrl).toBeNull();
+    expect(toListingInput({ ...base, mapUrl: '   ' }).mapUrl).toBeNull();
   });
 });

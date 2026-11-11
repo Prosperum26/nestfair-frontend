@@ -9,6 +9,7 @@ export function buildFormDefaults(listing: Listing | null, suggestions: ListingS
   if (!listing) {
     return {
       locationText: suggestions.locationText ?? '',
+      mapUrl: '',
       genderWanted: 'ANY',
       rentPerMonth: null,
       otherFees: [],
@@ -20,6 +21,7 @@ export function buildFormDefaults(listing: Listing | null, suggestions: ListingS
   }
   return {
     locationText: listing.locationText,
+    mapUrl: listing.mapUrl ?? '',
     genderWanted: listing.genderWanted,
     rentPerMonth: listing.rentPerMonth,
     otherFees: listing.otherFees.map((f) => ({ name: f.name, amount: f.amount })),
@@ -41,6 +43,7 @@ export function primaryAction(status: ListingStatus | null): PrimaryAction {
 /** Nội dung gửi PUT sau khi form đã qua schema (không có status, slug). */
 export function toListingInput(values: {
   locationText: string;
+  mapUrl: string;
   genderWanted: ListingInput['genderWanted'];
   rentPerMonth: number;
   otherFees: { name: string; amount: number }[];
@@ -51,6 +54,8 @@ export function toListingInput(values: {
 }): ListingInput {
   return {
     locationText: values.locationText.trim(),
+    // Ô trống gửi null: backend xóa link.
+    mapUrl: values.mapUrl.trim() || null,
     genderWanted: values.genderWanted,
     rentPerMonth: values.rentPerMonth,
     otherFees: values.otherFees.map((f) => ({ name: f.name.trim(), amount: f.amount })),

@@ -9,6 +9,7 @@ const open: PublicListing = {
   closeReason: null,
   publishedAt: '2026-10-04T00:00:00.000Z',
   locationText: 'Hẻm 51 Linh Trung',
+  mapUrl: null,
   genderWanted: 'ANY',
   rentPerMonth: 1_200_000,
   otherFees: [],
