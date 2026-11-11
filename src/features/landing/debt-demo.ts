@@ -32,15 +32,5 @@ export const AFTER_TRANSFERS: Transfer[] = [
 
 export const total = (transfers: readonly Transfer[]): number => transfers.reduce((sum, t) => sum + t.amount, 0);
 
-/** Số dư ròng: dương là được nhận, âm là cần trả. */
-export function netBalances(transfers: readonly Transfer[]): Record<PersonKey, number> {
-  const net: Record<PersonKey, number> = { H: 0, T: 0, M: 0, Q: 0 };
-  for (const t of transfers) {
-    net[t.from] -= t.amount;
-    net[t.to] += t.amount;
-  }
-  return net;
-}
-
 /** "145k" cho nhãn trên sơ đồ. */
 export const shortAmount = (amount: number): string => `${Math.round(amount / 1000)}k`;

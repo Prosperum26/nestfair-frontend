@@ -16,12 +16,6 @@ export function groupPhotos(photos: readonly ListingPhoto[]): Record<PhotoCatego
   return grouped;
 }
 
-/** Nhóm chưa có ảnh nào, theo thứ tự hiển thị. */
-export function missingGroups(photos: readonly ListingPhoto[]): PhotoCategory[] {
-  const grouped = groupPhotos(photos);
-  return PHOTO_CATEGORIES.filter(({ key }) => grouped[key].length === 0).map(({ key }) => key);
-}
-
 /** Ảnh bìa = ảnh Phòng ngủ đứng đầu nhóm; null khi nhóm Phòng ngủ rỗng. */
 export function coverPhoto(photos: readonly ListingPhoto[]): ListingPhoto | null {
   return groupPhotos(photos).BEDROOM[0] ?? null;

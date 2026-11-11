@@ -13,7 +13,6 @@ const PALETTE: Record<AvatarTone, { light: string; vivid: string; text: string }
 
 export const INK = '#1c2333';
 export const HL = '#f5d547';
-export const PAPER = '#f6f3ec';
 
 /** Lát chẵn dùng nền nhạt + chữ màu thành viên, lát lẻ dùng màu đậm + chữ ink (xen kẽ như ảnh 17). */
 export function sliceColors(userId: string, index: number): { fill: string; text: string } {

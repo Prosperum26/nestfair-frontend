@@ -1,15 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { DelayedLoader } from './DelayedLoader.tsx';
-import { LOADER_DELAY_MS, shouldShowLoader } from './delayed.ts';
+import { LOADER_DELAY_MS } from './delayed.ts';
 import { ShellSkeleton } from './ShellSkeleton.tsx';
 
-describe('shouldShowLoader', () => {
+describe('LOADER_DELAY_MS', () => {
   it('chỉ hiện spinner khi chờ từ 300ms trở lên (dưới mốc đó không nháy)', () => {
     expect(LOADER_DELAY_MS).toBe(300);
-    expect(shouldShowLoader(0)).toBe(false);
-    expect(shouldShowLoader(299)).toBe(false);
-    expect(shouldShowLoader(300)).toBe(true);
   });
 });
 

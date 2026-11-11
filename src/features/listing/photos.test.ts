@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coverPhoto, groupPhotos, MAX_PHOTOS_PER_GROUP, missingGroups, PHOTO_CATEGORIES } from './photos.ts';
+import { coverPhoto, groupPhotos, MAX_PHOTOS_PER_GROUP, PHOTO_CATEGORIES } from './photos.ts';
 import type { ListingPhoto } from './types.ts';
 
 const photo = (id: string, category: ListingPhoto['category'], sortOrder: number): ListingPhoto => ({
@@ -40,14 +40,6 @@ describe('groupPhotos', () => {
     expect(Object.keys(grouped)).toEqual(['BEDROOM', 'BATHROOM', 'LIVING']);
     expect(grouped.BATHROOM).toEqual([]);
     expect(input.map((p) => p.id)).toEqual(['b1', 'b0']);
-  });
-});
-
-describe('missingGroups', () => {
-  it('trả đúng các nhóm rỗng theo thứ tự cố định', () => {
-    expect(missingGroups([])).toEqual(['BEDROOM', 'BATHROOM', 'LIVING']);
-    expect(missingGroups([photo('t0', 'BATHROOM', 0)])).toEqual(['BEDROOM', 'LIVING']);
-    expect(missingGroups([photo('b0', 'BEDROOM', 0), photo('t0', 'BATHROOM', 0), photo('l0', 'LIVING', 0)])).toEqual([]);
   });
 });
 

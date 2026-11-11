@@ -1,18 +1,4 @@
-import { formatVndInput } from '@/lib/format.ts';
 import type { GenderWanted, OtherFee } from './types.ts';
-
-/** Đọc ô nhập tiền: chấp nhận "1.200.000", "1200000", "1 200 000". Có chữ cái hoặc rỗng thì null. */
-export function parseMoneyInput(raw: string): number | null {
-  const text = raw.trim();
-  if (!text || /[^\d.\s]/.test(text)) return null;
-  const digits = text.replace(/\D/g, '');
-  return digits ? Number(digits) : null;
-}
-
-/** 1200000 -> "1.200.000" (không có đ, dùng trong ô nhập). */
-export function formatMoneyInput(n: number): string {
-  return formatVndInput(n);
-}
 
 /** Tiêu đề tự sinh của tin và poster (L10). */
 export function listingHeadline(slotsOpen: number): string {

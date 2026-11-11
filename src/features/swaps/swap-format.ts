@@ -1,5 +1,4 @@
 import { dueLabel } from '@/features/chores/week.ts';
-import { houseClock } from '@/lib/house-time.ts';
 
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
@@ -10,14 +9,6 @@ export function timeLeftLabel(expiresAt: string | Date, now: Date = new Date()):
   if (diff <= 0) return 'Đã hết hạn';
   if (diff < HOUR) return `còn ${Math.ceil(diff / MINUTE)} phút`;
   return `còn ${Math.ceil(diff / HOUR)} giờ`;
-}
-
-/** "Mai có 24 giờ để trả lời (hết hạn 07.10 22:00)." theo giờ nhà. */
-export function expiryNote(name: string, expiresAt: string | Date, now: Date = new Date()): string {
-  const diff = new Date(expiresAt).getTime() - now.getTime();
-  const span = diff < HOUR ? `${Math.max(1, Math.ceil(diff / MINUTE))} phút` : `${Math.ceil(diff / HOUR)} giờ`;
-  const clock = houseClock(expiresAt);
-  return `${name} có ${span} để trả lời (hết hạn ${clock.ddmm} ${clock.hm}).`;
 }
 
 /** "Rửa chén buổi tối · T4 21.10". */

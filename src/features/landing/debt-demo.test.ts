@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { AFTER_TRANSFERS, BEFORE_DEBTS, netBalances, total } from './debt-demo.ts';
+import { AFTER_TRANSFERS, BEFORE_DEBTS, type PersonKey, total, type Transfer } from './debt-demo.ts';
+
+/** Số dư ròng: dương là được nhận, âm là cần trả. Chỉ để kiểm số liệu minh họa nhất quán. */
+function netBalances(transfers: readonly Transfer[]): Record<PersonKey, number> {
+  const net: Record<PersonKey, number> = { H: 0, T: 0, M: 0, Q: 0 };
+  for (const t of transfers) {
+    net[t.from] -= t.amount;
+    net[t.to] += t.amount;
+  }
+  return net;
+}
 
 describe('số liệu minh họa Nhà 12A (Design.md mục 7)', () => {
   it('6 khoản nợ chéo luân chuyển 640k', () => {
