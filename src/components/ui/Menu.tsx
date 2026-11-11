@@ -12,10 +12,13 @@ interface MenuProps {
   /** Nội dung; gọi close() sau khi chọn một mục. */
   children: (close: () => void) => ReactNode;
   className?: string;
+  /** Mặc định `menu` (các dòng là menuitem). Bảng nội dung tự do (vd. thông báo) dùng `dialog` kèm `label`. */
+  role?: 'menu' | 'dialog';
+  label?: string;
 }
 
 /** Menu thả xuống: đóng khi bấm ra ngoài hoặc nhấn Escape. */
-export function Menu({ trigger, align = 'right', children, className }: MenuProps) {
+export function Menu({ trigger, align = 'right', children, className, role = 'menu', label }: MenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,7 +45,8 @@ export function Menu({ trigger, align = 'right', children, className }: MenuProp
       })}
       {open && (
         <div
-          role="menu"
+          role={role}
+          aria-label={label}
           className={cn(
             'absolute top-full z-50 mt-2 min-w-[220px] rounded-card border-[1.5px] border-ink bg-surface p-1.5 shadow-hard',
             align === 'right' ? 'right-0' : 'left-0',
