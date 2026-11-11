@@ -16,6 +16,11 @@ describe('notificationView', () => {
     });
   });
 
+  it('họ tên đầy đủ từ server được rút về tên gọi như các màn khác', () => {
+    expect(notificationView(of('EXPENSE_CREATED', { expenseId: 'e1', title: 'Nước uống', payerName: 'Trần Minh Hùng', share: 20_000 }))?.title).toBe('Hùng trả “Nước uống”');
+    expect(notificationView(of('DEBT_PAID', { settlementId: 's1', fromName: 'Lê Thiện', amount: 1000 }))?.title).toBe('Thiện báo đã chuyển tiền cho bạn');
+  });
+
   it('báo đã trả nợ: ai chuyển, bao nhiêu, bấm sang Thanh toán để xác nhận', () => {
     expect(notificationView(of('DEBT_PAID', { settlementId: 's1', fromName: 'Hùng', amount: 170_000 }))).toEqual({
       kind: 'debt',

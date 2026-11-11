@@ -45,7 +45,7 @@ export function NotificationPanel({
   return (
     <div className="flex max-h-[min(70svh,480px)] flex-col">
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
-        <p className="font-display text-ct text-ink">Thông báo</p>
+        <p className="shrink-0 font-display text-ct whitespace-nowrap text-ink">Thông báo</p>
         {status === 'ready' && unreadCount > 0 && rows.length > 0 && (
           <Button variant="ghost" size="sm" leftIcon={<CheckCheck />} onClick={onReadAll}>
             Đánh dấu đã đọc tất cả

@@ -1,3 +1,4 @@
+import { firstName } from '@/lib/date.ts';
 import type { NotificationDto, NotificationList } from './types.ts';
 
 /** Sự kiện socket đã có (AGENTS.md mục 5) báo hiệu có thể có thông báo mới: chuông chỉ cần tải lại qua REST. */
@@ -27,11 +28,11 @@ export function notificationView(n: NotificationDto): NotificationView | null {
   const p: Record<string, unknown> = n.params && typeof n.params === 'object' ? n.params : {};
   if (n.type === 'EXPENSE_CREATED') {
     if (!text(p.title) || !text(p.payerName) || !money(p.share)) return null;
-    return { kind: 'expense', title: `${p.payerName} trả “${p.title}”`, detail: 'Phần của bạn', amount: p.share, to: '/expenses' };
+    return { kind: 'expense', title: `${firstName(p.payerName)} trả “${p.title}”`, detail: 'Phần của bạn', amount: p.share, to: '/expenses' };
   }
   if (n.type === 'DEBT_PAID') {
     if (!text(p.fromName) || !money(p.amount)) return null;
-    return { kind: 'debt', title: `${p.fromName} báo đã chuyển tiền cho bạn`, detail: 'Chờ bạn xác nhận', amount: p.amount, to: '/payments' };
+    return { kind: 'debt', title: `${firstName(p.fromName)} báo đã chuyển tiền cho bạn`, detail: 'Chờ bạn xác nhận', amount: p.amount, to: '/payments' };
   }
   if (n.type === 'REMINDER_DUE') {
     if (!text(p.title)) return null;
