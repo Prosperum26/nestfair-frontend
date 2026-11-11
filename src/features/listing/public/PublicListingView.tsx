@@ -1,7 +1,8 @@
-import { MapPin, Users } from 'lucide-react';
+import { ExternalLink, MapPin, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { genderLabel, listingHeadline } from '../format.ts';
+import { isGoogleMapsUrl } from '../map-location.ts';
 import { publishedOverline } from '../public-state.ts';
 import type { PublicListingOpen } from '../types.ts';
 import { ContactBar } from './ContactBar.tsx';
@@ -72,6 +73,18 @@ export function PublicListingView({ listing }: { listing: PublicListingOpen }) {
               <MapPin className="mt-0.5 size-[18px] shrink-0 text-ink-3" aria-hidden />
               <span className="min-w-0 break-words">{listing.locationText}</span>
             </p>
+            {/* Kiểm lại ở client: chỉ link Google Maps mới thành thẻ a, kể cả khi server trả dữ liệu lạ. */}
+            {listing.mapUrl && isGoogleMapsUrl(listing.mapUrl) && (
+              <a
+                href={listing.mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 ml-[26px] inline-flex min-h-9 items-center gap-1.5 rounded-btn-sm text-sm font-semibold text-ink underline decoration-[1.5px] underline-offset-[3px] focus-visible:shadow-focus focus-visible:outline-none"
+              >
+                Xem trên Google Maps
+                <ExternalLink className="size-4" aria-hidden />
+              </a>
+            )}
           </header>
           <div className="order-3 lg:order-none">
             <Gallery photos={listing.photos} />
