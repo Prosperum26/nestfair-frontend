@@ -84,6 +84,7 @@ describe('PublicListingView', () => {
     closeReason: null,
     publishedAt: '2026-10-04T05:00:00.000Z',
     locationText: 'Hẻm 51 Linh Trung, Thủ Đức',
+    mapUrl: null,
     genderWanted: 'ANY',
     rentPerMonth: 1_200_000,
     otherFees: [{ name: 'Wifi', amount: 60_000 }],
@@ -101,6 +102,23 @@ describe('PublicListingView', () => {
     contact: { phone: '0901234567' },
   };
   const render = (l: PublicListingOpen = listing) => renderToStaticMarkup(<PublicListingView listing={l} />);
+
+  it('có link bản đồ: nút Xem trên Google Maps mở tab mới (noopener noreferrer)', () => {
+    const html = render({ ...listing, mapUrl: 'https://maps.app.goo.gl/AbCdEf123' });
+    expect(html).toContain('Xem trên Google Maps');
+    expect(html).toContain('href="https://maps.app.goo.gl/AbCdEf123"');
+    expect(html).toMatch(/href="https:\/\/maps\.app\.goo\.gl\/AbCdEf123"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
+  });
+
+  it('không có link bản đồ thì không có nút', () => {
+    expect(render()).not.toContain('Xem trên Google Maps');
+  });
+
+  it('link không phải Google Maps (dữ liệu lạ từ server) không được dựng thành thẻ a', () => {
+    const html = render({ ...listing, mapUrl: 'javascript:alert(1)' });
+    expect(html).not.toContain('Xem trên Google Maps');
+    expect(html).not.toContain('javascript:');
+  });
 
   it('tiêu đề "Còn 1 chỗ ở ghép" có đúng một vệt bút dạ trên "1 chỗ"', () => {
     const html = render();

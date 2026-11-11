@@ -13,6 +13,7 @@ const valid = {
   roommateExpectations: 'Sạch sẽ, về trước 23:30.',
   contactPhone: '0901234567',
   showChoreSchedule: true,
+  mapUrl: '',
 };
 
 const errorsOf = (values: Record<string, unknown>) => {
@@ -69,6 +70,22 @@ describe('listingFormSchema', () => {
 
   it('giới tính chỉ nhận MALE, FEMALE, ANY', () => {
     expect(errorsOf({ genderWanted: 'OTHER' })).toEqual(['genderWanted']);
+  });
+});
+
+describe('mapUrl', () => {
+  it('để trống hợp lệ; nhận link Google Maps (cắt khoảng trắng)', () => {
+    expect(errorsOf({ mapUrl: '' })).toEqual([]);
+    expect(errorsOf({ mapUrl: '  https://www.google.com/maps/search/?api=1&query=10.87,106.803  ' })).toEqual([]);
+    expect(errorsOf({ mapUrl: 'https://maps.app.goo.gl/AbCdEf123' })).toEqual([]);
+  });
+
+  it('từ chối link không phải Google Maps, báo lỗi ở mapUrl bằng câu tiếng Việt', () => {
+    for (const bad of ['https://evil.com/maps', 'http://www.google.com/maps', 'javascript:alert(1)', 'google.com/maps']) {
+      const res = listingFormSchema.safeParse({ ...valid, mapUrl: bad });
+      expect(res.success, bad).toBe(false);
+      if (!res.success) expect(res.error.issues[0]).toMatchObject({ path: ['mapUrl'], message: 'Chỉ nhận link Google Maps (bắt đầu bằng https://).' });
+    }
   });
 });
 

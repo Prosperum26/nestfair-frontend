@@ -43,6 +43,8 @@ export interface Listing {
   status: ListingStatus;
   closeReason: ListingCloseReason | null;
   locationText: string;
+  /** Link Google Maps của khu vực, null khi chưa có. */
+  mapUrl: string | null;
   genderWanted: GenderWanted;
   rentPerMonth: number;
   otherFees: OtherFee[];
@@ -74,6 +76,8 @@ export interface AdminListingResponse {
 /** Nội dung gửi PUT /houses/:houseId/listing (không có status, slug). */
 export interface ListingInput {
   locationText: string;
+  /** null xóa link. */
+  mapUrl: string | null;
   genderWanted: GenderWanted;
   rentPerMonth: number;
   otherFees: OtherFee[];
@@ -106,6 +110,8 @@ export interface PublicListingOpen {
   closeReason: null;
   publishedAt: string | null;
   locationText: string;
+  /** Link Google Maps (vị trí GPS đã làm tròn ~100m), null khi chủ tin không thêm. */
+  mapUrl: string | null;
   genderWanted: GenderWanted;
   rentPerMonth: number;
   otherFees: OtherFee[];
