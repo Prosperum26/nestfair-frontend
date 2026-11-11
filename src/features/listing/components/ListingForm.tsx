@@ -16,6 +16,7 @@ import { type ListingFormOutput, type ListingFormValues, listingFormSchema } fro
 import type { AdminListingResponse, GenderWanted } from '../types.ts';
 import { CostFields } from './CostFields.tsx';
 import { ListingAside } from './ListingAside.tsx';
+import { MapLocationField } from './MapLocationField.tsx';
 
 const GENDER_OPTIONS: { value: GenderWanted; label: string }[] = [
   { value: 'MALE', label: 'Nam' },
@@ -155,6 +156,12 @@ export function ListingForm({
               {...register('locationText')}
             />
           </Field>
+
+          <Controller
+            control={control}
+            name="mapUrl"
+            render={({ field }) => <MapLocationField value={field.value} onChange={field.onChange} error={errors.mapUrl?.message} />}
+          />
 
           <div className="grid gap-5 sm:grid-cols-2">
             <ReadOnlyValue label="Số chỗ trống" value={`${summary.slotsOpen} chỗ`} hint={`Nhà tối đa ${summary.maxMembers} người`} />
