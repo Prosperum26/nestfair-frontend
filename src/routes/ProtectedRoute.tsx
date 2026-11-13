@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { DelayedLoader } from '@/components/DelayedLoader.tsx';
+import { safeInternalPath } from '@/lib/safe-path.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 /** Chỉ cho vào khi đã đăng nhập; chưa thì về /login và nhớ trang định vào. */
@@ -23,7 +24,7 @@ export function GuestRoute() {
   const location = useLocation();
   if (status === 'loading') return <DelayedLoader />;
   if (status === 'authenticated') {
-    const from = (location.state as { from?: string } | null)?.from;
+    const from = safeInternalPath((location.state as { from?: unknown } | null)?.from);
     return <Navigate to={from ?? '/'} replace />;
   }
   return <Outlet />;

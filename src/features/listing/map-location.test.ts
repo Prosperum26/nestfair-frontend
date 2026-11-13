@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { geolocationErrorMessage, isGoogleMapsUrl, MAP_URL_MAX, mapsUrlFromCoords, roundCoord } from './map-location.ts';
 
@@ -56,5 +57,22 @@ describe('geolocationErrorMessage', () => {
     expect(geolocationErrorMessage(2)).toMatch(/Không xác định được vị trí/);
     expect(geolocationErrorMessage(3)).toMatch(/quá lâu/);
     expect(geolocationErrorMessage('unsupported')).toMatch(/không hỗ trợ/);
+  });
+});
+
+/** Bảng vector dùng chung với backend (src/modules/listing/algorithms/map-url.vectors.json): hai bên phải trả cùng kết quả. */
+describe('isGoogleMapsUrl theo bảng vector dùng chung', () => {
+  const vectors = JSON.parse(readFileSync(new URL('./map-url.vectors.json', import.meta.url), 'utf8')) as {
+    valid: string[];
+    invalid: string[];
+  };
+  const expand = (v: string) => v.replace('{LONG}', 'a'.repeat(MAP_URL_MAX));
+
+  it.each(vectors.valid)('nhận %s', (v) => {
+    expect(isGoogleMapsUrl(expand(v))).toBe(true);
+  });
+
+  it.each(vectors.invalid)('từ chối %s', (v) => {
+    expect(isGoogleMapsUrl(expand(v))).toBe(false);
   });
 });
