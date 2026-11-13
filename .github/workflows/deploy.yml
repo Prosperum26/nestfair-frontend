@@ -1,0 +1,94 @@
+name: deploy
+
+# Gọi từ ci.yml sau khi check xanh (push vào dev hoặc main). Mỗi môi trường là một project Cloudflare Pages riêng.
+# Cấu hình theo GitHub Environment (`dev` / `prod`):
+#   secrets: CLOUDFLARE_API_TOKEN (quyền Cloudflare Pages: Edit), CLOUDFLARE_ACCOUNT_ID, DISCORD_WEBHOOK_URL (tùy chọn)
+#   vars:    API_URL (origin backend, vd. https://nestfair-api-dev.onrender.com)
+#            PAGES_PROJECT (vd. nestfair-dev), WEB_URL (vd. https://nestfair-dev.pages.dev)
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [dev, prod]
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy ${{ inputs.environment }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.WEB_URL }}
+    env:
+      API_URL: ${{ vars.API_URL }}
+      WEB_URL: ${{ vars.WEB_URL }}
+      PAGES_PROJECT: ${{ vars.PAGES_PROJECT }}
+    steps:
+      - name: Kiểm cấu hình môi trường
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          for name in API_URL WEB_URL PAGES_PROJECT CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!name}" ]; then echo "::error::Thiếu $name trong Environment ${{ inputs.environment }}"; exit 1; fi
+          done
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      # VITE_API_URL nằm trong bundle và trong CSP (dist/_headers), nên build riêng cho từng môi trường.
+      - run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.API_URL }}
+
+      - uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.156.0'
+          # Project dev có production branch = dev, project prod có production branch = main.
+          command: pages deploy dist --project-name=${{ vars.PAGES_PROJECT }} --branch=${{ github.ref_name }} --commit-hash=${{ github.sha }}
+
+      - name: Smoke test (trang chủ, deep link SPA, CSP trỏ đúng API)
+        run: |
+          set -e
+          for _ in $(seq 1 20); do
+            if curl -fsS -o /dev/null "$WEB_URL/"; then break; fi
+            sleep 5
+          done
+          headers=$(curl -fsS -D - -o /dev/null "$WEB_URL/")
+          echo "$headers" | grep -i "^content-security-policy:" | grep -q "connect-src 'self' $API_URL"
+          echo "$headers" | grep -qi "^x-frame-options: DENY"
+          # Link công khai /r/:slug là route của SPA: phải trả index.html, không 404.
+          curl -fsS -o /dev/null "$WEB_URL/r/khong-ton-tai"
+          echo "Smoke test xanh."
+
+      - name: Thông báo Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then exit 0; fi
+          msg="Frontend ${{ inputs.environment }}: ${STATUS} · ${SHA:0:7} · ${WEB_URL} · ${RUN_URL}"
+          jq -n --arg content "$msg" '{content: $content}' | curl -fsS -H 'content-type: application/json' -d @- "$DISCORD_WEBHOOK_URL"
