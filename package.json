@@ -1,6 +1,9 @@
 {
   "name": "nestfair-frontend",
   "private": true,
+  "engines": {
+    "node": ">=26 <27"
+  },
   "version": "0.1.0",
   "type": "module",
   "scripts": {
