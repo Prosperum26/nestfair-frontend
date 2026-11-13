@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: typecheck · lint · test · build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      # Build như production (API ở origin khác) để kiểm luôn file _headers sinh ra cho Cloudflare Pages.
+      - run: npm run build
+        env:
+          VITE_API_URL: https://api.example.test
+      - name: _headers có CSP với API đúng origin
+        run: |
+          test -s dist/_headers
+          grep -q "Content-Security-Policy: default-src 'self'" dist/_headers
+          grep -q "connect-src 'self' https://api.example.test wss://api.example.test" dist/_headers
