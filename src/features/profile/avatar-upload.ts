@@ -1,4 +1,4 @@
-import imageCompression from 'browser-image-compression';
+import { compressImage } from '@/lib/image-compression.ts';
 import { AVATAR_MAX_BYTES, checkAvatarFile } from './avatar.ts';
 
 /**
@@ -10,7 +10,7 @@ export async function prepareAvatar(file: File): Promise<File> {
   if (problem) throw new Error(problem);
   let out: File;
   try {
-    out = await imageCompression(file, { maxSizeMB: 0.5, maxWidthOrHeight: 512, useWebWorker: true });
+    out = await compressImage(file, { maxSizeMB: 0.5, maxWidthOrHeight: 512, useWebWorker: true });
   } catch {
     out = file;
   }

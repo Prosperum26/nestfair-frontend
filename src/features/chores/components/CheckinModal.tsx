@@ -1,4 +1,4 @@
-import imageCompression from 'browser-image-compression';
+import { compressImage } from '@/lib/image-compression.ts';
 import { Camera, Send } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,7 +18,7 @@ type Phase = 'idle' | 'compressing' | 'sending';
 async function prepare(file: File): Promise<File> {
   const convert = needsConversion(file.type);
   try {
-    return await imageCompression(file, {
+    return await compressImage(file, {
       maxSizeMB: 1,
       maxWidthOrHeight: 1600,
       useWebWorker: true,

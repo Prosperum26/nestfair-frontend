@@ -1,4 +1,4 @@
-import imageCompression from 'browser-image-compression';
+import { compressImage } from '@/lib/image-compression.ts';
 import { needsConversion, PROOF_ACCEPT, validateCompressed, validateProofImage } from '@/features/chores/image-check.ts';
 
 /** Chuỗi accept cho ô chọn ảnh hóa đơn / bill (gồm HEIC của iPhone, được đổi sang JPEG). */
@@ -14,7 +14,7 @@ export async function prepareImage(file: File): Promise<File> {
   const convert = needsConversion(file.type);
   let out: File;
   try {
-    out = await imageCompression(file, {
+    out = await compressImage(file, {
       maxSizeMB: 1,
       maxWidthOrHeight: 1600,
       useWebWorker: true,
