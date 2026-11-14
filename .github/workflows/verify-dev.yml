@@ -1,0 +1,168 @@
+name: verify-dev
+
+# Kiểm bản dev đã deploy (frontend + backend thật), rồi tự mở PR dev → main ở cả hai repo nếu xanh.
+# Chạy khi: frontend deploy dev xong (ci.yml gọi), backend deploy dev xong (repository_dispatch), chạy tay,
+# và mỗi tuần (kèm ZAP baseline).
+# Environment `dev`: vars API_URL, WEB_URL; secrets CROSS_REPO_TOKEN (PAT fine-grained cho cả hai repo, quyền
+# contents + pull-requests: write), DISCORD_WEBHOOK_URL (tùy chọn).
+on:
+  workflow_call:
+  repository_dispatch:
+    types: [backend-deployed]
+  workflow_dispatch:
+  schedule:
+    # Thứ Hai 09:00 giờ Việt Nam (sau security.yml).
+    - cron: '0 2 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-dev
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: smoke test (Playwright)
+    # Backend báo deploy prod thì không verify dev.
+    if: github.event_name != 'repository_dispatch' || github.event.client_payload.environment == 'dev'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: dev
+    env:
+      CI: 'true'
+      BASE_URL: ${{ vars.WEB_URL }}
+      API_URL: ${{ vars.API_URL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: dev
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Đánh thức backend và DB (Render free, Neon có thể đang ngủ)
+        run: |
+          for _ in $(seq 1 30); do
+            if curl -fsS --max-time 30 "$API_URL/api/v1/health" | grep -q '"db":"up"'; then echo "Backend sẵn sàng"; exit 0; fi
+            sleep 10
+          done
+          echo "::error::Backend dev không lên sau 5 phút"; exit 1
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
+
+  lighthouse:
+    name: Lighthouse (cảnh báo, chưa chặn)
+    needs: smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: dev
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Đo trang công khai (không cần đăng nhập)
+        env:
+          WEB_URL: ${{ vars.WEB_URL }}
+        run: >-
+          npx --yes @lhci/cli@0.15.1 autorun
+          --collect.url="$WEB_URL/"
+          --collect.url="$WEB_URL/login"
+          --collect.url="$WEB_URL/r/x7Kp2QmA"
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lighthouse-report
+          path: lighthouse-report
+          retention-days: 30
+
+  zap:
+    name: ZAP baseline (mỗi tuần hoặc chạy tay)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: dev
+    steps:
+      - name: Quét thụ động frontend và tài liệu API
+        env:
+          WEB_URL: ${{ vars.WEB_URL }}
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          mkdir -p zap && chmod 777 zap
+          status=0
+          for target in "$WEB_URL" "$API_URL/api/docs"; do
+            name=$(echo "$target" | sed 's#https\?://##; s#[/:.]#-#g')
+            # -I: cảnh báo (WARN) không làm đỏ job; chỉ FAIL mới đỏ.
+            docker run --rm -v "$PWD/zap:/zap/wrk" ghcr.io/zaproxy/zaproxy:2.16.1 \
+              zap-baseline.py -t "$target" -I -r "$name.html" -J "$name.json" || status=$?
+          done
+          exit $status
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zap-report
+          path: zap
+          retention-days: 30
+
+  open-release-pr:
+    name: mở PR dev → main
+    needs: smoke
+    # Lịch tuần chỉ để đo; PR chỉ mở sau một lần deploy thật hoặc chạy tay.
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: dev
+    env:
+      # PAT thay GITHUB_TOKEN: PR do GITHUB_TOKEN tạo sẽ không kích hoạt CI của PR đó.
+      GH_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
+      OWNER: ${{ github.repository_owner }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Mở hoặc cập nhật PR ở từng repo
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "::warning::Chưa có CROSS_REPO_TOKEN, bỏ qua mở PR."; exit 0; fi
+          today=$(TZ=Asia/Ho_Chi_Minh date +%d.%m.%Y)
+          for repo in nestfair-backend nestfair-frontend; do
+            ahead=$(gh api "repos/$OWNER/$repo/compare/main...dev" --jq '.ahead_by')
+            if [ "$ahead" = "0" ]; then echo "$repo: dev không có gì mới so với main."; continue; fi
+            commits=$(gh api "repos/$OWNER/$repo/compare/main...dev" --jq '.commits | reverse | .[] | "- " + (.commit.message | split("\n")[0])' | grep -v '^- Merge ' | head -40)
+            # shellcheck disable=SC2016 # backtick là Markdown, không phải lệnh shell
+            body=$(printf '## Bản dev đã kiểm xanh\n\n- Smoke test Playwright (desktop 1280, mobile 390): xanh, không lỗi JS, không vi phạm CSP, axe không có lỗi serious/critical.\n- Lần kiểm: %s\n\n## Commit (%s, hiện 40 commit mới nhất)\n%s\n\nMerge PR này sẽ deploy prod (cần duyệt ở Environment `prod`).\n' "$RUN_URL" "$ahead" "$commits")
+            existing=$(gh pr list -R "$OWNER/$repo" --base main --head dev --state open --json number --jq '.[0].number')
+            if [ -n "$existing" ]; then
+              gh pr edit "$existing" -R "$OWNER/$repo" --body "$body"
+              echo "$repo: cập nhật PR #$existing"
+            else
+              gh pr create -R "$OWNER/$repo" --base main --head dev --title "chore(release): dev → main $today" --body "$body"
+            fi
+          done
+
+  notify:
+    name: thông báo
+    needs: [smoke, open-release-pr]
+    if: always() && needs.smoke.result != 'skipped'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    environment: dev
+    steps:
+      - env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RESULT: ${{ needs.smoke.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then exit 0; fi
+          msg="Verify dev: ${RESULT} · ${RUN_URL}"
+          jq -n --arg content "$msg" '{content: $content}' | curl -fsS -H 'content-type: application/json' -d @- "$DISCORD_WEBHOOK_URL"

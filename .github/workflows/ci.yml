@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  # Chỉ hủy lần chạy cũ của PR; push vào dev/main có thể đang deploy (migrate dở thì nguy hiểm).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: typecheck · lint · test · build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      # Build như production (API ở origin khác) để kiểm luôn file _headers sinh ra cho Cloudflare Pages.
+      - run: npm run build
+        env:
+          VITE_API_URL: https://api.example.test
+      - name: _headers có CSP với API đúng origin
+        run: |
+          test -s dist/_headers
+          grep -q "Content-Security-Policy: default-src 'self'" dist/_headers
+          grep -q "connect-src 'self' https://api.example.test wss://api.example.test" dist/_headers
+
+  deploy:
+    name: deploy
+    needs: [check]
+    # Chỉ deploy khi push (merge) vào dev hoặc main, không deploy từ PR.
+    if: github.event_name == 'push' && (github.ref_name == 'dev' || github.ref_name == 'main')
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    secrets: inherit
+
+  verify:
+    name: verify dev
+    needs: [deploy]
+    # Chỉ kiểm khi deploy dev thật sự chạy (môi trường đã cấu hình).
+    if: github.event_name == 'push' && github.ref_name == 'dev' && needs.deploy.outputs.ready == 'true'
+    uses: ./.github/workflows/verify-dev.yml
+    secrets: inherit

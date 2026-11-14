@@ -11,6 +11,8 @@ interface AuthState {
   accessToken: string | null;
   user: PublicUser | null;
   setSession: (res: AuthResponse) => void;
+  /** Cập nhật hồ sơ đang đăng nhập (vd. sau khi đổi đồng ý quét OCR) mà không đổi phiên. */
+  setUser: (user: PublicUser) => void;
   clearSession: () => void;
 }
 
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   setSession: ({ accessToken, user }) =>
     set({ status: 'authenticated', accessToken, user }),
+  setUser: (user) => set({ user }),
   clearSession: () =>
     set({ status: 'anonymous', accessToken: null, user: null }),
 }));

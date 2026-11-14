@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { optimisticList, patchById } from '@/lib/optimistic.ts';
 import { useHouseStore } from '@/stores/house-store.ts';
-import { type CreateHouseInput, housesApi } from './api.ts';
+import { type CreateHouseInput, type UpdateHouseInput, housesApi } from './api.ts';
 import { pickCurrentHouse } from './current-house.ts';
-import type { HouseDetail } from './types.ts';
+import type { RuleProposalInput } from './rule-proposals.ts';
+import type { HouseDetail, RuleProposal } from './types.ts';
 
 export const houseKeys = {
   all: ['houses'] as const,
   detail: (houseId: string) => ['houses', houseId] as const,
+  ruleProposals: (houseId: string) => ['houses', houseId, 'rule-proposals'] as const,
 };
 
 export function useMyHouses() {
@@ -59,10 +62,74 @@ export function useRegenerateInviteCode(houseId: string) {
   });
 }
 
+/** Trưởng phòng sửa thông tin / nội quy: cập nhật cache chi tiết, tải lại danh sách nhà (tên, sức chứa). */
+export function useUpdateHouse(houseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateHouseInput) => housesApi.update(houseId, input),
+    onSuccess: (house) => {
+      queryClient.setQueryData(houseKeys.detail(house.id), house);
+      return queryClient.invalidateQueries({ queryKey: houseKeys.all, exact: true });
+    },
+  });
+}
+
 export function useJoinHouse() {
   const enter = useEnterHouse();
   return useMutation({
     mutationFn: (inviteCode: string) => housesApi.join(inviteCode),
     onSuccess: enter,
   });
+}
+
+export function useRuleProposals(houseId: string | undefined) {
+  return useQuery({
+    queryKey: houseKeys.ruleProposals(houseId ?? ''),
+    queryFn: () => housesApi.ruleProposals(houseId!),
+    enabled: !!houseId,
+  });
+}
+
+/** Sau mọi thao tác đề xuất: tải lại danh sách đề xuất và chi tiết nhà (nội quy có thể đã đổi). */
+function useRefreshRules(houseId: string) {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: houseKeys.detail(houseId) });
+}
+
+export function useProposeRule(houseId: string) {
+  const refresh = useRefreshRules(houseId);
+  return useMutation({ mutationFn: (input: RuleProposalInput) => housesApi.proposeRule(houseId, input), onSuccess: refresh });
+}
+
+/** Duyệt / từ chối lạc quan: đề xuất rời danh sách chờ ngay; lỗi thì quay lại. Nội quy mới vẫn chờ server. */
+export function useApproveRule(houseId: string) {
+  const queryClient = useQueryClient();
+  const refresh = useRefreshRules(houseId);
+  const optimistic = optimisticList<string, RuleProposal>(queryClient, {
+    queryKey: houseKeys.ruleProposals(houseId),
+    apply: (list, id) => patchById(list, id, { status: 'APPROVED' }) ?? list,
+    ids: (id) => [id],
+  });
+  return useMutation({ mutationFn: (id: string) => housesApi.approveRule(houseId, id), onMutate: optimistic.onMutate, onError: optimistic.onError, onSettled: refresh });
+}
+
+export function useRejectRule(houseId: string) {
+  const queryClient = useQueryClient();
+  const refresh = useRefreshRules(houseId);
+  const optimistic = optimisticList<{ id: string; reason?: string }, RuleProposal>(queryClient, {
+    queryKey: houseKeys.ruleProposals(houseId),
+    apply: (list, { id }) => patchById(list, id, { status: 'REJECTED' }) ?? list,
+    ids: ({ id }) => [id],
+  });
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) => housesApi.rejectRule(houseId, id, reason),
+    onMutate: optimistic.onMutate,
+    onError: optimistic.onError,
+    onSettled: refresh,
+  });
+}
+
+export function useWithdrawRule(houseId: string) {
+  const refresh = useRefreshRules(houseId);
+  return useMutation({ mutationFn: (id: string) => housesApi.withdrawRule(houseId, id), onSettled: refresh });
 }

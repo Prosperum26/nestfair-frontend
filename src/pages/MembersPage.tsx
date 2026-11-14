@@ -4,6 +4,8 @@ import { Chip } from '@/components/ui/Chip.tsx';
 import { EmptyState } from '@/components/ui/EmptyState.tsx';
 import { PageHeader } from '@/components/ui/PageHeader.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
+import { MemberActions } from '@/features/membership/components/MemberActions.tsx';
+import { RulesCard } from '@/features/houses/components/RulesCard.tsx';
 import { InvitePanel } from '@/features/houses/components/InvitePanel.tsx';
 import { MemberCard, MemberRow } from '@/features/houses/components/MemberCard.tsx';
 import { useCurrentHouse, useHouseDetail } from '@/features/houses/hooks.ts';
@@ -66,6 +68,9 @@ export function MembersPage() {
   const members = [...house.members].sort(
     (a, b) => Number(b.userId === me?.id) - Number(a.userId === me?.id),
   );
+  // Trưởng phòng thấy menu trên thẻ của người khác (không phải trưởng phòng).
+  const actionsFor = (m: (typeof house.members)[number]) =>
+    house.myRole === 'ADMIN' && m.userId !== me?.id && m.role !== 'ADMIN' ? <MemberActions house={house} member={m} /> : undefined;
   const canInvite = daysLeft(house.inviteExpiresAt) > 0 && house.members.length < house.maxMembers;
 
   return (
@@ -95,15 +100,17 @@ export function MembersPage() {
 
         <div className="hidden gap-5 md:grid md:grid-cols-2 xl:grid-cols-4">
           {members.map((m) => (
-            <MemberCard key={m.userId} member={m} isMe={m.userId === me?.id} month={month} />
+            <MemberCard key={m.userId} member={m} isMe={m.userId === me?.id} month={month} actions={actionsFor(m)} />
           ))}
         </div>
 
         <ul className="divide-y divide-line rounded-card border border-line bg-surface px-4 md:hidden">
           {members.map((m) => (
-            <MemberRow key={m.userId} member={m} isMe={m.userId === me?.id} />
+            <MemberRow key={m.userId} member={m} isMe={m.userId === me?.id} actions={actionsFor(m)} />
           ))}
         </ul>
+
+        <RulesCard house={house} meId={me?.id} />
       </div>
     </>
   );

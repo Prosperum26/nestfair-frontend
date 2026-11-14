@@ -1,12 +1,13 @@
 import { cn } from '@/lib/cn.ts';
 
-type StampTone = 'hl' | 'mint' | 'lil' | 'tom';
+type StampTone = 'hl' | 'mint' | 'lil' | 'tom' | 'sky';
 
 const tones: Record<StampTone, { stroke: string; fill: string; text: string }> = {
   hl: { stroke: 'stroke-hl', fill: 'fill-hl', text: 'fill-hl' },
   mint: { stroke: 'stroke-mint', fill: 'fill-mint', text: 'fill-mint' },
   lil: { stroke: 'stroke-lil', fill: 'fill-lil', text: 'fill-lil' },
   tom: { stroke: 'stroke-tom', fill: 'fill-tom', text: 'fill-tom' },
+  sky: { stroke: 'stroke-sky', fill: 'fill-sky', text: 'fill-sky' },
 };
 
 /**

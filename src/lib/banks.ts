@@ -31,3 +31,8 @@ export function bankLabel(bin: string | null, last4: string | null): string | nu
   const short = BANKS.find((b) => b.bin === bin)?.short ?? bin;
   return `${short} ·${last4}`;
 }
+
+/** Tên ngân hàng đầy đủ theo BIN ("MB Bank"); BIN lạ thì "Ngân hàng <BIN>". */
+export function bankName(bin: string): string {
+  return BANKS.find((b) => b.bin === bin)?.name ?? `Ngân hàng ${bin}`;
+}

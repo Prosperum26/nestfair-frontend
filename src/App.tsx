@@ -1,22 +1,45 @@
 import { QueryClientProvider } from '@tanstack/react-query';
+import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { Toaster } from 'sonner';
 import { AppShell } from '@/components/layout/AppShell.tsx';
+import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { queryClient } from '@/lib/query-client.ts';
 import { AuthCallbackPage } from '@/pages/AuthCallbackPage.tsx';
-import { ComingSoonPage } from '@/pages/ComingSoonPage.tsx';
+import { ChoresPage } from '@/pages/ChoresPage.tsx';
+import { ContactPage } from '@/pages/ContactPage.tsx';
 import { DashboardPage } from '@/pages/DashboardPage.tsx';
+import { ExpensesPage } from '@/pages/ExpensesPage.tsx';
+import { HouseManagePage } from '@/pages/HouseManagePage.tsx';
+import { ListingPage } from '@/pages/ListingPage.tsx';
 import { LoginPage } from '@/pages/LoginPage.tsx';
 import { MembersPage } from '@/pages/MembersPage.tsx';
+import { ProfilePage } from '@/pages/ProfilePage.tsx';
+import { PaymentsPage } from '@/pages/PaymentsPage.tsx';
+import { PrivacyPage } from '@/pages/PrivacyPage.tsx';
+import { ScanReceiptPage } from '@/pages/ScanReceiptPage.tsx';
 import { OnboardingInvitePage } from '@/pages/OnboardingInvitePage.tsx';
 import { OnboardingPage } from '@/pages/OnboardingPage.tsx';
+import { PublicListingPage } from '@/pages/PublicListingPage.tsx';
 import { RegisterPage } from '@/pages/RegisterPage.tsx';
+import { TermsPage } from '@/pages/TermsPage.tsx';
+import { LandingRoute } from '@/routes/LandingRoute.tsx';
 import { GuestRoute, ProtectedRoute } from '@/routes/ProtectedRoute.tsx';
-import { HomeRedirect, RequireHouse } from '@/routes/RequireHouse.tsx';
+import { RequireHouse } from '@/routes/RequireHouse.tsx';
+
+// Màn chat Trợ lý là màn nặng nhất (markdown + form chi tiêu) nên tách chunk, nạp khi vào trang.
+const AssistantPage = lazy(() => import('@/pages/AssistantPage.tsx').then((m) => ({ default: m.AssistantPage })));
 
 const router = createBrowserRouter([
   // Backend chuyển về đây sau Google OAuth (không đặt trong GuestRoute để còn hiện lỗi).
   { path: '/auth/callback', element: <AuthCallbackPage /> },
+  // Trang công khai cho khách: ngoài ProtectedRoute và AppShell.
+  { path: '/r/:slug', element: <PublicListingPage /> },
+  // Trang công khai: ai cũng xem được, kể cả khi chưa đăng nhập.
+  { path: '/', element: <LandingRoute /> },
+  { path: '/terms', element: <TermsPage /> },
+  { path: '/privacy', element: <PrivacyPage /> },
+  { path: '/contact', element: <ContactPage /> },
   {
     element: <GuestRoute />,
     children: [
@@ -27,7 +50,6 @@ const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { path: '/', element: <HomeRedirect /> },
       { path: '/onboarding', element: <OnboardingPage /> },
       { path: '/onboarding/invite/:houseId', element: <OnboardingInvitePage /> },
       {
@@ -38,68 +60,32 @@ const router = createBrowserRouter([
             element: <AppShell />,
             children: [
               { path: '/dashboard', element: <DashboardPage /> },
-              // Module chưa làm: thay ComingSoonPage bằng trang thật khi bắt đầu module.
-              {
-                path: '/chores',
-                element: (
-                  <ComingSoonPage
-                    overline="Lịch trực"
-                    title="Việc nhà"
-                    description="Xoay vòng công bằng, check-in ảnh, đổi ca và Chợ ca."
-                  />
-                ),
-              },
-              {
-                path: '/expenses',
-                element: (
-                  <ComingSoonPage
-                    overline="Sổ chung"
-                    title="Chi tiêu"
-                    description="Ghi khoản chi, chia tiền, quét hóa đơn."
-                  />
-                ),
-              },
-              {
-                path: '/payments',
-                element: (
-                  <ComingSoonPage
-                    overline="Rút gọn nợ"
-                    title="Thanh toán"
-                    description="Ai trả ai bao nhiêu, trả nhanh bằng VietQR."
-                  />
-                ),
-              },
+              { path: '/chores', element: <ChoresPage /> },
+              { path: '/house', element: <HouseManagePage /> },
+              // Cài đặt việc nhà đã gộp vào tab của /house; giữ đường cũ để link và dấu trang không chết.
+              { path: '/settings', element: <Navigate to="/house?tab=chores" replace /> },
+              { path: '/expenses', element: <ExpensesPage /> },
+              { path: '/expenses/scan', element: <ScanReceiptPage /> },
+              { path: '/payments', element: <PaymentsPage /> },
               { path: '/members', element: <MembersPage /> },
               {
                 path: '/assistant',
                 element: (
-                  <ComingSoonPage
-                    overline="Trợ lý AI"
-                    title="Trợ lý phòng trọ"
-                    description="Hỏi mẹo vặt, xử lý sự cố, tạo nhắc nhở."
-                  />
+                  <Suspense
+                    fallback={
+                      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải trợ lý">
+                        <Skeleton className="h-10 w-64" />
+                        <Skeleton className="h-[480px] w-full rounded-card" />
+                      </div>
+                    }
+                  >
+                    <AssistantPage />
+                  </Suspense>
                 ),
               },
-              {
-                path: '/listing',
-                element: (
-                  <ComingSoonPage
-                    overline="Tìm người ở ghép"
-                    title="Tin đăng"
-                    description="Tin tuyển thành viên, trang công khai và poster QR."
-                  />
-                ),
-              },
-              {
-                path: '/profile',
-                element: (
-                  <ComingSoonPage
-                    overline="Tài khoản"
-                    title="Hồ sơ"
-                    description="Thông tin cá nhân và tài khoản nhận tiền."
-                  />
-                ),
-              },
+              { path: '/house/listing', element: <ListingPage /> },
+              { path: '/listing', element: <Navigate to="/house/listing" replace /> },
+              { path: '/profile', element: <ProfilePage /> },
             ],
           },
         ],

@@ -1,17 +1,24 @@
-import { Bell, Plus } from 'lucide-react';
-import { NavLink, Outlet, useLocation } from 'react-router';
-import { toast } from 'sonner';
-import { IconButton } from '@/components/ui/IconButton.tsx';
+import { Plus } from 'lucide-react';
+import { m } from 'motion/react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
+import { useCurrentHouse } from '@/features/houses/hooks.ts';
+import { ConnectionDot, ReconnectBanner } from '@/features/realtime/ConnectionIndicator.tsx';
+import { RealtimeProvider } from '@/features/realtime/RealtimeProvider.tsx';
+import { WheelModal } from '@/features/wheel/components/WheelModal.tsx';
+import { useWheelRealtime } from '@/features/wheel/hooks.ts';
 import { Logo } from '@/components/ui/Logo.tsx';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell.tsx';
+import { useNotificationRealtime } from '@/features/notifications/hooks.ts';
+import { useReminderRealtime } from '@/features/reminders/realtime.ts';
 import { cn } from '@/lib/cn.ts';
+import { variants } from '@/lib/motion.ts';
 import { HouseSwitcher } from './HouseSwitcher.tsx';
 import { NAV_ITEMS, PAGE_TITLES, TAB_ITEMS } from './nav.ts';
 import { UserMenu } from './UserMenu.tsx';
 
-const notificationsSoon = () => toast('Thông báo sẽ có khi các tính năng việc nhà, chi tiêu hoàn thành.');
 
 /** Top nav desktop h72 (Design.md mục 5): logo · menu · house switcher · chuông · avatar. */
-function TopNav() {
+function TopNav({ houseId }: { houseId: string | undefined }) {
   return (
     <header className="sticky top-0 z-40 hidden h-[72px] border-b border-line bg-surface lg:block">
       <div className="mx-auto flex h-full max-w-page items-center gap-4 px-6 xl:px-0">
@@ -42,8 +49,12 @@ function TopNav() {
         </nav>
         <div className="flex shrink-0 items-center gap-3">
           <HouseSwitcher />
-          <IconButton icon={<Bell />} label="Thông báo" onClick={notificationsSoon} />
-          <UserMenu />
+          <NotificationBell houseId={houseId} />
+          {/* Chấm kết nối gắn ở góc avatar: không thêm bề rộng vào hàng, menu 7 mục vẫn đủ chỗ ở xl. */}
+          <div className="relative">
+            <UserMenu />
+            <ConnectionDot className="pointer-events-none absolute top-[26px] left-[26px]" />
+          </div>
         </div>
       </div>
     </header>
@@ -51,7 +62,7 @@ function TopNav() {
 }
 
 /** Top bar mobile h64: avatar 40 · nhà đang xem (overline) + tiêu đề trang · chuông. */
-function MobileTopBar() {
+function MobileTopBar({ houseId }: { houseId: string | undefined }) {
   const { pathname } = useLocation();
   const title = PAGE_TITLES[pathname] ?? 'NestFair';
   return (
@@ -61,13 +72,15 @@ function MobileTopBar() {
         <HouseSwitcher compact />
         <p className="truncate font-display text-ct text-ink">{title}</p>
       </div>
-      <IconButton icon={<Bell />} label="Thông báo" onClick={notificationsSoon} />
+      <ConnectionDot />
+      <NotificationBell houseId={houseId} />
     </header>
   );
 }
 
 /** Tab bar mobile: 4 tab + FAB giữa (52×52, r16, nền hl, viền ink, bóng 3/3). */
 function TabBar() {
+  const navigate = useNavigate();
   const tab = ({ to, label, icon: Icon }: (typeof TAB_ITEMS)[number]) => (
     <NavLink
       key={to}
@@ -90,7 +103,7 @@ function TabBar() {
         <button
           type="button"
           aria-label="Thêm chi tiêu"
-          onClick={() => toast('Thêm chi tiêu sẽ có ở phần Chi tiêu.')}
+          onClick={() => navigate('/expenses?new=1')}
           className="-mt-5 flex size-[52px] items-center justify-center rounded-[16px] border-[1.5px] border-ink bg-hl text-ink shadow-hard active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
         >
           <Plus className="size-6" aria-hidden />
@@ -101,16 +114,35 @@ function TabBar() {
   );
 }
 
-/** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). */
+/** Khung các màn trong nhà: top nav (desktop) hoặc top bar + tab bar (mobile). Một kết nối realtime cho nhà đang xem. */
+/** Đồng bộ vòng quay cho cả app (cần nằm trong RealtimeProvider). */
+function WheelSync({ houseId }: { houseId: string | undefined }) {
+  useWheelRealtime(houseId);
+  return <WheelModal houseId={houseId} />;
+}
+
 export function AppShell() {
+  const { house } = useCurrentHouse();
+  const { pathname } = useLocation();
+  // Chỉ được mount khi đã đăng nhập (ProtectedRoute → RequireHouse): nghe nhắc việc đến hạn một lần cho cả app.
+  useReminderRealtime();
+  // Chuông tải lại khi có khoản chi mới, báo chuyển tiền hoặc nhắc nhở tới giờ.
+  useNotificationRealtime(house?.id);
   return (
-    <div className="min-h-svh bg-paper">
-      <TopNav />
-      <MobileTopBar />
-      <main className="mx-auto max-w-page px-4 pt-6 pb-32 lg:px-6 lg:pt-10 lg:pb-24 xl:px-0">
-        <Outlet />
-      </main>
-      <TabBar />
-    </div>
+    <RealtimeProvider houseId={house?.id}>
+      <div className="min-h-svh bg-paper">
+        <TopNav houseId={house?.id} />
+        <MobileTopBar houseId={house?.id} />
+        <ReconnectBanner />
+        <main className="mx-auto max-w-page px-4 pt-6 pb-32 lg:px-6 lg:pt-10 lg:pb-24 xl:px-0">
+          {/* Chuyển trang: chỉ hiện dần trang mới, không chờ trang cũ ra để điều hướng không chậm. */}
+          <m.div key={pathname} variants={variants.pageEnter} initial="hidden" animate="visible">
+            <Outlet />
+          </m.div>
+        </main>
+        <TabBar />
+      </div>
+      <WheelSync houseId={house?.id} />
+    </RealtimeProvider>
   );
 }

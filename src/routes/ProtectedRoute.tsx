@@ -1,12 +1,13 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
-import { SessionLoader } from '@/components/SessionLoader.tsx';
+import { DelayedLoader } from '@/components/DelayedLoader.tsx';
+import { safeInternalPath } from '@/lib/safe-path.ts';
 import { useAuthStore } from '@/stores/auth-store.ts';
 
 /** Chỉ cho vào khi đã đăng nhập; chưa thì về /login và nhớ trang định vào. */
 export function ProtectedRoute() {
   const status = useAuthStore((s) => s.status);
   const location = useLocation();
-  if (status === 'loading') return <SessionLoader />;
+  if (status === 'loading') return <DelayedLoader />;
   if (status === 'anonymous') {
     // Giữ cả query (vd. link mời /onboarding?code=K7M2QZ) để đăng nhập xong quay lại đúng chỗ.
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
@@ -21,9 +22,9 @@ export function ProtectedRoute() {
 export function GuestRoute() {
   const status = useAuthStore((s) => s.status);
   const location = useLocation();
-  if (status === 'loading') return <SessionLoader />;
+  if (status === 'loading') return <DelayedLoader />;
   if (status === 'authenticated') {
-    const from = (location.state as { from?: string } | null)?.from;
+    const from = safeInternalPath((location.state as { from?: unknown } | null)?.from);
     return <Navigate to={from ?? '/'} replace />;
   }
   return <Outlet />;
