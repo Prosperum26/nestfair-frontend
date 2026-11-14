@@ -22,3 +22,6 @@ VITE_API_URL=http://localhost:5000 npm run build   # sinh dist/_headers giống 
 
 ## Bí mật
 Không commit `.env`. Biến build (`VITE_*`) nằm trong bundle và ai cũng đọc được: không đặt bí mật vào đó.
+
+## Deploy
+Hướng dẫn thiết lập dev/prod (Cloudflare Pages, Environments, secrets) cho cả hai repo nằm ở `nestfair-backend/docs/DEPLOY.md`.
