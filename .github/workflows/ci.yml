@@ -53,6 +53,7 @@ jobs:
   verify:
     name: verify dev
     needs: [deploy]
-    if: github.event_name == 'push' && github.ref_name == 'dev'
+    # Chỉ kiểm khi deploy dev thật sự chạy (môi trường đã cấu hình).
+    if: github.event_name == 'push' && github.ref_name == 'dev' && needs.deploy.outputs.ready == 'true'
     uses: ./.github/workflows/verify-dev.yml
     secrets: inherit

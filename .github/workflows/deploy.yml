@@ -11,6 +11,10 @@ on:
       environment:
         type: string
         required: true
+    outputs:
+      ready:
+        description: 'true nếu môi trường đã cấu hình và đã deploy'
+        value: ${{ jobs.deploy.outputs.ready }}
   workflow_dispatch:
     inputs:
       environment:
@@ -30,6 +34,8 @@ jobs:
     name: deploy ${{ inputs.environment }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      ready: ${{ steps.cfg.outputs.ready }}
     environment:
       name: ${{ inputs.environment }}
       url: ${{ vars.WEB_URL }}
@@ -39,27 +45,43 @@ jobs:
       PAGES_PROJECT: ${{ vars.PAGES_PROJECT }}
     steps:
       - name: Kiểm cấu hình môi trường
+        id: cfg
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          missing=""
           for name in API_URL WEB_URL PAGES_PROJECT CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
-            if [ -z "${!name}" ]; then echo "::error::Thiếu $name trong Environment ${{ inputs.environment }}"; exit 1; fi
+            if [ -z "${!name}" ]; then missing="$missing $name"; fi
           done
+          if [ -n "$missing" ]; then
+            # Chưa thiết lập môi trường (lần đầu): bỏ qua deploy, không làm đỏ pipeline.
+            echo "::warning::Bỏ qua deploy ${{ inputs.environment }}: thiếu${missing} trong Environment. Xem docs/DEPLOY.md ở repo backend."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.cfg.outputs.ready == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - if: steps.cfg.outputs.ready == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+
+      - if: steps.cfg.outputs.ready == 'true'
+        run: npm ci
 
       # VITE_API_URL nằm trong bundle và trong CSP (dist/_headers), nên build riêng cho từng môi trường.
-      - run: npm run build
+
+      - if: steps.cfg.outputs.ready == 'true'
+        run: npm run build
         env:
           VITE_API_URL: ${{ vars.API_URL }}
 
-      - uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+      - if: steps.cfg.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -68,6 +90,7 @@ jobs:
           command: pages deploy dist --project-name=${{ vars.PAGES_PROJECT }} --branch=${{ github.ref_name }} --commit-hash=${{ github.sha }}
 
       - name: Smoke test (trang chủ, deep link SPA, CSP trỏ đúng API)
+        if: steps.cfg.outputs.ready == 'true'
         run: |
           set -e
           for _ in $(seq 1 20); do
@@ -82,7 +105,7 @@ jobs:
           echo "Smoke test xanh."
 
       - name: Thông báo Discord
-        if: always()
+        if: steps.cfg.outputs.ready == 'true' && always()
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           STATUS: ${{ job.status }}
