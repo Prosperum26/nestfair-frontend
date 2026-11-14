@@ -108,12 +108,14 @@ export function LiveTicker({
       <button
         type="button"
         onClick={onOpen}
-        aria-label="Xem hoạt động gần đây"
         className={cn(
           'group min-w-0 flex-1 text-left focus-visible:outline-none',
           reduced ? 'overflow-x-auto' : 'overflow-hidden',
         )}
       >
+        {/* Không dùng aria-label: nó thay mất chữ đang hiển thị (WCAG 2.5.3, người dùng điều khiển bằng giọng nói
+            đọc theo chữ họ thấy). Tiền tố ẩn + nội dung hiển thị = tên đầy đủ của nút. */}
+        <span className="sr-only">Xem hoạt động gần đây: </span>
         <span
           className={cn(
             'flex w-max items-center gap-4',
