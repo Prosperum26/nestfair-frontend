@@ -33,4 +33,9 @@ describe('choresApi: lưu trữ việc nhà', () => {
     await choresApi.listArchived(H);
     expect(mocked).toHaveBeenCalledWith(`/houses/${H}/chores?archived=true`);
   });
+
+  it('claim gọi POST /assignments/:id/claim', async () => {
+    await choresApi.claim('a-1');
+    expect(mocked).toHaveBeenCalledWith('/assignments/a-1/claim', { method: 'POST' });
+  });
 });

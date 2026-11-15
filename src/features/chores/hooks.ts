@@ -156,6 +156,12 @@ export function useVerify(houseId: string) {
   });
 }
 
+/** Nhận ca chưa có người (việc đột xuất). Cả khi lỗi 409 (có người nhận trước) cũng tải lại để thấy trạng thái mới. */
+export function useClaim(houseId: string) {
+  const invalidate = useInvalidateSchedule(houseId);
+  return useMutation({ mutationFn: (assignmentId: string) => choresApi.claim(assignmentId), onSettled: invalidate });
+}
+
 export function useAppeal(houseId: string) {
   const invalidate = useInvalidateSchedule(houseId);
   return useMutation({ mutationFn: (assignmentId: string) => choresApi.appeal(assignmentId), onSuccess: invalidate });
