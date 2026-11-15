@@ -218,7 +218,7 @@ export function DashboardPage() {
       />
 
       <div className="mt-6 flex flex-col gap-4 lg:mt-8 lg:grid lg:grid-cols-12 lg:gap-6">
-        <div className="order-2 lg:order-none lg:col-span-12">
+        <div className="nf-rise [--i:2] order-2 lg:order-none lg:col-span-12">
           <LiveTicker
             items={feed.data}
             status={feed.status}
@@ -228,24 +228,24 @@ export function DashboardPage() {
             onOpen={() => setHistoryOpen(true)}
           />
         </div>
-        <div className="order-3 lg:hidden">
+        <div className="nf-rise [--i:2] order-3 lg:hidden">
           <QuickActions />
         </div>
 
-        <div className="order-1 lg:order-none lg:col-span-5">
+        <div className="nf-rise [--i:0] order-1 lg:order-none lg:col-span-5">
           <BalanceCard month={month} plan={plan.data} meId={user?.id} />
         </div>
-        <div className="order-7 flex lg:order-none lg:col-span-7 [&>section]:flex-1">
+        <div className="nf-rise [--i:3] order-7 flex lg:order-none lg:col-span-7 [&>section]:flex-1">
           <FairnessCard members={plan.data?.members} month={month} totalAmount={summary.data?.totalAmount} expenseCount={summary.data?.expenseCount} />
         </div>
 
-        <TodayCard className="order-4 lg:order-none lg:col-span-7" houseId={house?.id} meUserId={user?.id} />
-        <DashCard className="order-8 lg:order-none lg:col-span-5" overline="Việc phát sinh" title="Vòng quay may mắn">
+        <TodayCard className="nf-rise [--i:1] order-4 lg:order-none lg:col-span-7" houseId={house?.id} meUserId={user?.id} />
+        <DashCard className="nf-rise [--i:5] order-8 lg:order-none lg:col-span-5" overline="Việc phát sinh" title="Vòng quay may mắn">
           <WheelPreview members={members} onSpin={openWheel} />
         </DashCard>
 
         <DashCard
-          className="order-9 lg:order-none lg:col-span-7"
+          className="nf-rise [--i:6] order-9 lg:order-none lg:col-span-7"
           title="Hoạt động gần đây"
           aside={
             feed.data?.length ? (
@@ -257,7 +257,7 @@ export function DashboardPage() {
         >
           <ActivityList items={feed.data} status={feed.status} me={user?.id} onRetry={() => void feed.refetch()} limit={5} />
         </DashCard>
-        <div className="order-5 flex flex-col gap-4 lg:order-none lg:col-span-5 lg:gap-6">
+        <div className="nf-rise [--i:4] order-5 flex flex-col gap-4 lg:order-none lg:col-span-5 lg:gap-6">
           <SwapSummaryWidget houseId={house?.id} />
           <RemindersWidget />
         </div>

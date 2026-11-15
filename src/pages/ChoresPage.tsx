@@ -178,7 +178,7 @@ export function ChoresPage() {
   const showToday = view === 'calendar' && weekKey === thisWeek && assignments.length > 0;
   const waitingSection =
     waitingForMe.length > 0 ? (
-      <section aria-label="Chờ bạn duyệt" className={showToday ? 'rounded-card border border-line bg-surface p-5' : undefined}>
+      <section aria-label="Chờ bạn duyệt" className={showToday ? 'nf-attn rounded-card border border-line bg-surface p-5' : 'nf-attn rounded-card'}>
         <div className="mb-3 flex items-center gap-2">
           <h2 className="font-display text-ct text-ink">Chờ bạn duyệt</h2>
           <span className="font-mono text-cap text-ink-2">{waitingForMe.length}</span>

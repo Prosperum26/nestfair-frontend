@@ -81,7 +81,7 @@ export function TodayList({
 export function UnclaimedList({ items, busyId, onClaim, now = new Date() }: { items: Assignment[]; busyId: string | null; onClaim: (a: Assignment) => void; now?: Date }) {
   if (items.length === 0) return null;
   return (
-    <div className="mt-5 border-t border-line pt-4">
+    <div className="nf-attn mt-5 rounded-card border-t border-line pt-4">
       <h3 className="font-mono text-cap uppercase text-ink-2">Việc chưa có người nhận</h3>
       <ul className="mt-3 flex flex-col gap-3">
         {items.map((a) => (
