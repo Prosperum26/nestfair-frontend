@@ -54,6 +54,13 @@ describe('auditText', () => {
     expect(auditText(log('APPEAL'))).toBe('Hùng khiếu nại một ca bị từ chối.');
   });
 
+  it('lưu trữ, khôi phục và xóa vĩnh viễn việc nhà có câu tiếng Việt, không lộ mã hành động', () => {
+    const archived = auditText(log('CHORE_ARCHIVED', { detail: { title: 'Lau bếp' } }));
+    expect(archived).toBe('Hùng đã lưu trữ việc "Lau bếp".');
+    expect(auditText(log('CHORE_RESTORED', { detail: { title: 'Lau bếp' } }))).toBe('Hùng đã khôi phục việc "Lau bếp".');
+    expect(auditText(log('CHORE_PURGED', { detail: { title: 'Lau bếp' } }))).toBe('Hùng đã xóa vĩnh viễn việc "Lau bếp".');
+  });
+
   it('thao tác của hệ thống (không có người) ghi là "Hệ thống"', () => {
     expect(auditText(log('AUTO_APPROVE', { actorId: null, actorName: null }))).toBe('Hệ thống tự duyệt một ca sau 48 giờ không ai duyệt.');
     expect(auditText(log('ORPHAN_REASSIGN', { actorId: null, actorName: null }))).toBe('Hệ thống giao lại một ca của người đã rời nhà.');

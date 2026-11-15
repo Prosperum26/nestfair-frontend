@@ -38,6 +38,12 @@ export function auditText(log: AuditLog): string {
       return `${who} đã tạm ngưng một việc; các ca chưa làm trong tương lai bị hủy.`;
     case 'CHORE_ACTIVATED':
       return `${who} đã bật lại một việc.`;
+    case 'CHORE_ARCHIVED':
+      return `${who} đã lưu trữ việc "${text(log.detail, 'title') ?? ''}".`;
+    case 'CHORE_RESTORED':
+      return `${who} đã khôi phục việc "${text(log.detail, 'title') ?? ''}".`;
+    case 'CHORE_PURGED':
+      return `${who} đã xóa vĩnh viễn việc "${text(log.detail, 'title') ?? ''}".`;
     case 'SETTINGS_UPDATED':
       return `${who} đã đổi cài đặt việc nhà.`;
     case 'ABSENCE_CREATED':
