@@ -38,7 +38,7 @@ export function ActivityList({
 }) {
   if (status === 'pending') {
     return (
-      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải hoạt động">
+      <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải hoạt động">
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} className="h-12" />
         ))}

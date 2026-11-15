@@ -93,7 +93,7 @@ export function HistoryCard({
 
       <div className="mt-4">
         {isPending ? (
-          <div className="flex flex-col gap-2" aria-busy="true" aria-label="Đang tải lịch sử">
+          <div className="flex flex-col gap-2" role="status" aria-busy="true" aria-label="Đang tải lịch sử">
             {[0, 1, 2].map((i) => (
               <Skeleton key={i} className="h-12" />
             ))}

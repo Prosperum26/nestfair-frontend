@@ -26,7 +26,7 @@ function DayDivider({ label }: { label: string }) {
 
 function ThreadSkeleton() {
   return (
-    <div className="flex flex-col gap-6" aria-busy="true" aria-label="Đang tải hội thoại">
+    <div className="flex flex-col gap-6" role="status" aria-busy="true" aria-label="Đang tải hội thoại">
       <Skeleton className="mx-auto h-4 w-40" />
       <Skeleton className="ml-auto h-14 w-3/5 rounded-card" />
       <Skeleton className="h-24 w-4/5 rounded-card" />

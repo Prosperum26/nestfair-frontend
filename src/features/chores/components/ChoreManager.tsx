@@ -102,7 +102,7 @@ export function ChoreManager({ houseId, isAdmin }: { houseId: string; isAdmin: b
       </div>
 
       {chores.isPending ? (
-        <div className="mt-4 flex flex-col gap-3" aria-busy="true" aria-label="Đang tải danh sách việc">
+        <div className="mt-4 flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải danh sách việc">
           <Skeleton className="h-12" />
           <Skeleton className="h-12" />
         </div>

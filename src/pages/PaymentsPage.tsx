@@ -98,7 +98,7 @@ export function PaymentsPage() {
 
       <div className="mt-6 flex flex-col gap-6 lg:mt-8">
         {plan.isPending ? (
-          <div className="grid gap-6 lg:grid-cols-12" aria-busy="true" aria-label="Đang tải kế hoạch thanh toán">
+          <div className="grid gap-6 lg:grid-cols-12" role="status" aria-busy="true" aria-label="Đang tải kế hoạch thanh toán">
             <Skeleton className="h-[460px] rounded-card lg:col-span-7" />
             <Skeleton className="h-[460px] rounded-card lg:col-span-5" />
           </div>

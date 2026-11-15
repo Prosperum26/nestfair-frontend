@@ -22,7 +22,7 @@ export function MyHousesSection({ currentHouseId }: { currentHouseId: string | n
   return (
     <ProfileSection id="profile-houses" title="Nhà của tôi">
       {houses.isPending ? (
-        <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải danh sách nhà">
+        <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải danh sách nhà">
           <Skeleton className="h-16" />
           <Skeleton className="h-16" />
         </div>

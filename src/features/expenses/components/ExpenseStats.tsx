@@ -131,7 +131,7 @@ export function ExpenseStatsSkeleton() {
   return (
     <>
       <Skeleton className="h-[220px] rounded-card lg:hidden" />
-      <div className="hidden gap-6 lg:grid lg:grid-cols-[1fr_1fr_1fr_1.3fr]" aria-busy="true" aria-label="Đang tải thống kê">
+      <div className="hidden gap-6 lg:grid lg:grid-cols-[1fr_1fr_1fr_1.3fr]" role="status" aria-busy="true" aria-label="Đang tải thống kê">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-[168px] rounded-card" />
         ))}

@@ -16,7 +16,7 @@ import { useAuthStore } from '@/stores/auth-store.ts';
 
 function MembersSkeleton() {
   return (
-    <div className="mt-8 flex flex-col gap-6" aria-busy="true" aria-label="Đang tải thành viên">
+    <div className="mt-8 flex flex-col gap-6" role="status" aria-busy="true" aria-label="Đang tải thành viên">
       <Skeleton className="h-[160px] rounded-card" />
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (

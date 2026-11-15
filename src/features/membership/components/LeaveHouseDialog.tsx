@@ -32,7 +32,7 @@ export function LeaveHouseDialog({ houseId, houseName, meId, onClose }: { houseI
   return (
     <Modal open onClose={onClose} overline="Rời nhà" title={`Rời ${houseName}?`}>
       {loading ? (
-        <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang kiểm tra">
+        <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang kiểm tra">
           <Skeleton className="h-14 rounded-btn" />
           <Skeleton className="h-11 rounded-btn" />
         </div>

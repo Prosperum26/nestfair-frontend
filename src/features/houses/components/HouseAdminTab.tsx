@@ -18,7 +18,7 @@ export function HouseAdminTab() {
 
   if (housesPending || detail.isPending) {
     return (
-      <div className="flex flex-col gap-6" aria-busy="true" aria-label="Đang tải cài đặt nhà">
+      <div className="flex flex-col gap-6" role="status" aria-busy="true" aria-label="Đang tải cài đặt nhà">
         <Skeleton className="h-[160px] rounded-card" />
         <Skeleton className="h-[280px] rounded-card" />
         <Skeleton className="h-[320px] rounded-card" />

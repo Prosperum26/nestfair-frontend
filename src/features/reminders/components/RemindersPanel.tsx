@@ -16,7 +16,7 @@ import { ReminderRow } from './ReminderRow.tsx';
 /** Khối xám nhấp nháy cùng hình dạng một dòng nhắc (ô giờ + tiêu đề + chip). */
 export function RemindersSkeleton({ rows = 3, className }: { rows?: number; className?: string }) {
   return (
-    <div className={cn('divide-y divide-line', className)} aria-busy="true" aria-label="Đang tải nhắc nhở">
+    <div className={cn('divide-y divide-line', className)} role="status" aria-busy="true" aria-label="Đang tải nhắc nhở">
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="flex items-center gap-3 py-4">
           <Skeleton className="h-[52px] w-16 shrink-0 rounded-btn-sm" />
