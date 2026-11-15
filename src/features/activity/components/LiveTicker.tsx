@@ -91,7 +91,7 @@ export function LiveTicker({
     ));
 
   let body;
-  if (status === 'pending') body = <span className="h-3 w-2/3 animate-pulse rounded-full bg-ink-soft" aria-label="Đang tải hoạt động" />;
+  if (status === 'pending') body = <span className="h-3 w-2/3 animate-pulse rounded-full bg-ink-soft" role="status" aria-label="Đang tải hoạt động" />;
   else if (status === 'error')
     body = (
       <span className="flex items-center gap-3 text-sm text-ink-on2">

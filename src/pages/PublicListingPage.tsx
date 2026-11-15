@@ -14,7 +14,7 @@ import { usePublicMeta } from '@/features/listing/public/usePublicMeta.ts';
 
 function PublicSkeleton() {
   return (
-    <div className="mx-auto flex max-w-[1100px] flex-col gap-6 px-4 pt-6 lg:pt-10" aria-busy="true" aria-label="Đang tải tin">
+    <div className="mx-auto flex max-w-[1100px] flex-col gap-6 px-4 pt-6 lg:pt-10" role="status" aria-busy="true" aria-label="Đang tải tin">
       <div className="flex flex-col gap-3">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-9 w-4/5 max-w-[420px]" />

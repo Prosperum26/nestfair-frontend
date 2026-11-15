@@ -54,7 +54,7 @@ export function NotificationPanel({
       </div>
 
       {status === 'loading' && (
-        <div className="flex flex-col gap-3 p-4" aria-busy="true" aria-label="Đang tải thông báo">
+        <div className="flex flex-col gap-3 p-4" role="status" aria-busy="true" aria-label="Đang tải thông báo">
           {[0, 1, 2].map((i) => (
             <div key={i} className="flex items-center gap-3">
               <Skeleton className="size-9 shrink-0" />

@@ -125,7 +125,7 @@ export function ScanReceiptPage() {
               onOtherSplit={openManual}
             />
           ) : (
-            <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải thành viên">
+            <div className="flex flex-col gap-4" role="status" aria-busy="true" aria-label="Đang tải thành viên">
               <Skeleton className="h-16" />
               <Skeleton className="h-64" />
             </div>

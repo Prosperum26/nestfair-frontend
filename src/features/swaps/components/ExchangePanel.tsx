@@ -59,7 +59,7 @@ export function ExchangePanel({ assignment, houseId, onDone }: { assignment: Ass
 
   if (options.isPending) {
     return (
-      <div className="flex flex-col gap-2" aria-busy="true" aria-label="Đang tải các ca có thể đổi">
+      <div className="flex flex-col gap-2" role="status" aria-busy="true" aria-label="Đang tải các ca có thể đổi">
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} className="h-[68px] rounded-card" />
         ))}

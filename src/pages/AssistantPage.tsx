@@ -25,7 +25,7 @@ const RemindersPanel = lazy(() => import('@/features/reminders/components/Remind
 
 function PanelFallback() {
   return (
-    <div className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 sm:p-6" aria-busy="true" aria-label="Đang tải nhắc nhở">
+    <div className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 sm:p-6" role="status" aria-busy="true" aria-label="Đang tải nhắc nhở">
       <Skeleton className="h-6 w-40" />
       <Skeleton className="h-[52px] w-full rounded-btn-sm" />
       <Skeleton className="h-[52px] w-full rounded-btn-sm" />
@@ -121,7 +121,7 @@ export function AssistantPage() {
 
   if (!house) {
     return (
-      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải trợ lý">
+      <div className="flex flex-col gap-4" role="status" aria-busy="true" aria-label="Đang tải trợ lý">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-[480px] w-full rounded-card" />
       </div>

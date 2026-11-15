@@ -85,7 +85,7 @@ function Body({ houseId, debt, onClose }: { houseId: string; debt: Debt; onClose
       </p>
 
       {options.isPending ? (
-        <div className="flex flex-col gap-2" aria-busy="true" aria-label="Đang tải các ca có thể chọn">
+        <div className="flex flex-col gap-2" role="status" aria-busy="true" aria-label="Đang tải các ca có thể chọn">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-[64px] rounded-card" />
           ))}
