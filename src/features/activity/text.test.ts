@@ -26,6 +26,11 @@ describe('activityLine', () => {
     expect(text(a('chore.archived', { choreTitle: 'Dọn bếp', cancelled: 0 }, hung), 'u-hung')).toBe('Bạn đã lưu trữ việc “Dọn bếp”');
   });
 
+  it('nhận việc đột xuất', () => {
+    expect(text(a('chore.claimed', { choreTitle: 'Mang rác xuống' }, hung))).toBe('Hùng đã nhận việc “Mang rác xuống”');
+    expect(text(a('chore.claimed', { choreTitle: 'Mang rác xuống' }, hung), 'u-hung')).toBe('Bạn đã nhận việc “Mang rác xuống”');
+  });
+
   it('check-in dùng tên gọi và ngoặc kép quanh tên việc', () => {
     expect(text(a('chore.submitted', { choreTitle: 'Rửa chén tối' }))).toBe('Mai vừa nộp ảnh “Rửa chén tối”');
   });
