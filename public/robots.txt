@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+# Tin tìm người ở ghép có thông tin liên hệ: không cho thu thập, trang cũng đặt noindex.
+Disallow: /r/

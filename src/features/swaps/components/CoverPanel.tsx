@@ -135,7 +135,7 @@ export function CoverPanel({
       <div>
         <h3 className="mb-2 text-h4 text-ink">Nhờ ai?</h3>
         {options.isPending ? (
-          <div className="flex flex-col gap-2" aria-busy="true" aria-label="Đang tải danh sách người nhận">
+          <div className="flex flex-col gap-2" role="status" aria-busy="true" aria-label="Đang tải danh sách người nhận">
             {[0, 1, 2].map((i) => (
               <Skeleton key={i} className="h-[60px] rounded-card" />
             ))}

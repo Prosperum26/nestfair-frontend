@@ -62,7 +62,7 @@ function SetupForm({ houseId }: { houseId: string }) {
 
   if (options.status === 'pending') {
     return (
-      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải">
+      <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải">
         <Skeleton className="h-11" />
         <Skeleton className="h-32" />
         <Skeleton className="h-11" />

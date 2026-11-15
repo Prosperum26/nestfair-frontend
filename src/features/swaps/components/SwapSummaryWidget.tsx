@@ -35,7 +35,7 @@ export function SwapSummaryWidget({ houseId, className }: { houseId: string | un
   let body;
   if (!houseId || summary.isPending) {
     body = (
-      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải đổi ca">
+      <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải đổi ca">
         <Skeleton className="h-12" />
         <Skeleton className="h-12" />
         <Skeleton className="h-12" />

@@ -25,7 +25,7 @@ export function KickMemberDialog({ house, member, onClose }: { house: HouseDetai
   return (
     <Modal open onClose={onClose} overline="Xóa khỏi nhà" title={`Xóa ${name} khỏi nhà?`}>
       {preview.isPending ? (
-        <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang kiểm tra số dư">
+        <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang kiểm tra số dư">
           <Skeleton className="h-16 rounded-btn" />
           <Skeleton className="h-11 rounded-btn" />
         </div>

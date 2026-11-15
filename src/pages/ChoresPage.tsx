@@ -47,7 +47,7 @@ const BASE_VIEWS: { value: ChoresView; label: string }[] = [
 
 function ChoresSkeleton() {
   return (
-    <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="Đang tải lịch trực">
+    <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" role="status" aria-busy="true" aria-label="Đang tải lịch trực">
       {[0, 1, 2, 3].map((i) => (
         <Skeleton key={i} className="h-[132px] rounded-card" />
       ))}

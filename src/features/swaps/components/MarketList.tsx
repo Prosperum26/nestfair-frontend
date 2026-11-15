@@ -40,7 +40,7 @@ export function MarketList({ houseId }: { houseId: string }) {
 
   if (list.isPending) {
     return (
-      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải Chợ ca">
+      <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải Chợ ca">
         {[0, 1].map((i) => (
           <Skeleton key={i} className="h-[148px] rounded-card" />
         ))}

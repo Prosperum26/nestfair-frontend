@@ -27,7 +27,7 @@ export function TodayCard({ houseId, meUserId, className }: { houseId: string | 
   let body;
   if (today.status === 'pending' || !houseId) {
     body = (
-      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải việc hôm nay">
+      <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải việc hôm nay">
         <Skeleton className="h-16" />
         <Skeleton className="h-16" />
       </div>

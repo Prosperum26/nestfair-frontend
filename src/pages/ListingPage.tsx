@@ -14,7 +14,7 @@ import { useCurrentHouse } from '@/features/houses/hooks.ts';
 
 function ListingSkeleton() {
   return (
-    <div className="mt-6 flex flex-col gap-6" aria-busy="true" aria-label="Đang tải tin đăng">
+    <div className="mt-6 flex flex-col gap-6" role="status" aria-busy="true" aria-label="Đang tải tin đăng">
       <Skeleton className="h-[260px] rounded-card" />
       <Skeleton className="h-[300px] rounded-card" />
       <Skeleton className="h-[220px] rounded-card" />

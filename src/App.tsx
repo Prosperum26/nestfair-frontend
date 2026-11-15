@@ -73,7 +73,7 @@ const router = createBrowserRouter([
                 element: (
                   <Suspense
                     fallback={
-                      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải trợ lý">
+                      <div className="flex flex-col gap-4" role="status" aria-busy="true" aria-label="Đang tải trợ lý">
                         <Skeleton className="h-10 w-64" />
                         <Skeleton className="h-[480px] w-full rounded-card" />
                       </div>

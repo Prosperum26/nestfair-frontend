@@ -29,7 +29,7 @@ export function PendingProposalsSection({ houseId }: { houseId: string }) {
   let body;
   if (proposals.isPending) {
     body = (
-      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải đề xuất">
+      <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải đề xuất">
         <Skeleton className="h-[96px] rounded-btn" />
         <Skeleton className="h-[96px] rounded-btn" />
       </div>

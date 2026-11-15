@@ -345,7 +345,7 @@ export function ExpenseFormModal({ open, ...props }: FormProps & { open: boolean
         (props.members.length > 0 ? (
           <ExpenseForm key={props.expense?.id ?? 'new'} {...props} />
         ) : (
-          <div className="flex flex-col gap-4" aria-busy="true" aria-label="Đang tải thành viên">
+          <div className="flex flex-col gap-4" role="status" aria-busy="true" aria-label="Đang tải thành viên">
             <Skeleton className="h-12" />
             <Skeleton className="h-16" />
             <Skeleton className="h-40" />

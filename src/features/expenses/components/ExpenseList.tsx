@@ -127,7 +127,7 @@ export function ExpenseDayList({ expenses, meId, onSelect }: Omit<ListProps, 'se
 
 export function ExpenseListSkeleton() {
   return (
-    <div className="flex flex-col gap-3" aria-busy="true" aria-label="Đang tải sổ chi">
+    <div className="flex flex-col gap-3" role="status" aria-busy="true" aria-label="Đang tải sổ chi">
       {[0, 1, 2, 3, 4].map((i) => (
         <Skeleton key={i} className="h-[60px]" />
       ))}

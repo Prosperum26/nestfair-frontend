@@ -45,7 +45,11 @@ export function OutgoingSection({ houseId, part }: { houseId: string; part: 'exp
       />
     );
   }
-  if (list.isPending) return part === 'pending' ? <Skeleton className="h-[96px] rounded-card" aria-busy="true" aria-label="Đang tải yêu cầu của bạn" /> : null;
+  if (list.isPending) return part === 'pending' ? (
+      <div role="status" aria-busy="true" aria-label="Đang tải yêu cầu của bạn">
+        <Skeleton className="h-[96px] rounded-card" />
+      </div>
+    ) : null;
 
   if (part === 'expired') {
     const expired = swaps.filter((s) => s.status === 'EXPIRED');
