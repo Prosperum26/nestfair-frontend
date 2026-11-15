@@ -26,6 +26,10 @@ export interface Chore {
   rotationMode: RotationMode;
   occurrenceGap: number;
   isActive: boolean;
+  /** ISO; có giá trị nghĩa là việc đã lưu trữ (ẩn khỏi danh sách, giữ lịch sử). */
+  archivedAt: string | null;
+  /** Chỉ có ở danh sách đã lưu trữ: true khi việc chưa từng có hoạt động nên xóa vĩnh viễn được. */
+  canPurge?: boolean;
 }
 
 export interface Assignment {

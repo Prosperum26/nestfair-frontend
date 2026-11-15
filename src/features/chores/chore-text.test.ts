@@ -12,6 +12,7 @@ const chore = (over: Partial<Chore> = {}): Chore => ({
   rotationMode: 'WEEK_BLOCK',
   occurrenceGap: 1,
   isActive: true,
+  archivedAt: null,
   ...over,
 });
 

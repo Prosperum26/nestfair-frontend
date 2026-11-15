@@ -40,6 +40,11 @@ export const choresApi = {
   createChore: (houseId: string, body: ChoreInput) => api<Chore>(`${h(houseId)}/chores`, { method: 'POST', body }),
   updateChore: (houseId: string, choreId: string, body: Partial<ChoreInput> & { isActive?: boolean }) =>
     api<Chore>(`${h(houseId)}/chores/${choreId}`, { method: 'PATCH', body }),
+  /** Việc đã lưu trữ (chỉ trưởng phòng gọi được các thao tác lưu trữ). */
+  listArchived: (houseId: string) => api<Chore[]>(`${h(houseId)}/chores?archived=true`),
+  archiveChore: (houseId: string, choreId: string) => api<Chore>(`${h(houseId)}/chores/${choreId}`, { method: 'DELETE' }),
+  restoreChore: (houseId: string, choreId: string) => api<Chore>(`${h(houseId)}/chores/${choreId}/restore`, { method: 'POST' }),
+  purgeChore: (houseId: string, choreId: string) => api<void>(`${h(houseId)}/chores/${choreId}/permanent`, { method: 'DELETE' }),
 
   weekView: (houseId: string, week: string) => api<WeekView>(`${h(houseId)}/assignments?week=${encodeURIComponent(week)}`),
   preview: (houseId: string, weekKey: string) => api<PreviewResult>(`${h(houseId)}/schedules/preview`, { method: 'POST', body: { weekKey } }),
