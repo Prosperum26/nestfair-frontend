@@ -104,7 +104,7 @@ function TabBar() {
           type="button"
           aria-label="Thêm chi tiêu"
           onClick={() => navigate('/expenses?new=1')}
-          className="-mt-5 flex size-[52px] items-center justify-center rounded-[16px] border-[1.5px] border-ink bg-hl text-ink shadow-hard active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+          className="nf-attn -mt-5 flex size-[52px] items-center justify-center rounded-[16px] border-[1.5px] border-ink bg-hl text-ink shadow-hard active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
         >
           <Plus className="size-6" aria-hidden />
         </button>
