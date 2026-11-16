@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { ApiError } from '@/lib/api.ts';
 import { isStateChanged, messageForError } from './errors.ts';
 
+describe('messageForError: lưu trữ việc nhà', () => {
+  it('CHORE_HAS_HISTORY và CHORE_NOT_ARCHIVED có câu riêng', () => {
+    expect(messageForError(new ApiError(409, 'x', 'CHORE_HAS_HISTORY'))).toContain('lịch sử');
+    expect(messageForError(new ApiError(409, 'x', 'CHORE_NOT_ARCHIVED'))).toContain('lưu trữ');
+  });
+});
+
 describe('messageForError', () => {
   it('có câu riêng cho từng mã lỗi của check-in và duyệt', () => {
     const cases: [string, string][] = [

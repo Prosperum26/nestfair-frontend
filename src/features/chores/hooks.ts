@@ -100,6 +100,32 @@ export function useUpdateChore(houseId: string) {
   });
 }
 
+/** Danh sách việc đã lưu trữ; chỉ tải khi `enabled` (mục "Đã lưu trữ" đang mở). */
+export function useArchivedChores(houseId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: [...choreKeys.chores(houseId ?? ''), 'archived'],
+    queryFn: () => choresApi.listArchived(houseId!),
+    enabled: !!houseId && enabled,
+  });
+}
+
+/** Lưu trữ / khôi phục / xóa vĩnh viễn: tải lại mọi danh sách việc và lịch (ca tương lai có thể bị hủy). Không cập nhật lạc quan. */
+function useChoreLifecycle(houseId: string, run: (choreId: string) => Promise<unknown>) {
+  const queryClient = useQueryClient();
+  const invalidate = useInvalidateSchedule(houseId);
+  return useMutation({
+    mutationFn: run,
+    onSuccess: () => {
+      void invalidate();
+      return queryClient.invalidateQueries({ queryKey: choreKeys.chores(houseId) });
+    },
+  });
+}
+
+export const useArchiveChore = (houseId: string) => useChoreLifecycle(houseId, (id) => choresApi.archiveChore(houseId, id));
+export const useRestoreChore = (houseId: string) => useChoreLifecycle(houseId, (id) => choresApi.restoreChore(houseId, id));
+export const usePurgeChore = (houseId: string) => useChoreLifecycle(houseId, (id) => choresApi.purgeChore(houseId, id));
+
 export function usePreview(houseId: string) {
   return useMutation({ mutationFn: (weekKey: string) => choresApi.preview(houseId, weekKey) });
 }

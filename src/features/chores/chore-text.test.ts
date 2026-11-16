@@ -12,6 +12,7 @@ const chore = (over: Partial<Chore> = {}): Chore => ({
   rotationMode: 'WEEK_BLOCK',
   occurrenceGap: 1,
   isActive: true,
+  archivedAt: null,
   ...over,
 });
 
@@ -51,6 +52,13 @@ describe('auditText', () => {
     expect(auditText(log('CHORE_CREATED', { detail: { title: 'Lau bếp' } }))).toBe('Hùng đã thêm việc "Lau bếp".');
     expect(auditText(log('OVERRIDE_FORCE_DONE', { detail: { reason: 'Đã xem ảnh' } }))).toBe('Hùng xác nhận hoàn thành một ca: Đã xem ảnh');
     expect(auditText(log('APPEAL'))).toBe('Hùng khiếu nại một ca bị từ chối.');
+  });
+
+  it('lưu trữ, khôi phục và xóa vĩnh viễn việc nhà có câu tiếng Việt, không lộ mã hành động', () => {
+    const archived = auditText(log('CHORE_ARCHIVED', { detail: { title: 'Lau bếp' } }));
+    expect(archived).toBe('Hùng đã lưu trữ việc "Lau bếp".');
+    expect(auditText(log('CHORE_RESTORED', { detail: { title: 'Lau bếp' } }))).toBe('Hùng đã khôi phục việc "Lau bếp".');
+    expect(auditText(log('CHORE_PURGED', { detail: { title: 'Lau bếp' } }))).toBe('Hùng đã xóa vĩnh viễn việc "Lau bếp".');
   });
 
   it('thao tác của hệ thống (không có người) ghi là "Hệ thống"', () => {

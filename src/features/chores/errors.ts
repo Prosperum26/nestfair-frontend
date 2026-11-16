@@ -16,6 +16,8 @@ const MESSAGES: Record<string, string> = {
   SCHEDULE_LOCKED: 'Tuần này đã bắt đầu nên lịch đã khóa.',
   SCHEDULE_HAS_ACTIVITY: 'Đã có ca được nộp hoặc duyệt nên không xáo lại cả lịch được.',
   REROLL_LIMIT: 'Lịch này đã được xáo lại tối đa 2 lần.',
+  CHORE_HAS_HISTORY: 'Việc này đã có lịch sử nên chỉ lưu trữ được, không xóa vĩnh viễn.',
+  CHORE_NOT_ARCHIVED: 'Hãy lưu trữ việc này trước.',
 };
 
 /** Thông điệp tiếng Việt cho người dùng: ưu tiên mã lỗi đã biết, sau đó thông điệp backend. */
