@@ -25,7 +25,7 @@ function TopNav({ houseId }: { houseId: string | undefined }) {
         <NavLink to="/dashboard" aria-label="NestFair - Tổng quan" className="shrink-0">
           <Logo />
         </NavLink>
-        <nav aria-label="Điều hướng chính" className="min-w-0 flex-1">
+        <nav aria-label="Điều hướng chính" className="shrink-0">
           <ul className="flex items-center gap-0.5">
             {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
               <li key={to}>
@@ -47,11 +47,14 @@ function TopNav({ houseId }: { houseId: string | undefined }) {
             ))}
           </ul>
         </nav>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+          {/* Menu giữ bề rộng tự nhiên; tên nhà co lại vừa phần còn dư và cắt "…" (không đè lên menu). */}
           <HouseSwitcher />
-          <NotificationBell houseId={houseId} />
+          <div className="shrink-0">
+            <NotificationBell houseId={houseId} />
+          </div>
           {/* Chấm kết nối gắn ở góc avatar: không thêm bề rộng vào hàng, menu 7 mục vẫn đủ chỗ ở xl. */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <UserMenu />
             <ConnectionDot className="pointer-events-none absolute top-[26px] left-[26px]" />
           </div>

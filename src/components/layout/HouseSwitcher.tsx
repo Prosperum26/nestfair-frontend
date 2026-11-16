@@ -19,20 +19,22 @@ export function HouseSwitcher({ compact = false }: { compact?: boolean }) {
   return (
     <Menu
       align={compact ? 'left' : 'right'}
+      rootClassName="min-w-0"
       trigger={(props) => (
         <button
           type="button"
           {...props}
           aria-label={`Nhà đang xem: ${house.name}. Đổi nhà`}
+          title={house.name}
           className={cn(
-            'flex min-w-0 items-center gap-2 focus-visible:outline-none focus-visible:shadow-focus',
+            'flex max-w-full min-w-0 items-center gap-2 focus-visible:outline-none focus-visible:shadow-focus',
             compact
               ? 'rounded-btn-sm font-mono text-over uppercase text-ink-2'
               : 'h-10 rounded-full border border-line bg-paper py-1 pr-3 pl-1 text-sm font-semibold text-ink hover:bg-paper-2',
           )}
         >
-          {!compact && <IconTile icon={<House />} tone="hl" size={32} className="rounded-full!" />}
-          <span className={cn('truncate', !compact && 'max-w-[120px]')}>{house.name}</span>
+          {!compact && <IconTile icon={<House />} tone="hl" size={32} className="shrink-0 rounded-full!" />}
+          <span className={cn('min-w-0 truncate', !compact && 'max-w-[160px]')}>{house.name}</span>
           <ChevronDown className="size-4 shrink-0" aria-hidden />
         </button>
       )}
