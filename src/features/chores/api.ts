@@ -58,6 +58,7 @@ export const choresApi = {
   },
   verify: (assignmentId: string, body: { decision: VerifyDecision; reason?: string }) =>
     api<Assignment>(`/assignments/${assignmentId}/verify`, { method: 'PATCH', body }),
+  claim: (assignmentId: string) => api<Assignment>(`/assignments/${assignmentId}/claim`, { method: 'POST' }),
   appeal: (assignmentId: string) => api<Assignment>(`/assignments/${assignmentId}/appeal`, { method: 'POST', body: {} }),
   override: (assignmentId: string, body: { action: OverrideAction; reason: string; userId?: string }) =>
     api<Assignment>(`/assignments/${assignmentId}/override`, { method: 'PATCH', body }),

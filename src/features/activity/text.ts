@@ -74,6 +74,8 @@ export function activityLine(a: Activity, meUserId?: string | null): ActivityLin
         icon: CirclePause,
         text: `${actor} tạm ngưng việc ${chore}${num(p.cancelled) > 0 ? ` (${num(p.cancelled)} ca bị hủy)` : ''}`,
       };
+    case 'chore.claimed':
+      return { icon: CircleCheck, text: `${actor} đã nhận việc ${chore}` };
     case 'chore.archived':
       return {
         icon: Archive,

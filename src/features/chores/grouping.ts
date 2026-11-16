@@ -88,6 +88,13 @@ export function collapseDay(list: Assignment[], max = 3, expanded = false): { sh
   return { shown: list.slice(0, max), hidden: list.length - max };
 }
 
+/** Ca chưa có người nhận (việc đột xuất) còn hạn: ai cũng nhận được. Sắp theo hạn. */
+export function openUnclaimed(assignments: Assignment[], now: Date): Assignment[] {
+  return mergeAssignments(assignments)
+    .filter((a) => a.status === 'UNASSIGNED' && new Date(a.dueAt).getTime() > now.getTime())
+    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
+}
+
 /**
  * Đưa lên đầu các ca liên quan đến người dùng (ca của mình còn việc phải làm, ca đang chờ mình duyệt) để khi
  * rút gọn "+N" chúng không bị giấu. Ổn định (giữ thứ tự cũ trong từng nhóm), không đổi mảng gốc.

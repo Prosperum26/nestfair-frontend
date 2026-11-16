@@ -7,7 +7,7 @@ export type AssignmentStatus =
   | 'MISSED'
   | 'CANCELLED'
   | 'UNASSIGNED';
-export type AssignmentSource = 'ROTATION' | 'SWAP' | 'COVER' | 'PAYBACK' | 'WHEEL' | 'REASSIGN';
+export type AssignmentSource = 'ROTATION' | 'SWAP' | 'COVER' | 'PAYBACK' | 'WHEEL' | 'REASSIGN' | 'CLAIM';
 export type VerifyMode = 'PEER' | 'AUTO_APPROVED' | 'SELF_ATTESTED' | 'ADMIN_OVERRIDE';
 export type ChoreFrequency = 'DAILY' | 'WEEKLY' | 'ADHOC';
 export type RotationMode = 'WEEK_BLOCK' | 'PER_OCCURRENCE';

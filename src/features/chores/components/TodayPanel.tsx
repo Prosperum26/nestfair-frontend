@@ -1,11 +1,15 @@
-import { Brush, Clock, Dice5 } from 'lucide-react';
+import { Brush, Clock, Dice5, HandHelping } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/Button.tsx';
 import { Chip } from '@/components/ui/Chip.tsx';
 import { IconTile } from '@/components/ui/IconTile.tsx';
 import { avatarToneFor } from '@/components/ui/tones.ts';
 import { canCheckin } from '../permissions.ts';
 import { statusChip } from '../status.ts';
 import type { Assignment } from '../types.ts';
-import { myShiftsToday } from '../grouping.ts';
+import { messageForError } from '../errors.ts';
+import { myShiftsToday, openUnclaimed } from '../grouping.ts';
+import { useClaim } from '../hooks.ts';
 import { dayKeyOf, dueLabel, dueTimeLabel } from '../week.ts';
 import { AssignmentCard } from './AssignmentCard.tsx';
 import { CheckinForm } from './CheckinModal.tsx';
@@ -73,6 +77,32 @@ export function TodayList({
   );
 }
 
+/** Phần hiển thị thuần của khối "Việc chưa có người nhận": mỗi ca một nút Nhận việc, khóa khi đang nhận một ca. */
+export function UnclaimedList({ items, busyId, onClaim, now = new Date() }: { items: Assignment[]; busyId: string | null; onClaim: (a: Assignment) => void; now?: Date }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mt-5 border-t border-line pt-4">
+      <h3 className="font-mono text-cap uppercase text-ink-2">Việc chưa có người nhận</h3>
+      <ul className="mt-3 flex flex-col gap-3">
+        {items.map((a) => (
+          <li key={a.id} className="@container flex flex-wrap items-center gap-3 rounded-card border border-line-2 p-3">
+            <IconTile icon={<HandHelping />} tone="yellow" size={40} />
+            <div className="min-w-0 flex-1">
+              <p className="text-h4 text-ink [overflow-wrap:anywhere]">{a.choreTitle}</p>
+              <p className="mt-0.5 text-cap text-ink-2">
+                Việc đột xuất · trước{dayKeyOf(a.dueAt) !== dayKeyOf(now) ? ` ${dueLabel(a.dueAt)}` : ''} <span className="font-mono">{dueTimeLabel(a.dueAt)}</span>
+              </p>
+            </div>
+            <Button size="sm" variant="primary" loading={busyId === a.id} disabled={busyId !== null} onClick={() => onClaim(a)}>
+              Nhận việc
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** "Việc của bạn hôm nay" (preview 06) ở trang Việc nhà. */
 export function TodayPanel({
   assignments,
@@ -88,6 +118,13 @@ export function TodayPanel({
   now?: Date;
 }) {
   const mine = myShiftsToday(assignments, meUserId, now, graceHours);
+  const claim = useClaim(houseId);
+  const unclaimed = openUnclaimed(assignments, now);
+  const onClaim = (a: Assignment) =>
+    claim.mutate(a.id, {
+      onSuccess: () => toast(`Bạn đã nhận "${a.choreTitle}". Nó nằm trong việc của bạn.`),
+      onError: (e) => toast(messageForError(e)),
+    });
   return (
     <section aria-label="Việc của bạn hôm nay" className="rounded-card border border-line bg-surface p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -95,6 +132,7 @@ export function TodayPanel({
         <span className="font-mono text-cap text-ink-2">{mine.length}</span>
       </div>
       <TodayList mine={mine} houseId={houseId} meUserId={meUserId} graceHours={graceHours} now={now} />
+      <UnclaimedList items={unclaimed} busyId={claim.isPending ? (claim.variables ?? null) : null} onClaim={onClaim} now={now} />
     </section>
   );
 }
