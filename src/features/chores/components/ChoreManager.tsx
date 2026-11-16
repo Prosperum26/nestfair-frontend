@@ -1,4 +1,4 @@
-import { Pause, Pencil, Play, Plus, TriangleAlert } from 'lucide-react';
+import { Archive, Pause, Pencil, Play, Plus, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button.tsx';
@@ -8,12 +8,13 @@ import { Modal } from '@/components/ui/Modal.tsx';
 import { Skeleton } from '@/components/ui/Skeleton.tsx';
 import { describeChore, ROTATION_HINTS, upcomingSlots } from '../chore-text.ts';
 import { messageForError } from '../errors.ts';
-import { useChores, useUpdateChore, useWeekView } from '../hooks.ts';
+import { useArchiveChore, useChores, useUpdateChore, useWeekView } from '../hooks.ts';
 import type { Chore } from '../types.ts';
 import { shiftWeek, weekKeyOf } from '../week.ts';
+import { ArchivedChores } from './ArchivedChores.tsx';
 import { ChoreFormModal } from './ChoreFormModal.tsx';
 
-function ChoreRow({ chore, isAdmin, onEdit, onToggle }: { chore: Chore; isAdmin: boolean; onEdit: () => void; onToggle: () => void }) {
+function ChoreRow({ chore, isAdmin, onEdit, onToggle, onArchive }: { chore: Chore; isAdmin: boolean; onEdit: () => void; onToggle: () => void; onArchive: () => void }) {
   return (
     <li className="flex flex-wrap items-center gap-3 py-3">
       <div className="min-w-0 flex-1">
@@ -39,6 +40,9 @@ function ChoreRow({ chore, isAdmin, onEdit, onToggle }: { chore: Chore; isAdmin:
           <Button size="sm" variant="ghost" leftIcon={chore.isActive ? <Pause /> : <Play />} onClick={onToggle}>
             {chore.isActive ? 'Tạm ngưng' : 'Bật lại'}
           </Button>
+          <Button size="sm" variant="ghost" leftIcon={<Archive />} onClick={onArchive}>
+            Lưu trữ
+          </Button>
         </div>
       )}
     </li>
@@ -56,7 +60,27 @@ export function ChoreManager({ houseId, isAdmin }: { houseId: string; isAdmin: b
   const [pause, setPause] = useState<Chore | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const upcoming = pause ? upcomingSlots([...(current.data?.assignments ?? []), ...(next.data?.assignments ?? [])], pause.id, new Date()) : 0;
+  const upcomingOf = (c: Chore | null) =>
+    c ? upcomingSlots([...(current.data?.assignments ?? []), ...(next.data?.assignments ?? [])], c.id, new Date()) : 0;
+  const upcoming = upcomingOf(pause);
+  const archiveMutation = useArchiveChore(houseId);
+  const [archive, setArchive] = useState<Chore | null>(null);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const closeArchive = () => {
+    setArchive(null);
+    setArchiveError(null);
+  };
+  const confirmArchive = () => {
+    if (!archive) return;
+    setArchiveError(null);
+    archiveMutation.mutate(archive.id, {
+      onSuccess: () => {
+        toast(`Đã lưu trữ "${archive.title}". Khôi phục lại ở mục Đã lưu trữ.`);
+        closeArchive();
+      },
+      onError: (e) => setArchiveError(messageForError(e)),
+    });
+  };
   const closePause = () => {
     setPause(null);
     setError(null);
@@ -123,10 +147,12 @@ export function ChoreManager({ houseId, isAdmin }: { houseId: string; isAdmin: b
       ) : (
         <ul className="mt-2 divide-y divide-line">
           {chores.data.map((c) => (
-            <ChoreRow key={c.id} chore={c} isAdmin={isAdmin} onEdit={() => setForm({ chore: c })} onToggle={() => toggle(c)} />
+            <ChoreRow key={c.id} chore={c} isAdmin={isAdmin} onEdit={() => setForm({ chore: c })} onToggle={() => toggle(c)} onArchive={() => setArchive(c)} />
           ))}
         </ul>
       )}
+
+      {isAdmin && <ArchivedChores houseId={houseId} />}
 
       <ChoreFormModal open={!!form} onClose={() => setForm(null)} houseId={houseId} chore={form?.chore ?? null} />
 
@@ -147,6 +173,27 @@ export function ChoreManager({ houseId, isAdmin }: { houseId: string; isAdmin: b
           </Button>
           <Button loading={update.isPending} onClick={confirmPause}>
             Tạm ngưng
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={!!archive} onClose={closeArchive} title={`Lưu trữ "${archive?.title ?? ''}"?`} description="Việc sẽ biến mất khỏi danh sách và không được xếp vào lịch nữa. Lịch sử và điểm chăm chỉ được giữ nguyên, bạn khôi phục lại được ở mục Đã lưu trữ.">
+        {upcomingOf(archive) > 0 && (
+          <p className="mb-4 rounded-btn-sm bg-hl-soft px-3 py-2 text-sm text-hl-ink">
+            Việc này đang có <span className="font-mono">{upcomingOf(archive)}</span> ca chưa làm trong hai tuần tới. Các ca đó sẽ bị hủy.
+          </p>
+        )}
+        {archiveError && (
+          <p role="alert" className="mb-4 rounded-btn-sm bg-tom-bg px-3 py-2 text-sm text-tom">
+            {archiveError}
+          </p>
+        )}
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={closeArchive}>
+            Để sau
+          </Button>
+          <Button loading={archiveMutation.isPending} onClick={confirmArchive}>
+            Lưu trữ
           </Button>
         </div>
       </Modal>

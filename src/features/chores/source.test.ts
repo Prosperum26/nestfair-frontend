@@ -8,6 +8,7 @@ describe('sourceLabel', () => {
     expect(sourceLabel('PAYBACK')).toBe('Làm bù');
     expect(sourceLabel('WHEEL')).toBe('Quay may mắn');
     expect(sourceLabel('REASSIGN')).toBe('Giao lại');
+    expect(sourceLabel('CLAIM')).toBe('Việc đột xuất');
   });
 
   it('lịch xoay bình thường không cần nhãn', () => {

@@ -7,7 +7,7 @@ export type AssignmentStatus =
   | 'MISSED'
   | 'CANCELLED'
   | 'UNASSIGNED';
-export type AssignmentSource = 'ROTATION' | 'SWAP' | 'COVER' | 'PAYBACK' | 'WHEEL' | 'REASSIGN';
+export type AssignmentSource = 'ROTATION' | 'SWAP' | 'COVER' | 'PAYBACK' | 'WHEEL' | 'REASSIGN' | 'CLAIM';
 export type VerifyMode = 'PEER' | 'AUTO_APPROVED' | 'SELF_ATTESTED' | 'ADMIN_OVERRIDE';
 export type ChoreFrequency = 'DAILY' | 'WEEKLY' | 'ADHOC';
 export type RotationMode = 'WEEK_BLOCK' | 'PER_OCCURRENCE';
@@ -26,6 +26,10 @@ export interface Chore {
   rotationMode: RotationMode;
   occurrenceGap: number;
   isActive: boolean;
+  /** ISO; có giá trị nghĩa là việc đã lưu trữ (ẩn khỏi danh sách, giữ lịch sử). */
+  archivedAt: string | null;
+  /** Chỉ có ở danh sách đã lưu trữ: true khi việc chưa từng có hoạt động nên xóa vĩnh viễn được. */
+  canPurge?: boolean;
 }
 
 export interface Assignment {

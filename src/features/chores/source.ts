@@ -7,6 +7,7 @@ const LABELS: Record<AssignmentSource, string | null> = {
   PAYBACK: 'Làm bù',
   WHEEL: 'Quay may mắn',
   REASSIGN: 'Giao lại',
+  CLAIM: 'Việc đột xuất',
 };
 
 /** Nhãn nguồn của ca; lịch xoay vòng bình thường không cần nhãn. */

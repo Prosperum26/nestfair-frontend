@@ -1,5 +1,6 @@
 import {
   Activity as ActivityIcon,
+  Archive,
   ArrowLeftRight,
   Ban,
   Camera,
@@ -72,6 +73,13 @@ export function activityLine(a: Activity, meUserId?: string | null): ActivityLin
       return {
         icon: CirclePause,
         text: `${actor} tạm ngưng việc ${chore}${num(p.cancelled) > 0 ? ` (${num(p.cancelled)} ca bị hủy)` : ''}`,
+      };
+    case 'chore.claimed':
+      return { icon: CircleCheck, text: `${actor} đã nhận việc ${chore}` };
+    case 'chore.archived':
+      return {
+        icon: Archive,
+        text: `${actor} đã lưu trữ việc ${chore}${num(p.cancelled) > 0 ? ` (${num(p.cancelled)} ca bị hủy)` : ''}`,
       };
     case 'schedule.generated':
       return { icon: Repeat, text: a.actorUserId ? `${actor} đã tạo lịch tuần ${week(p.weekKey)}` : `Lịch tuần ${week(p.weekKey)} đã được tạo` };
